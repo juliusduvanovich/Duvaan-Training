@@ -24,7 +24,8 @@ export default function SplashScreen({ onComplete }) {
       <img
         src="/duvaan-logo.png"
         style={{
-          width: 240,
+          width: '85vw',
+          maxWidth: 420,
           opacity: phase >= 1 ? 1 : 0,
           transition: 'opacity 0.8s ease',
           mixBlendMode: 'screen'
@@ -33,8 +34,8 @@ export default function SplashScreen({ onComplete }) {
       <div style={{
         marginTop: 28,
         fontFamily: "'Uncial Antiqua', serif",
-        fontSize: 38,
-        letterSpacing: '0.15em',
+        fontSize: 32,
+        letterSpacing: '0.2em',
         color: '#C9A84C',
         opacity: phase >= 3 ? 1 : 0,
         transition: 'opacity 0.8s ease',
