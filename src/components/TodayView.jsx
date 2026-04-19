@@ -76,12 +76,12 @@ export default function TodayView({ program, getTodayIndex, toggleExercise, isCh
         <BackgroundOrnament />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, position: 'relative', zIndex: 3 }}>
           <p style={{
-            fontFamily: "'Uncial Antiqua', serif",
-            fontSize: 22, color: 'var(--gold)',
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 24, color: 'var(--gold)',
             letterSpacing: '0.08em', textAlign: 'center',
-            lineHeight: 1.5
+            lineHeight: 1.6, fontStyle: 'italic'
           }}>
-            Rest Champion,<br />get ready.
+            Restday,<br />get ready.
           </p>
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function TodayView({ program, getTodayIndex, toggleExercise, isCh
         <p style={{ color: 'var(--muted)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4, fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic' }}>
           {date}
         </p>
-        <h1 style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 30, fontWeight: 400, marginBottom: 8, color: 'var(--gold)' }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, fontWeight: 400, marginBottom: 8, color: 'var(--gold)' }}>
           {today.name}
         </h1>
         <div style={{ display: 'inline-block', background: 'var(--burgundy)', color: 'var(--text)', fontSize: 11, padding: '4px 12px', borderRadius: 2, letterSpacing: '0.08em', marginBottom: 24, fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic' }}>
@@ -189,7 +189,7 @@ export default function TodayView({ program, getTodayIndex, toggleExercise, isCh
           fontSize: 12, letterSpacing: '0.15em',
           textTransform: 'uppercase',
           borderRadius: 2,
-          fontFamily: "'Uncial Antiqua', serif",
+          fontFamily: "'Cormorant Garamond', serif",
           cursor: 'pointer'
         }}>
           I skipped
@@ -202,7 +202,7 @@ export default function TodayView({ program, getTodayIndex, toggleExercise, isCh
           background: 'rgba(8,8,8,0.95)', border: '1px solid var(--gold)',
           color: 'var(--gold)', padding: '10px 24px', borderRadius: 2,
           fontSize: 13, letterSpacing: '0.08em', zIndex: 200, whiteSpace: 'nowrap',
-          fontFamily: "'Uncial Antiqua', serif"
+          fontFamily: "'Cormorant Garamond', serif"
         }}>
           {toast}
         </div>
@@ -216,7 +216,7 @@ export default function TodayView({ program, getTodayIndex, toggleExercise, isCh
         }}>
           <BackgroundOrnament />
           <img src="/duvaan-logo.png" style={{ width: '60vw', maxWidth: 260, mixBlendMode: 'screen', position: 'relative', zIndex: 3 }} />
-          <p style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 28, color: 'var(--gold)', marginTop: 28, letterSpacing: '0.05em', position: 'relative', zIndex: 3 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: 'var(--gold)', marginTop: 28, letterSpacing: '0.05em', position: 'relative', zIndex: 3 }}>
             Session complete.
           </p>
           <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 10, letterSpacing: '0.05em', fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', position: 'relative', zIndex: 3 }}>
