@@ -30,16 +30,16 @@ export default function SplashScreen({ onComplete }) {
           100% { filter: brightness(1) saturate(1); }
         }
       `}</style>
-
-      <div style={{
-        position: 'relative',
-        width: '100vw',
-        maxWidth: 500,
-        opacity: phase >= 1 ? 1 : 0,
-        transition: 'opacity 1.6s ease',
-        animation: phase >= 2 ? 'glow 2s ease forwards' : 'none',
-        background: 'transparent'
-      }}>
+<div style={{
+  position: 'relative',
+  width: '100vw',
+  maxWidth: 500,
+  opacity: phase >= 1 ? 1 : 0,
+  transition: 'opacity 1.6s ease',
+  animation: phase >= 2 ? 'glow 2s ease forwards' : 'none',
+  background: 'transparent',
+  marginBottom: '20vh'
+}}>
         <img
           src="/duvaan-ornament.png"
           style={{
