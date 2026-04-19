@@ -75,9 +75,13 @@ export default function TodayView({ program, getTodayIndex, toggleExercise, isCh
       }}>
         <BackgroundOrnament />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, position: 'relative', zIndex: 3 }}>
-          <img src="/duvaan-logo.png" style={{ width: '70vw', maxWidth: 300, mixBlendMode: 'screen' }} />
-          <p style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 13, color: 'var(--gold)', letterSpacing: '0.12em', opacity: 0.8 }}>
-            It's A Lifestyle
+          <p style={{
+            fontFamily: "'Uncial Antiqua', serif",
+            fontSize: 22, color: 'var(--gold)',
+            letterSpacing: '0.08em', textAlign: 'center',
+            lineHeight: 1.5
+          }}>
+            Rest Champion,<br />get ready.
           </p>
         </div>
       </div>
