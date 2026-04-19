@@ -2,6 +2,17 @@ const TOTAL_PIECES = 40
 const COLS = 4
 const ROWS = 10
 
+const glassBox = {
+  background: 'linear-gradient(135deg, rgba(140,40,65,0.45) 0%, rgba(70,10,25,0.15) 50%, rgba(110,28,50,0.38) 100%)',
+  border: '1px solid rgba(201,168,76,0.2)',
+  borderTop: '1px solid rgba(201,168,76,0.4)',
+  borderLeft: '2px solid rgba(150,50,70,0.5)',
+  borderRadius: 6,
+  position: 'relative',
+  overflow: 'hidden',
+  boxShadow: 'inset 0 1px 0 rgba(201,168,76,0.08), inset 1px 0 0 rgba(201,168,76,0.06)'
+}
+
 export default function BadgeView({ completedSessions }) {
   const completed = completedSessions.filter(s => !s.skipped).length
   const skipped = completedSessions.filter(s => s.skipped).length
@@ -32,11 +43,7 @@ export default function BadgeView({ completedSessions }) {
 
   return (
     <div style={{ padding: '24px 20px 100px' }}>
-      <h1 style={{
-        fontFamily: "'Uncial Antiqua', serif",
-        fontSize: 28, fontWeight: 400,
-        color: 'var(--gold)', letterSpacing: '0.05em', marginBottom: 6
-      }}>
+      <h1 style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 28, fontWeight: 400, color: 'var(--gold)', letterSpacing: '0.05em', marginBottom: 6 }}>
         The Body
       </h1>
       <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4, fontFamily: "'Cormorant Garamond', serif" }}>
@@ -45,40 +52,14 @@ export default function BadgeView({ completedSessions }) {
       <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 1, marginBottom: 8 }}>
         <div style={{ height: 2, background: 'var(--gold)', borderRadius: 1, width: `${pct}%`, transition: 'width 0.6s ease' }} />
       </div>
-      <p style={{
-        fontSize: 13, color: 'var(--gold)', marginBottom: 24,
-        fontFamily: "'Cormorant Garamond', serif",
-        fontStyle: 'italic', opacity: 0.8, minHeight: 20
-      }}>
+      <p style={{ fontSize: 13, color: 'var(--gold)', marginBottom: 24, fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', opacity: 0.8, minHeight: 20 }}>
         {messages[msgIndex]}
       </p>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{
-          position: 'relative',
-          width: imgW,
-          height: imgH,
-          overflow: 'hidden',
-          borderRadius: 2
-        }}>
-          <img
-            src="/mallikeho.png"
-            style={{
-              position: 'absolute',
-              top: 0, left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center top',
-              display: 'block'
-            }}
-          />
-          <svg
-            style={{ position: 'absolute', top: 0, left: 0 }}
-            width={imgW}
-            height={imgH}
-            viewBox={`0 0 ${imgW} ${imgH}`}
-          >
+        <div style={{ position: 'relative', width: imgW, height: imgH, overflow: 'hidden', borderRadius: 2 }}>
+          <img src="/mallikeho.png" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+          <svg style={{ position: 'absolute', top: 0, left: 0 }} width={imgW} height={imgH} viewBox={`0 0 ${imgW} ${imgH}`}>
             {Array.from({ length: ROWS }, (_, row) =>
               Array.from({ length: COLS }, (_, col) => {
                 const cellIndex = row * COLS + col
@@ -89,55 +70,33 @@ export default function BadgeView({ completedSessions }) {
                 const w = cellW - gap
                 const h = cellH - gap
                 return (
-                  <rect
-                    key={`${row}-${col}`}
-                    x={x} y={y} width={w} height={h}
-                    rx="4"
-                    fill="#0a0205"
-                    stroke="rgba(107,29,46,0.4)"
-                    strokeWidth="0.5"
-                  />
+                  <rect key={`${row}-${col}`} x={x} y={y} width={w} height={h} rx="4" fill="#0a0205" stroke="rgba(107,29,46,0.4)" strokeWidth="0.5" />
                 )
               })
             )}
-            {count === TOTAL_PIECES && (
-              <rect x="0" y="0" width={imgW} height={imgH} fill="rgba(201,168,76,0.1)" />
-            )}
+            {count === TOTAL_PIECES && <rect x="0" y="0" width={imgW} height={imgH} fill="rgba(201,168,76,0.1)" />}
           </svg>
         </div>
       </div>
 
       {count === TOTAL_PIECES && (
-        <p style={{
-          textAlign: 'center', marginTop: 20,
-          fontFamily: "'Uncial Antiqua', serif",
-          fontSize: 16, color: 'var(--gold)',
-          letterSpacing: '0.08em'
-        }}>
+        <p style={{ textAlign: 'center', marginTop: 20, fontFamily: "'Uncial Antiqua', serif", fontSize: 16, color: 'var(--gold)', letterSpacing: '0.08em' }}>
           Fight Club physique unlocked.
         </p>
       )}
 
       {completedSessions.length > 0 && (
         <div style={{ marginTop: 28 }}>
-          <p style={{
-            fontSize: 13, color: 'var(--muted)',
-            letterSpacing: '0.08em', marginBottom: 12,
-            fontFamily: "'Uncial Antiqua', serif"
-          }}>
+          <p style={{ fontSize: 13, color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: 12, fontFamily: "'Uncial Antiqua', serif" }}>
             History
           </p>
           {completedSessions.slice().reverse().slice(0, 8).map((s, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between',
-              padding: '8px 0', borderBottom: '1px solid rgba(107,29,46,0.2)',
-              fontSize: 13, fontFamily: "'Cormorant Garamond', serif",
-              opacity: s.skipped ? 0.5 : 1
-            }}>
-              <span style={{ color: s.skipped ? 'rgba(136,136,136,0.6)' : 'var(--text)', fontStyle: s.skipped ? 'italic' : 'normal' }}>
+            <div key={i} style={{ ...glassBox, marginBottom: 6, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', opacity: s.skipped ? 0.5 : 1 }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent)' }} />
+              <span style={{ color: s.skipped ? 'var(--muted)' : 'var(--text)', fontFamily: "'Cormorant Garamond', serif", fontSize: 13, fontStyle: s.skipped ? 'italic' : 'normal' }}>
                 {s.day}
               </span>
-              <span style={{ color: 'var(--muted)' }}>{s.date}</span>
+              <span style={{ color: 'var(--muted)', fontFamily: "'Cormorant Garamond', serif", fontSize: 13 }}>{s.date}</span>
             </div>
           ))}
         </div>

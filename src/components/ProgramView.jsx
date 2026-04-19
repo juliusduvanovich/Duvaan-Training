@@ -16,6 +16,23 @@ const BackgroundOrnament = () => (
   </div>
 )
 
+const glassCard = (isToday = false) => ({
+  background: isToday
+    ? 'linear-gradient(135deg, rgba(160,50,80,0.65) 0%, rgba(90,15,30,0.3) 50%, rgba(130,35,60,0.55) 100%)'
+    : 'linear-gradient(135deg, rgba(140,40,65,0.45) 0%, rgba(70,10,25,0.15) 50%, rgba(110,28,50,0.38) 100%)',
+  border: isToday ? '1px solid rgba(201,168,76,0.45)' : '1px solid rgba(201,168,76,0.2)',
+  borderTop: isToday ? '1px solid rgba(201,168,76,0.7)' : '1px solid rgba(201,168,76,0.4)',
+  borderLeft: isToday ? '3px solid rgba(201,168,76,0.8)' : '2px solid rgba(150,50,70,0.5)',
+  borderRadius: 6,
+  marginBottom: 8,
+  cursor: 'pointer',
+  position: 'relative',
+  overflow: 'hidden',
+  boxShadow: isToday
+    ? 'inset 0 1px 0 rgba(201,168,76,0.15), inset 1px 0 0 rgba(201,168,76,0.1)'
+    : 'inset 0 1px 0 rgba(201,168,76,0.08), inset 1px 0 0 rgba(201,168,76,0.06)'
+})
+
 export default function ProgramView({ program, getTodayIndex, isChecked }) {
   const [expanded, setExpanded] = useState(getTodayIndex())
   const todayIndex = getTodayIndex()
@@ -46,20 +63,11 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
             const total = day.exercises.length
 
             return (
-              <div key={i} onClick={() => setExpanded(isOpen ? null : i)} style={{
-                background: isToday
-                  ? 'linear-gradient(135deg, rgba(107,29,46,0.45) 0%, rgba(107,29,46,0.25) 50%, rgba(107,29,46,0.38) 100%)'
-                  : 'linear-gradient(135deg, rgba(107,29,46,0.28) 0%, rgba(107,29,46,0.1) 50%, rgba(107,29,46,0.22) 100%)',
-                border: isToday
-                  ? '1px solid rgba(201,168,76,0.3)'
-                  : '1px solid rgba(201,168,76,0.12)',
-                borderLeft: isToday
-                  ? '3px solid var(--gold)'
-                  : '3px solid rgba(107,29,46,0.6)',
-                borderRadius: 4,
-                cursor: 'pointer',
-                opacity: day.rest ? 0.5 : 1
-              }}>
+              <div key={i} onClick={() => setExpanded(isOpen ? null : i)} style={glassCard(isToday)}>
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+                  background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent)'
+                }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
                   <div>
                     <p style={{
@@ -71,8 +79,8 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                     </p>
                     <p style={{
                       fontFamily: "'Cormorant Garamond', serif",
-                      fontStyle: 'italic',
-                      fontSize: 13, color: isToday ? 'rgba(201,168,76,0.7)' : 'rgba(245,240,232,0.4)',
+                      fontStyle: 'italic', fontSize: 13,
+                      color: isToday ? 'rgba(201,168,76,0.7)' : 'rgba(245,240,232,0.4)',
                       letterSpacing: '0.03em'
                     }}>
                       {day.focus}
@@ -81,8 +89,7 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     {total > 0 && (
                       <span style={{
-                        fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 13,
+                        fontFamily: "'Cormorant Garamond', serif", fontSize: 13,
                         color: isToday ? 'var(--gold)' : 'rgba(201,168,76,0.5)'
                       }}>
                         {done}/{total}
@@ -93,7 +100,7 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                 </div>
 
                 {isOpen && !day.rest && (
-                  <div style={{ borderTop: '1px solid rgba(107,29,46,0.3)' }}>
+                  <div style={{ borderTop: '1px solid rgba(201,168,76,0.1)' }}>
                     {day.exercises.map((ex, j) => {
                       const checked = isChecked(i, ex.id)
                       return (
@@ -103,20 +110,10 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                           borderBottom: j < day.exercises.length - 1 ? '1px solid rgba(107,29,46,0.2)' : 'none',
                           opacity: checked ? 0.35 : 1
                         }}>
-                          <p style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 14,
-                            textDecoration: checked ? 'line-through' : 'none',
-                            color: 'var(--text)'
-                          }}>
+                          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, textDecoration: checked ? 'line-through' : 'none', color: 'var(--text)' }}>
                             {ex.name}
                           </p>
-                          <p style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontStyle: 'italic',
-                            fontSize: 13,
-                            color: checked ? 'rgba(136,136,136,0.5)' : 'var(--gold)'
-                          }}>
+                          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 13, color: checked ? 'rgba(136,136,136,0.5)' : 'var(--gold)' }}>
                             {formatSets(ex)}
                           </p>
                         </div>
@@ -127,11 +124,7 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
 
                 {isOpen && day.rest && (
                   <div style={{ borderTop: '1px solid rgba(107,29,46,0.3)', padding: '16px 20px' }}>
-                    <p style={{
-                      fontFamily: "'Uncial Antiqua', serif",
-                      fontSize: 13, color: 'var(--gold)',
-                      opacity: 0.6, letterSpacing: '0.05em'
-                    }}>
+                    <p style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 13, color: 'var(--gold)', opacity: 0.6, letterSpacing: '0.05em' }}>
                       It's A Lifestyle
                     </p>
                   </div>

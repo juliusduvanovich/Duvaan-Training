@@ -7,13 +7,13 @@
 
 :root {
   --bg: #080808;
-  --card: rgba(107, 29, 46, 0.25);
-  --border: rgba(201, 168, 76, 0.2);
+  --card: rgba(107, 29, 46, 0.18);
+  --border: rgba(201, 168, 76, 0.15);
   --burgundy: #6B1D2E;
   --gold: #C9A84C;
   --text: #F5F0E8;
   --muted: #888;
-  --font-heading: 'Cormorant Garamond', serif;
+  --font-heading: 'Ewert', serif;
   --font-body: 'Inter', sans-serif;
 }
 
@@ -37,8 +37,8 @@ button {
 input, textarea, select {
   font-family: var(--font-body);
   color: var(--text);
-  background: rgba(107, 29, 46, 0.2);
-  border: 1px solid rgba(201, 168, 76, 0.2);
+  background: rgba(107, 29, 46, 0.18);
+  border: 1px solid rgba(201, 168, 76, 0.15);
   border-radius: 4px;
   padding: 12px;
   width: 100%;
@@ -47,7 +47,8 @@ input, textarea, select {
 }
 
 input::placeholder, textarea::placeholder {
-  color: var(--muted);
+  color: var(--text);
+  opacity: 0.8;
 }
 
 .app {
@@ -74,7 +75,7 @@ input::placeholder, textarea::placeholder {
   max-width: 480px;
   display: flex;
   border-top: 1px solid rgba(201, 168, 76, 0.15);
-  background: rgba(8, 8, 8, 0.9);
+  background: rgba(8, 8, 8, 0.85);
   z-index: 100;
 }
 
@@ -84,7 +85,7 @@ input::placeholder, textarea::placeholder {
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text);
   transition: color 0.2s;
 }
 
@@ -95,16 +96,38 @@ input::placeholder, textarea::placeholder {
 .card {
   background: linear-gradient(
     135deg,
-    rgba(107, 29, 46, 0.35) 0%,
-    rgba(107, 29, 46, 0.15) 50%,
-    rgba(107, 29, 46, 0.28) 100%
+    rgba(120, 35, 55, 0.45) 0%,
+    rgba(80, 15, 30, 0.25) 40%,
+    rgba(100, 25, 45, 0.35) 100%
   );
-  border: 1px solid rgba(201, 168, 76, 0.18);
-  border-top: 1px solid rgba(201, 168, 76, 0.3);
-  border-left: 1px solid rgba(201, 168, 76, 0.25);
-  border-radius: 4px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-top: 1px solid rgba(201, 168, 76, 0.35);
+  border-left: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 6px;
   padding: 20px;
   margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.5), transparent);
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(201, 168, 76, 0.4), transparent);
 }
 
 .gold { color: var(--gold); }
