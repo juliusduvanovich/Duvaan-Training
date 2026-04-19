@@ -37,13 +37,12 @@ export default function BadgeView({ completedSessions }) {
 
   const imgW = 320
   const imgH = 480
-  const gap = 3
   const cellW = imgW / COLS
   const cellH = imgH / ROWS
 
   return (
     <div style={{ padding: '24px 20px 100px' }}>
-      <h1 style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 28, fontWeight: 400, color: 'var(--gold)', letterSpacing: '0.05em', marginBottom: 6 }}>
+      <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 400, color: 'var(--gold)', letterSpacing: '0.05em', marginBottom: 6 }}>
         The Body
       </h1>
       <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4, fontFamily: "'Cormorant Garamond', serif" }}>
@@ -57,37 +56,82 @@ export default function BadgeView({ completedSessions }) {
       </p>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ position: 'relative', width: imgW, height: imgH, overflow: 'hidden', borderRadius: 2 }}>
-          <img src="/mallikeho.png" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
-          <svg style={{ position: 'absolute', top: 0, left: 0 }} width={imgW} height={imgH} viewBox={`0 0 ${imgW} ${imgH}`}>
+        <div style={{
+          position: 'relative',
+          width: imgW,
+          height: imgH,
+          background: '#0a0205',
+          overflow: 'hidden'
+        }}>
+          <img
+            src="/mallikeho.png"
+            style={{
+              position: 'absolute', top: 0, left: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center center',
+              zIndex: 1
+            }}
+          />
+
+          <svg
+            style={{ position: 'absolute', top: -1, left: -1, zIndex: 2 }}
+            width={imgW + 2}
+            height={imgH + 2}
+            viewBox={`-1 -1 ${imgW + 2} ${imgH + 2}`}
+          >
             {Array.from({ length: ROWS }, (_, row) =>
               Array.from({ length: COLS }, (_, col) => {
                 const cellIndex = row * COLS + col
                 const isUnlocked = cellIndex < unlockedCells
                 if (isUnlocked) return null
-                const x = col * cellW + gap / 2
-                const y = row * cellH + gap / 2
-                const w = cellW - gap
-                const h = cellH - gap
                 return (
-                  <rect key={`${row}-${col}`} x={x} y={y} width={w} height={h} rx="4" fill="#0a0205" stroke="rgba(107,29,46,0.4)" strokeWidth="0.5" />
+                  <rect
+                    key={`${row}-${col}`}
+                    x={col * cellW}
+                    y={row * cellH}
+                    width={cellW}
+                    height={cellH}
+                    fill="#0a0205"
+                    stroke="rgba(201,168,76,0.3)"
+                    strokeWidth="1"
+                  />
                 )
               })
             )}
-            {count === TOTAL_PIECES && <rect x="0" y="0" width={imgW} height={imgH} fill="rgba(201,168,76,0.1)" />}
           </svg>
+
+          <img
+            src="/duvaan-ornament.png"
+            style={{
+              position: 'absolute',
+              top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              mixBlendMode: 'screen',
+              opacity: 0.6,
+              pointerEvents: 'none',
+              zIndex: 3
+            }}
+          />
+
+          {count === TOTAL_PIECES && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 4, background: 'rgba(201,168,76,0.1)' }} />
+          )}
         </div>
       </div>
 
       {count === TOTAL_PIECES && (
-        <p style={{ textAlign: 'center', marginTop: 20, fontFamily: "'Uncial Antiqua', serif", fontSize: 16, color: 'var(--gold)', letterSpacing: '0.08em' }}>
+        <p style={{ textAlign: 'center', marginTop: 20, fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 16, color: 'var(--gold)', letterSpacing: '0.08em' }}>
           Fight Club physique unlocked.
         </p>
       )}
 
       {completedSessions.length > 0 && (
         <div style={{ marginTop: 28 }}>
-          <p style={{ fontSize: 13, color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: 12, fontFamily: "'Uncial Antiqua', serif" }}>
+          <p style={{ fontSize: 13, color: 'var(--muted)', letterSpacing: '0.08em', marginBottom: 12, fontFamily: "'Cormorant Garamond', serif" }}>
             History
           </p>
           {completedSessions.slice().reverse().slice(0, 8).map((s, i) => (
