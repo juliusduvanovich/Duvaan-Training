@@ -10,10 +10,12 @@ const TOASTS = [
 
 const BackgroundOrnament = () => (
   <div style={{
-    position: 'absolute',
+    position: 'fixed',
     top: '50%', left: '50%',
     transform: 'translate(-50%, -50%)',
-    pointerEvents: 'none', zIndex: 0
+    pointerEvents: 'none', zIndex: 0,
+    width: '100%',
+    maxWidth: 480
   }}>
     <img src="/duvaan-ornament.png" style={{
       width: '100vw',

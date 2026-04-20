@@ -2,10 +2,12 @@ import { useState } from 'react'
 
 const BackgroundOrnament = () => (
   <div style={{
-    position: 'absolute',
+    position: 'fixed',
     top: '50%', left: '50%',
     transform: 'translate(-50%, -50%)',
-    pointerEvents: 'none', zIndex: 0
+    pointerEvents: 'none', zIndex: 0,
+    width: '100%',
+    maxWidth: 480
   }}>
     <img src="/duvaan-ornament.png" style={{
       width: '100vw',
@@ -44,11 +46,11 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
   }
 
   return (
-    <div className="view" style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className="view" style={{ position: 'relative' }}>
       <BackgroundOrnament />
       <div style={{ position: 'relative', zIndex: 3 }}>
         <h1 style={{
-          fontFamily: "'Uncial Antiqua', serif",
+          fontFamily: "'Cormorant Garamond', serif",
           fontSize: 28, fontWeight: 400,
           color: 'var(--gold)', letterSpacing: '0.05em', marginBottom: 24
         }}>
@@ -71,7 +73,7 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
                   <div>
                     <p style={{
-                      fontFamily: "'Uncial Antiqua', serif",
+                      fontFamily: "'Cormorant Garamond', serif",
                       fontSize: 15, marginBottom: 3,
                       color: isToday ? 'var(--gold)' : 'var(--text)'
                     }}>
@@ -124,7 +126,7 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
 
                 {isOpen && day.rest && (
                   <div style={{ borderTop: '1px solid rgba(107,29,46,0.3)', padding: '16px 20px' }}>
-                    <p style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 13, color: 'var(--gold)', opacity: 0.6, letterSpacing: '0.05em' }}>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 13, color: 'var(--gold)', opacity: 0.6, letterSpacing: '0.05em' }}>
                       It's A Lifestyle
                     </p>
                   </div>
