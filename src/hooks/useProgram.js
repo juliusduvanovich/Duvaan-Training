@@ -109,6 +109,22 @@ export function useProgram() {
     })))
   }
 
+  function addExercise(dayIndex, exercise) {
+    setProgram(prev => prev.map((day, i) => {
+      if (i !== dayIndex) return day
+      return {
+        ...day,
+        exercises: [...day.exercises, {
+          id: `custom_${Date.now()}`,
+          name: exercise.name,
+          sets: Number(exercise.sets) || 3,
+          reps: exercise.reps || '10',
+          weight: exercise.weight || null
+        }]
+      }
+    }))
+  }
+
   function addLogEntry(text) {
     const entry = {
       id: Date.now(),
@@ -125,7 +141,7 @@ export function useProgram() {
 
   return {
     program, checked, log, completedSessions,
-    toggleExercise, isChecked, updateWeight, updateExercise,
+    toggleExercise, isChecked, updateWeight, updateExercise, addExercise,
     addLogEntry, getTodayIndex, completeSession, skipSession,
     addPastSession, removeSession
   }

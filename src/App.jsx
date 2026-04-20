@@ -12,7 +12,7 @@ export default function App() {
   const {
     program, completedSessions,
     toggleExercise, isChecked, addLogEntry,
-    updateWeight, updateExercise,
+    updateWeight, updateExercise, addExercise,
     getTodayIndex, completeSession, skipSession,
     addPastSession, removeSession
   } = useProgram()
@@ -36,16 +36,15 @@ export default function App() {
           program={program}
           getTodayIndex={getTodayIndex}
           isChecked={isChecked}
+          updateExercise={updateExercise}
+          addExercise={addExercise}
         />
       )}
       {tab === 'log' && (
         <LogView
-          addLogEntry={addLogEntry}
           completedSessions={completedSessions}
           addPastSession={addPastSession}
           removeSession={removeSession}
-          program={program}
-          updateExercise={updateExercise}
         />
       )}
       {tab === 'body' && (

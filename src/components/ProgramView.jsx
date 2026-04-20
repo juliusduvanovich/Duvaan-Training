@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const BackgroundOrnament = () => (
   <div style={{
@@ -29,35 +29,53 @@ const glassCard = (isToday = false) => ({
   marginBottom: 8,
   cursor: 'pointer',
   position: 'relative',
-  overflow: 'visible',
+  overflow: 'hidden',
   boxShadow: isToday
     ? 'inset 0 1px 0 rgba(201,168,76,0.15), inset 1px 0 0 rgba(201,168,76,0.1)'
     : 'inset 0 1px 0 rgba(201,168,76,0.08), inset 1px 0 0 rgba(201,168,76,0.06)'
 })
 
-function CardRipple({ active }) {
-  if (!active) return null
+const inputStyle = {
+  background: 'rgba(107,29,46,0.2)',
+  border: '1px solid rgba(201,168,76,0.25)',
+  borderRadius: 3,
+  color: 'var(--text)',
+  fontFamily: "'Cormorant Garamond', serif",
+  fontSize: 13,
+  padding: '4px 8px',
+  outline: 'none',
+  width: '100%'
+}
+
+function AnimatedContent({ isOpen, children }) {
+  const ref = useRef(null)
+  const [height, setHeight] = useState(0)
+
+  useEffect(() => {
+    if (ref.current) {
+      setHeight(isOpen ? ref.current.scrollHeight : 0)
+    }
+  }, [isOpen, children])
+
   return (
-    <>
-      {[1, 2, 3, 4].map(n => (
-        <div key={n} style={{
-          position: 'absolute',
-          inset: -n * 8,
-          borderRadius: 6 + n * 4,
-          border: `1px solid rgba(201,168,76,${0.35 - n * 0.07})`,
-          animation: `wave-out 1.4s ease-out forwards`,
-          animationDelay: `${(n - 1) * 0.18}s`,
-          pointerEvents: 'none',
-          zIndex: 10
-        }} />
-      ))}
-    </>
+    <div style={{
+      maxHeight: height,
+      overflow: 'hidden',
+      transition: 'max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+      borderTop: isOpen ? '1px solid rgba(201,168,76,0.1)' : 'none'
+    }}>
+      <div ref={ref}>
+        {children}
+      </div>
+    </div>
   )
 }
 
-export default function ProgramView({ program, getTodayIndex, isChecked }) {
+export default function ProgramView({ program, getTodayIndex, isChecked, updateExercise, addExercise }) {
   const [expanded, setExpanded] = useState(getTodayIndex())
-  const [rippling, setRippling] = useState(null)
+  const [editing, setEditing] = useState(null)
+  const [drafts, setDrafts] = useState({})
+  const [newExercise, setNewExercise] = useState({ name: '', sets: '3', reps: '10', weight: '' })
   const todayIndex = getTodayIndex()
 
   function formatSets(ex) {
@@ -67,27 +85,39 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
   }
 
   function handlePress(i) {
-    setRippling(i)
-    setTimeout(() => setRippling(null), 1400)
+    if (editing !== null) return
     setExpanded(expanded === i ? null : i)
+  }
+
+  function startEdit(i, exercises) {
+    const d = {}
+    exercises.forEach(ex => {
+      d[ex.id] = { name: ex.name, sets: ex.sets, reps: ex.reps, weight: ex.weight || '' }
+    })
+    setDrafts(d)
+    setNewExercise({ name: '', sets: '3', reps: '10', weight: '' })
+    setEditing(i)
+  }
+
+  function saveEdit(dayIndex, exercises) {
+    exercises.forEach(ex => {
+      const d = drafts[ex.id]
+      if (d) updateExercise(ex.id, { name: d.name, sets: Number(d.sets), reps: d.reps, weight: d.weight || null })
+    })
+    if (newExercise.name.trim()) {
+      addExercise(dayIndex, newExercise)
+    }
+    setEditing(null)
+    setDrafts({})
+    setNewExercise({ name: '', sets: '3', reps: '10', weight: '' })
+  }
+
+  function updateDraft(id, field, value) {
+    setDrafts(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
   }
 
   return (
     <div className="view" style={{ position: 'relative' }}>
-      <style>{`
-        @keyframes buoy {
-          0%   { transform: translateY(0) rotate(0deg); }
-          25%  { transform: translateY(4px) rotate(0.3deg); }
-          55%  { transform: translateY(-3px) rotate(-0.2deg); }
-          75%  { transform: translateY(1.5px) rotate(0.1deg); }
-          90%  { transform: translateY(-0.5px); }
-          100% { transform: translateY(0) rotate(0deg); }
-        }
-        @keyframes wave-out {
-          0%   { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(1.15); }
-        }
-      `}</style>
       <BackgroundOrnament />
       <div style={{ position: 'relative', zIndex: 3 }}>
         <h1 style={{
@@ -102,27 +132,21 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
           {program.map((day, i) => {
             const isToday = i === todayIndex
             const isOpen = expanded === i
-            const isRippling = rippling === i
+            const isEditing = editing === i
             const done = day.exercises.filter(ex => isChecked(i, ex.id)).length
             const total = day.exercises.length
 
             return (
-              <div
-                key={i}
-                onClick={() => handlePress(i)}
-                style={{
-                  ...glassCard(isToday),
-                  animation: isRippling ? 'buoy 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' : 'none'
-                }}
-              >
+              <div key={i} style={glassCard(isToday)}>
                 <div style={{
                   position: 'absolute', top: 0, left: 0, right: 0, height: 1,
                   background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent)'
                 }} />
 
-                <CardRipple active={isRippling} />
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
+                <div
+                  onClick={() => !isEditing && handlePress(i)}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}
+                >
                   <div>
                     <p style={{
                       fontFamily: "'Cormorant Garamond', serif",
@@ -152,42 +176,163 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                     <span style={{
                       color: 'rgba(201,168,76,0.4)', fontSize: 11,
                       display: 'inline-block',
-                      transition: 'transform 0.4s ease',
+                      transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
                     }}>↓</span>
                   </div>
                 </div>
 
-                {isOpen && !day.rest && (
-                  <div style={{ borderTop: '1px solid rgba(201,168,76,0.1)' }}>
-                    {day.exercises.map((ex, j) => {
-                      const checked = isChecked(i, ex.id)
-                      return (
-                        <div key={ex.id} style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '12px 20px',
-                          borderBottom: j < day.exercises.length - 1 ? '1px solid rgba(107,29,46,0.2)' : 'none',
-                          opacity: checked ? 0.35 : 1
-                        }}>
-                          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, textDecoration: checked ? 'line-through' : 'none', color: 'var(--text)' }}>
-                            {ex.name}
-                          </p>
-                          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 13, color: checked ? 'rgba(136,136,136,0.5)' : 'var(--gold)' }}>
-                            {formatSets(ex)}
-                          </p>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                <AnimatedContent isOpen={isOpen}>
+                  {!day.rest ? (
+                    isEditing ? (
+                      <>
+                        {day.exercises.map((ex) => (
+                          <div key={ex.id} style={{
+                            padding: '10px 20px',
+                            borderBottom: '1px solid rgba(107,29,46,0.2)',
+                            display: 'flex', flexDirection: 'column', gap: 6
+                          }}>
+                            <input
+                              value={drafts[ex.id]?.name || ''}
+                              onChange={e => updateDraft(ex.id, 'name', e.target.value)}
+                              style={{ ...inputStyle, fontSize: 14 }}
+                              placeholder="Liikkeen nimi"
+                            />
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <input
+                                value={drafts[ex.id]?.sets || ''}
+                                onChange={e => updateDraft(ex.id, 'sets', e.target.value)}
+                                style={{ ...inputStyle, width: 60 }}
+                                placeholder="Sarjat"
+                              />
+                              <input
+                                value={drafts[ex.id]?.reps || ''}
+                                onChange={e => updateDraft(ex.id, 'reps', e.target.value)}
+                                style={{ ...inputStyle, width: 80 }}
+                                placeholder="Toistot"
+                              />
+                              <input
+                                value={drafts[ex.id]?.weight || ''}
+                                onChange={e => updateDraft(ex.id, 'weight', e.target.value)}
+                                style={{ ...inputStyle, flex: 1 }}
+                                placeholder="Paino"
+                              />
+                            </div>
+                          </div>
+                        ))}
 
-                {isOpen && day.rest && (
-                  <div style={{ borderTop: '1px solid rgba(107,29,46,0.3)', padding: '16px 20px' }}>
-                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 13, color: 'var(--gold)', opacity: 0.6, letterSpacing: '0.05em' }}>
-                      It's A Lifestyle
-                    </p>
-                  </div>
-                )}
+                        <div style={{
+                          padding: '12px 20px',
+                          borderBottom: '1px solid rgba(107,29,46,0.2)',
+                          display: 'flex', flexDirection: 'column', gap: 6,
+                          background: 'rgba(201,168,76,0.04)'
+                        }}>
+                          <p style={{ fontSize: 11, color: 'rgba(201,168,76,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Cormorant Garamond', serif", marginBottom: 2 }}>
+                            + Lisää liike
+                          </p>
+                          <input
+                            value={newExercise.name}
+                            onChange={e => setNewExercise(prev => ({ ...prev, name: e.target.value }))}
+                            style={{ ...inputStyle, fontSize: 14 }}
+                            placeholder="Liikkeen nimi"
+                          />
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <input
+                              value={newExercise.sets}
+                              onChange={e => setNewExercise(prev => ({ ...prev, sets: e.target.value }))}
+                              style={{ ...inputStyle, width: 60 }}
+                              placeholder="Sarjat"
+                            />
+                            <input
+                              value={newExercise.reps}
+                              onChange={e => setNewExercise(prev => ({ ...prev, reps: e.target.value }))}
+                              style={{ ...inputStyle, width: 80 }}
+                              placeholder="Toistot"
+                            />
+                            <input
+                              value={newExercise.weight}
+                              onChange={e => setNewExercise(prev => ({ ...prev, weight: e.target.value }))}
+                              style={{ ...inputStyle, flex: 1 }}
+                              placeholder="Paino"
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 8, padding: '12px 20px' }}>
+                          <button
+                            onClick={() => saveEdit(i, day.exercises)}
+                            style={{
+                              flex: 1, padding: '10px',
+                              background: 'rgba(201,168,76,0.15)',
+                              border: '1px solid rgba(201,168,76,0.4)',
+                              color: 'var(--gold)', borderRadius: 4,
+                              fontFamily: "'Cormorant Garamond', serif",
+                              fontSize: 12, letterSpacing: '0.1em',
+                              textTransform: 'uppercase', cursor: 'pointer'
+                            }}
+                          >
+                            Tallenna
+                          </button>
+                          <button
+                            onClick={() => setEditing(null)}
+                            style={{
+                              padding: '10px 16px',
+                              background: 'transparent',
+                              border: '1px solid rgba(107,29,46,0.4)',
+                              color: 'var(--muted)', borderRadius: 4,
+                              fontFamily: "'Cormorant Garamond', serif",
+                              fontSize: 12, cursor: 'pointer'
+                            }}
+                          >
+                            Peruuta
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {day.exercises.map((ex, j) => {
+                          const checked = isChecked(i, ex.id)
+                          return (
+                            <div key={ex.id} style={{
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                              padding: '12px 20px',
+                              borderBottom: j < day.exercises.length - 1 ? '1px solid rgba(107,29,46,0.2)' : 'none',
+                              opacity: checked ? 0.35 : 1
+                            }}>
+                              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, textDecoration: checked ? 'line-through' : 'none', color: 'var(--text)' }}>
+                                {ex.name}
+                              </p>
+                              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 13, color: checked ? 'rgba(136,136,136,0.5)' : 'var(--gold)' }}>
+                                {formatSets(ex)}
+                              </p>
+                            </div>
+                          )
+                        })}
+                        <button
+                          onClick={e => { e.stopPropagation(); startEdit(i, day.exercises) }}
+                          style={{
+                            width: '100%', padding: '10px',
+                            background: 'transparent',
+                            border: 'none',
+                            borderTop: '1px solid rgba(107,29,46,0.2)',
+                            color: 'rgba(201,168,76,0.5)',
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: 11, letterSpacing: '0.12em',
+                            textTransform: 'uppercase', cursor: 'pointer'
+                          }}
+                        >
+                          Muokkaa
+                        </button>
+                      </>
+                    )
+                  ) : (
+                    <div style={{ padding: '16px 20px' }}>
+                      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: 13, color: 'var(--gold)', opacity: 0.6, letterSpacing: '0.05em' }}>
+                        It's A Lifestyle
+                      </p>
+                    </div>
+                  )}
+                </AnimatedContent>
               </div>
             )
           })}
