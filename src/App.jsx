@@ -54,16 +54,16 @@ export default function App() {
 
       <nav className="bottom-nav">
         <button className={`nav-btn ${tab === 'today' ? 'active' : ''}`} onClick={() => setTab('today')}>
-          <span style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 12 }}>Today</span>
+          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 12 }}>Today</span>
         </button>
         <button className={`nav-btn ${tab === 'program' ? 'active' : ''}`} onClick={() => setTab('program')}>
-          <span style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 12 }}>Program</span>
+          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 12 }}>Program</span>
         </button>
         <button className={`nav-btn ${tab === 'log' ? 'active' : ''}`} onClick={() => setTab('log')}>
-          <span style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 12 }}>Log</span>
+          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 12 }}>Log</span>
         </button>
         <button className={`nav-btn ${tab === 'body' ? 'active' : ''}`} onClick={() => setTab('body')}>
-          <span style={{ fontFamily: "'Uncial Antiqua', serif", fontSize: 12 }}>Body</span>
+          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 12 }}>Body</span>
         </button>
       </nav>
     </div>

@@ -29,14 +29,35 @@ const glassCard = (isToday = false) => ({
   marginBottom: 8,
   cursor: 'pointer',
   position: 'relative',
-  overflow: 'hidden',
+  overflow: 'visible',
   boxShadow: isToday
     ? 'inset 0 1px 0 rgba(201,168,76,0.15), inset 1px 0 0 rgba(201,168,76,0.1)'
     : 'inset 0 1px 0 rgba(201,168,76,0.08), inset 1px 0 0 rgba(201,168,76,0.06)'
 })
 
+function CardRipple({ active }) {
+  if (!active) return null
+  return (
+    <>
+      {[1, 2, 3, 4].map(n => (
+        <div key={n} style={{
+          position: 'absolute',
+          inset: -n * 8,
+          borderRadius: 6 + n * 4,
+          border: `1px solid rgba(201,168,76,${0.35 - n * 0.07})`,
+          animation: `wave-out 1.4s ease-out forwards`,
+          animationDelay: `${(n - 1) * 0.18}s`,
+          pointerEvents: 'none',
+          zIndex: 10
+        }} />
+      ))}
+    </>
+  )
+}
+
 export default function ProgramView({ program, getTodayIndex, isChecked }) {
   const [expanded, setExpanded] = useState(getTodayIndex())
+  const [rippling, setRippling] = useState(null)
   const todayIndex = getTodayIndex()
 
   function formatSets(ex) {
@@ -45,8 +66,28 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
     return str
   }
 
+  function handlePress(i) {
+    setRippling(i)
+    setTimeout(() => setRippling(null), 1400)
+    setExpanded(expanded === i ? null : i)
+  }
+
   return (
     <div className="view" style={{ position: 'relative' }}>
+      <style>{`
+        @keyframes buoy {
+          0%   { transform: translateY(0) rotate(0deg); }
+          25%  { transform: translateY(4px) rotate(0.3deg); }
+          55%  { transform: translateY(-3px) rotate(-0.2deg); }
+          75%  { transform: translateY(1.5px) rotate(0.1deg); }
+          90%  { transform: translateY(-0.5px); }
+          100% { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes wave-out {
+          0%   { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(1.15); }
+        }
+      `}</style>
       <BackgroundOrnament />
       <div style={{ position: 'relative', zIndex: 3 }}>
         <h1 style={{
@@ -61,15 +102,26 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
           {program.map((day, i) => {
             const isToday = i === todayIndex
             const isOpen = expanded === i
+            const isRippling = rippling === i
             const done = day.exercises.filter(ex => isChecked(i, ex.id)).length
             const total = day.exercises.length
 
             return (
-              <div key={i} onClick={() => setExpanded(isOpen ? null : i)} style={glassCard(isToday)}>
+              <div
+                key={i}
+                onClick={() => handlePress(i)}
+                style={{
+                  ...glassCard(isToday),
+                  animation: isRippling ? 'buoy 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' : 'none'
+                }}
+              >
                 <div style={{
                   position: 'absolute', top: 0, left: 0, right: 0, height: 1,
                   background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent)'
                 }} />
+
+                <CardRipple active={isRippling} />
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px' }}>
                   <div>
                     <p style={{
@@ -97,7 +149,12 @@ export default function ProgramView({ program, getTodayIndex, isChecked }) {
                         {done}/{total}
                       </span>
                     )}
-                    <span style={{ color: 'rgba(201,168,76,0.4)', fontSize: 11 }}>{isOpen ? '↑' : '↓'}</span>
+                    <span style={{
+                      color: 'rgba(201,168,76,0.4)', fontSize: 11,
+                      display: 'inline-block',
+                      transition: 'transform 0.4s ease',
+                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                    }}>↓</span>
                   </div>
                 </div>
 
