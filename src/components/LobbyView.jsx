@@ -141,8 +141,8 @@ const css = `
     pointer-events: none;
   }
   .eliel-img {
-    width: 200px;
-    height: 200px;
+    width: 300px;
+    height: 300px;
     object-fit: contain;
     animation: elielColorShift 12s ease-in-out infinite;
     display: block;
@@ -361,9 +361,9 @@ export default function LobbyView({ onNavigate }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0 28px",
+        padding: "0 28px 80px",
         fontFamily: "'Cormorant Garamond', serif",
-        gap: "20px",
+        gap: "24px",
       }}>
 
         {/* ELIEL IMAGE */}
@@ -402,10 +402,11 @@ export default function LobbyView({ onNavigate }) {
             {messages.length === 0 && (
               <p key={msgKey} className="eliel-bubble-text" style={{
                 margin: 0,
-                fontSize: "16px",
-                lineHeight: 1.8,
-                fontFamily: "'Cormorant Garamond', serif",
-                fontWeight: 300,
+                fontSize: "15px",
+                lineHeight: 1.85,
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 400,
+                letterSpacing: "0.06em",
                 textAlign: "center",
                 position: "relative",
                 zIndex: 1,

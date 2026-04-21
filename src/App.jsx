@@ -37,6 +37,26 @@ const css = `
   }
   .nav-label.inactive { color: #C9A84C; font-weight: 400; }
   .nav-label.active   { font-weight: 700; animation: navLiquid 6s ease-in-out infinite; }
+
+  @keyframes zoomIn {
+    0%   { transform: scale(1);   opacity: 1;   filter: brightness(1); }
+    70%  { transform: scale(4);   opacity: 0.5; filter: brightness(1.8); }
+    100% { transform: scale(12);  opacity: 0;   filter: brightness(2.5); }
+  }
+  @keyframes zoomOut {
+    0%   { transform: scale(0.08); opacity: 0;   filter: brightness(2.5); }
+    30%  { transform: scale(0.3);  opacity: 0.5; filter: brightness(1.5); }
+    100% { transform: scale(1);    opacity: 1;   filter: brightness(1); }
+  }
+  .zoom-exit {
+    animation: zoomIn 0.5s ease-in forwards;
+    transform-origin: 50% 42%;
+    pointer-events: none;
+  }
+  .zoom-enter {
+    animation: zoomOut 0.5s ease-out forwards;
+    transform-origin: 50% 42%;
+  }
 `
 
 function FireflyBg() {
@@ -232,7 +252,6 @@ function FireflyBg() {
     }
     init()
     window.addEventListener('resize', init)
-
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       dnaPairs.forEach(d => { d.update(); d.draw(ctx) })
@@ -340,6 +359,65 @@ function TesseractBg() {
       }
     }
 
+    // Electric impulses along tesseract edges
+    const impulses = []
+    const IMPULSE_COUNT = 6
+    const IMP_COLORS = ['#C9A84C','#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e','#C9A84C']
+
+    function spawnImpulse() {
+      const edge = edges[Math.floor(Math.random() * edges.length)]
+      impulses.push({
+        edge, t: 0,
+        speed: 0.012 + Math.random() * 0.018,
+        colorIdx: Math.floor(Math.random() * (IMP_COLORS.length - 1)),
+        colorT: Math.random(),
+        size: 3 + Math.random() * 4,
+      })
+    }
+    for (let i = 0; i < IMPULSE_COUNT; i++) {
+      setTimeout(() => spawnImpulse(), i * 500 + Math.random() * 1000)
+    }
+
+    function drawImpulses(projected) {
+      for (let k = impulses.length - 1; k >= 0; k--) {
+        const imp = impulses[k]
+        imp.t += imp.speed
+        imp.colorT += 0.02
+        if (imp.colorT >= 1) { imp.colorT = 0; imp.colorIdx = (imp.colorIdx+1) % (IMP_COLORS.length-1) }
+        if (imp.t >= 1.2) {
+          impulses.splice(k, 1)
+          if (Math.random() < 0.75) spawnImpulse()
+          continue
+        }
+        const [a, b] = imp.edge
+        const pa = projected[a], pb = projected[b]
+        if (!pa || !pb) continue
+        const t = Math.min(imp.t, 1)
+        const px = pa.x + (pb.x - pa.x) * t
+        const py = pa.y + (pb.y - pa.y) * t
+        const c1 = IMP_COLORS[imp.colorIdx], c2 = IMP_COLORS[imp.colorIdx+1]
+        const r1=parseInt(c1.slice(1,3),16),g1=parseInt(c1.slice(3,5),16),b1=parseInt(c1.slice(5,7),16)
+        const r2=parseInt(c2.slice(1,3),16),g2=parseInt(c2.slice(3,5),16),b2=parseInt(c2.slice(5,7),16)
+        const cr=Math.round(r1+(r2-r1)*imp.colorT), cg=Math.round(g1+(g2-g1)*imp.colorT), cb=Math.round(b1+(b2-b1)*imp.colorT)
+        const fade = imp.t < 0.1 ? imp.t/0.1 : imp.t > 0.85 ? 1-(imp.t-0.85)/0.3 : 1
+        const t0 = Math.max(0, t-0.14)
+        const tx0 = pa.x+(pb.x-pa.x)*t0, ty0 = pa.y+(pb.y-pa.y)*t0
+        const grad = ctx.createLinearGradient(tx0, ty0, px, py)
+        grad.addColorStop(0, `rgba(${cr},${cg},${cb},0)`)
+        grad.addColorStop(1, `rgba(${cr},${cg},${cb},${0.8*fade})`)
+        ctx.beginPath(); ctx.moveTo(tx0, ty0); ctx.lineTo(px, py)
+        ctx.strokeStyle = grad; ctx.globalAlpha = 1; ctx.lineWidth = 1.8; ctx.stroke()
+        const glow = ctx.createRadialGradient(px, py, 0, px, py, imp.size*2.5)
+        glow.addColorStop(0, `rgba(255,255,255,${0.95*fade})`)
+        glow.addColorStop(0.3, `rgba(${cr},${cg},${cb},${0.8*fade})`)
+        glow.addColorStop(1, 'transparent')
+        ctx.beginPath(); ctx.arc(px, py, imp.size*2.5, 0, Math.PI*2)
+        ctx.fillStyle = glow; ctx.globalAlpha = 1; ctx.fill()
+        ctx.beginPath(); ctx.arc(px, py, imp.size*0.5, 0, Math.PI*2)
+        ctx.fillStyle = `rgba(255,255,255,${0.98*fade})`; ctx.globalAlpha = 1; ctx.fill()
+      }
+    }
+
     function draw() {
       t += 0.003
       colorProgress += 0.002
@@ -369,7 +447,7 @@ function TesseractBg() {
         ctx.moveTo(pa.x, pa.y)
         ctx.lineTo(pb.x, pb.y)
         ctx.strokeStyle = currentColor
-        ctx.globalAlpha = Math.max(0.05, Math.min(0.25, alpha))
+        ctx.globalAlpha = Math.max(0.08, Math.min(0.32, alpha))
         ctx.lineWidth = 0.7
         ctx.stroke()
       })
@@ -379,10 +457,11 @@ function TesseractBg() {
         ctx.beginPath()
         ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2)
         ctx.fillStyle = currentColor
-        ctx.globalAlpha = 0.2
+        ctx.globalAlpha = 0.3
         ctx.fill()
       })
 
+      drawImpulses(projected)
       ctx.globalAlpha = 1
       raf = requestAnimationFrame(draw)
     }
@@ -406,6 +485,28 @@ function TesseractBg() {
 export default function App() {
   const [splash, setSplash] = useState(true)
   const [tab, setTab] = useState('eliel')
+  const [transitioning, setTransitioning] = useState(false)
+  const [exitClass, setExitClass] = useState('')
+  const [enterClass, setEnterClass] = useState('')
+
+  const switchTab = (id) => {
+    if (id === tab || transitioning) return
+    setTransitioning(true)
+    setExitClass('zoom-exit')
+    setTimeout(() => {
+      setTab(id)
+      setExitClass('')
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setEnterClass('zoom-enter')
+          setTimeout(() => {
+            setEnterClass('')
+            setTransitioning(false)
+          }, 520)
+        })
+      })
+    }, 420)
+  }
 
   if (splash) return <SplashScreen onComplete={() => setSplash(false)} />
 
@@ -422,7 +523,7 @@ export default function App() {
       <TesseractBg />
       <FireflyBg />
 
-      <div style={{ position: 'relative', zIndex: 1, paddingBottom: 80 }}>
+      <div style={{ position: 'relative', zIndex: 1, paddingBottom: 80 }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView onNavigate={setTab} />}
         {tab === 'train'     && <TrainView onNavigate={setTab} />}
         {tab === 'community' && <CommunityView onNavigate={setTab} />}
@@ -454,7 +555,7 @@ export default function App() {
         {tabs.map(({ id, label }) => {
           const active = tab === id
           return (
-            <button key={id} className={`nav-btn ${active ? 'active' : ''}`} onClick={() => setTab(id)}>
+            <button key={id} className={`nav-btn ${active ? 'active' : ''}`} onClick={() => switchTab(id)}>
               <div className={`nav-dot ${active ? 'active' : 'inactive'}`} />
               <span className={`nav-label ${active ? 'active' : 'inactive'}`}>{label}</span>
             </button>

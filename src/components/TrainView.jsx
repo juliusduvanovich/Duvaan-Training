@@ -86,7 +86,7 @@ const css = `
     100% { color:#C9A84C; border-color:rgba(201,168,76,0.9); }
   }
   @keyframes breatheSlow { 0%,100% { opacity:0.9; transform:translateY(0); } 50% { opacity:1; transform:translateY(-2px); } }
-  @keyframes breatheBtn { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-1.5px) scale(1.005); } }
+  @keyframes breatheBtn { 0%,100% { transform:translateY(0px) scale(1); } 50% { transform:translateY(-4px) scale(1.015); } }
   @keyframes breatheArrow { 0%,100% { transform:translateY(0); opacity:0.9; } 50% { transform:translateY(-3px); opacity:1; } }
   @keyframes todayGlow {
     0%   { border-color:rgba(201,168,76,0.95); box-shadow:0 0 28px rgba(201,168,76,0.25); }
@@ -321,7 +321,12 @@ export default function TrainView() {
         <style>{css}</style>
         <div style={{ minHeight: "100vh", padding: "48px 24px 100px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", animation: "fadeInUp 0.6s ease both" }}>
-            <h2 style={{ color: GOLD, fontSize: "22px", fontWeight: 700, letterSpacing: "0.1em", margin: 0, fontFamily: "'Cinzel', serif" }}>Training</h2>
+            <div>
+              <h2 style={{ color: GOLD, fontSize: "22px", fontWeight: 700, letterSpacing: "0.1em", margin: 0, fontFamily: "'Cinzel', serif", animation: "todayText 8s ease-in-out infinite" }}>Training</h2>
+              <p style={{ color: "rgba(201,168,76,0.5)", fontSize: "10px", fontFamily: "'Cinzel', serif", letterSpacing: "0.14em", margin: "4px 0 0", textTransform: "uppercase" }}>
+                {new Date().toLocaleDateString('fi-FI', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+            </div>
             <button onClick={() => { setIsEditing(true); setMode('onboarding'); setStep(0); }} style={{
               background: "none", border: "1.5px solid rgba(201,168,76,0.55)", borderRadius: "10px",
               padding: "7px 14px", color: "rgba(201,168,76,0.8)", fontFamily: "'Cinzel', serif",
