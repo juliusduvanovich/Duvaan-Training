@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ScrollPicker, { TimePicker } from "./ScrollPicker";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -698,6 +699,66 @@ const MOCK_EVENTS = [
   { id:3, name:'Mind & Body — Jooga & Aamiainen', desc:'Aamu-jooga + terveellinen aamiainen yhteisön kanssa.', date:'2025-05-10', time:'08:30', location:'Studio Flow, Helsinki', capacity:20, attending:14, free:false, price:'22€', tags:['Mindfulness','Wellness'], type:'public', dresscode:null, deadline:'2025-05-09', host:'Mind & Body', verified:false },
 ]
 
+
+
+function PricePicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(value);
+  const handleChange = (v) => { setVal(v); onChange(v); };
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:6, width:"100%" }}>
+      <button onClick={() => setOpen(!open)} style={{
+        background:"rgba(255,255,255,0.03)", border:"1.5px solid rgba(201,168,76,0.5)",
+        borderRadius:12, padding:"12px 16px", color:"#C9A84C",
+        fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600,
+        letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center",
+      }}>{val}€</button>
+      {open && (
+        <div style={{ background:"rgba(12,12,12,0.97)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"8px 12px" }}>
+          <ScrollPicker value={val} onChange={handleChange} min={1} max={500} step={1} unit="€" />
+          <button onClick={() => setOpen(false)} style={{
+            width:"100%", marginTop:8, padding:"10px 0",
+            background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.4)",
+            borderRadius:10, color:"#C9A84C", fontFamily:"'Cinzel',serif",
+            fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer",
+          }}>Valmis</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CapacityPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(value);
+
+  const handleChange = (v) => { setVal(v); onChange(v); };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:6, width:"100%" }}>
+      <button onClick={() => setOpen(!open)} style={{
+        background:"rgba(255,255,255,0.03)", border:"1.5px solid rgba(201,168,76,0.5)",
+        borderRadius:12, padding:"12px 16px", color:"#C9A84C",
+        fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600,
+        letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center",
+      }}>
+        {val} hlö
+      </button>
+      {open && (
+        <div style={{ background:"rgba(12,12,12,0.97)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"8px 12px" }}>
+          <ScrollPicker value={val} onChange={handleChange} min={1} max={500} step={1} unit=" hlö" />
+          <button onClick={() => setOpen(false)} style={{
+            width:"100%", marginTop:8, padding:"10px 0",
+            background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.4)",
+            borderRadius:10, color:"#C9A84C", fontFamily:"'Cinzel',serif",
+            fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer",
+          }}>Valmis</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Events() {
   const [view, setView] = useState('list')
   const [location, setLocation] = useState(() => localStorage.getItem('duvaan_location') || 'Helsinki')
@@ -746,15 +807,19 @@ function Events() {
           <input className="text-field" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ colorScheme:"dark" }} />
         </div>
         <div style={{ flex:1 }}>
-          <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Kellonaika</p>
-          <input className="text-field" type="time" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={{ colorScheme:"dark" }} />
+          <TimePicker label="Kellonaika" value={form.time || "12:00"} onChange={v=>setForm(f=>({...f,time:v}))} />
         </div>
       </div>
 
       <div style={{ display:"flex",gap:10,marginBottom:14 }}>
         <div style={{ flex:1 }}>
           <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Kapasiteetti</p>
-          <input className="text-field" type="number" value={form.capacity} onChange={e=>setForm(f=>({...f,capacity:e.target.value}))} placeholder="Max henkilöä" />
+          <CapacityPicker
+            value={parseInt(form.capacity) || 20}
+            onChange={v => setForm(f => ({...f, capacity: String(v)}))}
+          />
+
+
         </div>
         <div style={{ flex:1 }}>
           <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>RSVP deadline</p>
@@ -778,7 +843,14 @@ function Events() {
             <button key={String(val)} onClick={()=>setForm(f=>({...f,free:val}))} style={{ flex:1,padding:"10px 8px",cursor:"pointer",background:form.free===val?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)",border:form.free===val?"1.5px solid #C9A84C":"1px solid rgba(201,168,76,0.4)",borderRadius:12,color:form.free===val?GOLD:"rgba(201,168,76,0.7)",fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.1em" }}>{label}</button>
           ))}
         </div>
-        {!form.free && <input className="text-field" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} placeholder="esim. 15€" />}
+        {!form.free && (
+          <PricePicker
+            value={parseFloat(form.price) || 10}
+            onChange={v => setForm(f => ({...f, price: v + '€'}))}
+          />
+
+
+        )}
       </div>
 
       <div style={{ marginBottom:28 }}>

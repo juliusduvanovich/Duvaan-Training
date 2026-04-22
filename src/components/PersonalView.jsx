@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import ScrollPicker from "./ScrollPicker";
 
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "duvaan_profile";
@@ -821,7 +822,14 @@ export default function PersonalView() {
                               <input className="edit-input" style={{ flex: 2 }} value={drafts[ex.id]?.name || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], name: e.target.value } }))} placeholder="Liike" />
                               <input className="edit-input" style={{ width: 40 }} value={drafts[ex.id]?.sets || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], sets: e.target.value } }))} placeholder="S" />
                               <input className="edit-input" style={{ width: 52 }} value={drafts[ex.id]?.reps || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], reps: e.target.value } }))} placeholder="T" />
-                              <input className="edit-input" style={{ width: 60 }} value={drafts[ex.id]?.weight || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], weight: e.target.value } }))} placeholder="Paino" />
+                              <div style={{ width: 80 }}>
+                <ScrollPicker
+                  value={parseFloat(drafts[ex.id]?.weight) || 0}
+                  onChange={v => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], weight: v > 0 ? v + ' kg' : '' } }))}
+                  min={0} max={200} step={0.5} unit=" kg"
+                  height={100} itemHeight={32}
+                />
+              </div>
                             </div>
                           ))}
                           <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
@@ -927,19 +935,36 @@ export default function PersonalView() {
 function StepBasics({ answers, setAnswers }) {
   const set = (f, v) => setAnswers(a => ({ ...a, [f]: v }));
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       <div style={{ display: "flex", gap: "10px" }}>
         {["Mies", "Nainen", "Muu"].map(g => (
           <SpringBtn key={g} className={`option-btn ${answers.gender === g ? "selected" : ""}`} style={{ flex: 1 }} onClick={() => set("gender", g)}>{g}</SpringBtn>
         ))}
       </div>
       <div style={{ display: "flex", gap: "10px" }}>
-        {[["age","Ikä","—"], ["height","Pituus","— cm"], ["weight","Paino","— kg"]].map(([f, label, ph]) => (
-          <div key={f} className="num-wrap">
-            <span className="num-label">{label}</span>
-            <input className="num-input" type="number" placeholder={ph} value={answers[f]} onChange={e => set(f, e.target.value)} />
-          </div>
-        ))}
+        <ScrollPicker
+          label="Ikä"
+          value={parseInt(answers.age) || 20}
+          onChange={v => set("age", String(v))}
+          min={13} max={80} step={1}
+          height={120} itemHeight={32}
+        />
+        <ScrollPicker
+          label="Pituus"
+          value={parseInt(answers.height) || 170}
+          onChange={v => set("height", String(v))}
+          min={140} max={220} step={1}
+          unit=" cm"
+          height={120} itemHeight={32}
+        />
+        <ScrollPicker
+          label="Paino"
+          value={parseFloat(answers.weight) || 70}
+          onChange={v => set("weight", String(v))}
+          min={40} max={150} step={0.5}
+          unit=" kg"
+          height={120} itemHeight={32}
+        />
       </div>
     </div>
   );
