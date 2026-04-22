@@ -89,11 +89,11 @@ const css = `
   @keyframes breatheBtn { 0%,100% { transform:translateY(0px) scale(1); } 50% { transform:translateY(-4px) scale(1.015); } }
   @keyframes breatheArrow { 0%,100% { transform:translateY(0); opacity:0.9; } 50% { transform:translateY(-3px); opacity:1; } }
   @keyframes todayGlow {
-    0%   { border-color:rgba(201,168,76,0.95); box-shadow:0 0 28px rgba(201,168,76,0.25); }
+    0%   { border-color:rgba(201,168,76,0.95); box-shadow:0 0 28px #C9A84C; }
     25%  { border-color:rgba(232,213,163,0.95); box-shadow:0 0 28px rgba(232,213,163,0.2); }
     50%  { border-color:rgba(255,110,180,0.9);  box-shadow:0 0 28px rgba(255,110,180,0.2); }
     75%  { border-color:rgba(110,180,255,0.9);  box-shadow:0 0 28px rgba(110,180,255,0.2); }
-    100% { border-color:rgba(201,168,76,0.95); box-shadow:0 0 28px rgba(201,168,76,0.25); }
+    100% { border-color:rgba(201,168,76,0.95); box-shadow:0 0 28px #C9A84C; }
   }
   @keyframes todayBg {
     0%   { background:rgba(107,29,46,0.35); }
@@ -108,25 +108,25 @@ const css = `
   }
 
   .option-btn {
-    background:rgba(255,255,255,0.03); border:2px solid rgba(201,168,76,0.7);
+    background:rgba(255,255,255,0.03); border:2px solid #C9A84C;
     border-radius:14px; padding:14px 16px; color:#C9A84C;
     font-family:'Cinzel',serif; font-size:13px; font-weight:600; letter-spacing:0.06em;
     cursor:pointer; text-align:center; animation:breatheBtn 4s ease-in-out infinite; will-change:transform;
   }
   .option-btn.selected {
-    background:rgba(201,168,76,0.1); border:2px solid rgba(201,168,76,0.95);
-    box-shadow:0 0 20px rgba(201,168,76,0.15); animation:btnLiquid 5s ease-in-out infinite;
+    background:#C9A84C; border:2px solid rgba(201,168,76,0.95);
+    box-shadow:0 0 20px #C9A84C; animation:btnLiquid 5s ease-in-out infinite;
   }
   .day-btn {
     width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.03);
-    border:2px solid rgba(201,168,76,0.65); color:#C9A84C;
+    border:2px solid #C9A84C; color:#C9A84C;
     font-family:'Cinzel',serif; font-size:14px; font-weight:600; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     animation:breatheBtn 4s ease-in-out infinite; will-change:transform;
   }
   .day-btn.selected {
-    background:rgba(201,168,76,0.1); border:2px solid rgba(201,168,76,0.95);
-    box-shadow:0 0 16px rgba(201,168,76,0.15); animation:btnLiquid 5s ease-in-out infinite;
+    background:#C9A84C; border:2px solid rgba(201,168,76,0.95);
+    box-shadow:0 0 16px #C9A84C; animation:btnLiquid 5s ease-in-out infinite;
   }
   .nav-arrow {
     background:none; border:none; cursor:pointer; padding:8px 20px;
@@ -137,31 +137,31 @@ const css = `
   .arrow-svg { width:56px; height:34px; }
   .continue-btn {
     width:100%; padding:16px; background:rgba(107,29,46,0.8);
-    border:2px solid rgba(201,168,76,0.65); border-radius:16px; color:#C9A84C;
+    border:2px solid #C9A84C; border-radius:16px; color:#C9A84C;
     font-family:'Cinzel',serif; font-size:12px; font-weight:600; letter-spacing:0.18em;
     text-transform:uppercase; cursor:pointer; animation:breatheBtn 4s ease-in-out infinite;
   }
   .text-input {
     width:100%; box-sizing:border-box; background:rgba(255,255,255,0.03);
-    border:2px solid rgba(201,168,76,0.65); border-radius:14px; padding:14px 16px;
+    border:2px solid #C9A84C; border-radius:14px; padding:14px 16px;
     color:#C9A84C; font-family:'Cinzel',serif; font-size:13px; outline:none; letter-spacing:0.04em;
   }
-  .text-input::placeholder { color:rgba(201,168,76,0.35); font-style:italic; font-family:'Cormorant Garamond',serif; font-size:14px; }
+  .text-input::placeholder { color:#C9A84C; font-style:italic; font-family:'Cormorant Garamond',serif; font-size:14px; }
   .text-input:focus { border-color:rgba(201,168,76,0.9); }
   .num-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .num-label { font-family:'Cinzel',serif; font-size:9px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(201,168,76,0.65); }
+  .num-label { font-family:'Cinzel',serif; font-size:9px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#C9A84C; }
   .num-input {
-    width:100%; background:rgba(255,255,255,0.03); border:2px solid rgba(201,168,76,0.65);
+    width:100%; background:rgba(255,255,255,0.03); border:2px solid #C9A84C;
     border-radius:14px; padding:13px 8px; color:#C9A84C;
     font-family:'Cinzel',serif; font-size:14px; font-weight:700;
     outline:none; text-align:center; -moz-appearance:textfield; box-sizing:border-box;
   }
-  .num-input::placeholder { color:rgba(201,168,76,0.3); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; font-weight:300; }
+  .num-input::placeholder { color:#C9A84C; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; font-weight:300; }
   .num-input::-webkit-outer-spin-button, .num-input::-webkit-inner-spin-button { -webkit-appearance:none; }
   .num-input:focus { border-color:rgba(201,168,76,0.9); }
 
   .day-card {
-    background:rgba(255,255,255,0.03); border:1.5px solid rgba(201,168,76,0.5);
+    background:rgba(255,255,255,0.03); border:1.5px solid #C9A84C;
     border-radius:14px; overflow:hidden; animation:breatheBtn 5s ease-in-out infinite; will-change:transform;
   }
   .day-card.today {
@@ -170,9 +170,9 @@ const css = `
   }
   .today-name { animation:todayText 8s ease-in-out infinite; }
   .day-header { padding:16px 20px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
-  .exercise-row { padding:14px 20px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(201,168,76,0.12); }
+  .exercise-row { padding:14px 20px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #C9A84C; }
   .edit-input {
-    background:rgba(255,255,255,0.03); border:1px solid rgba(201,168,76,0.4);
+    background:rgba(255,255,255,0.03); border:1px solid #C9A84C;
     border-radius:8px; padding:6px 10px; color:#C9A84C;
     font-family:'Cormorant Garamond',serif; font-size:13px; outline:none;
   }
@@ -250,6 +250,113 @@ const PERSONAL_TAGS = ['Sports','Gastronomy','Philosophy','Business','Music','We
 const BURGUNDY = "#6B1D2E";
 
 
+
+// ─── FREQUENCY SYSTEM ──────────────────────────────────────────────────────
+const FREQ_LEVELS = [
+  { name: 'Newcomer',  min: 0,    max: 99,   color: '#C9A84C',  icon: '◦' },
+  { name: 'Member',    min: 100,  max: 499,  color: '#C9A84C',               icon: '◈' },
+  { name: 'Regular',   min: 500,  max: 1999, color: '#e8d5a3',               icon: '◉' },
+  { name: 'Insider',   min: 2000, max: 4999, color: '#ff9a6e',               icon: '✦' },
+  { name: 'Elite',     min: 5000, max: null, color: '#ff6eb4',               icon: '✸' },
+]
+
+function getLevel(pts) {
+  return FREQ_LEVELS.find(l => pts >= l.min && (l.max === null || pts <= l.max)) || FREQ_LEVELS[0]
+}
+
+function FrequencyCard() {
+  const [points, setPoints] = useState(() => {
+    try { return parseInt(localStorage.getItem('duvaan_frequency') || '0') } catch { return 0 }
+  })
+
+  const level = getLevel(points)
+  const nextLevel = FREQ_LEVELS[FREQ_LEVELS.indexOf(level) + 1]
+  const progress = nextLevel
+    ? ((points - level.min) / (nextLevel.min - level.min)) * 100
+    : 100
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.02)",
+      border: "1px solid #C9A84C",
+      borderRadius: 16, padding: "18px 20px", marginBottom: 16,
+      animation: "breatheBtn 6s ease-in-out infinite",
+    }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+        <div>
+          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 4px" }}>Frequency</p>
+          <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+            <span style={{ color:level.color, fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:700, letterSpacing:"0.04em" }}>{level.icon} {level.name}</span>
+          </div>
+        </div>
+        <div style={{ textAlign:"right" }}>
+          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:22, fontWeight:700, margin:0 }}>{points.toLocaleString()}</p>
+          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", margin:"2px 0 0" }}>PISTETTÄ</p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ marginBottom:10 }}>
+        <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:4, height:4, overflow:"hidden" }}>
+          <div style={{
+            height:"100%", borderRadius:4,
+            width: progress + "%",
+            background: `linear-gradient(90deg, ${level.color}, ${nextLevel?.color || level.color})`,
+            transition:"width 0.8s ease",
+            boxShadow: `0 0 8px ${level.color}`,
+          }} />
+        </div>
+        {nextLevel && (
+          <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
+            <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8 }}>{level.name}</span>
+            <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8 }}>{nextLevel.name} — {nextLevel.min.toLocaleString()} pistettä</span>
+          </div>
+        )}
+        {!nextLevel && (
+          <p style={{ color:level.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", textAlign:"center", marginTop:5 }}>MAX TASO</p>
+        )}
+      </div>
+
+      {/* How to earn */}
+      <div style={{ borderTop:"0.5px solid #C9A84C", paddingTop:12 }}>
+        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Pisteiden kertyminen</p>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:5 }}>
+          {[
+            ["+50", "Tapahtuman järjestäminen"],
+            ["+30", "Uuden jäsenen rekrytointi"],
+            ["+20", "Transaktio appin kautta"],
+            ["+10", "Klubi-aktiivisuus/vko"],
+            ["+5",  "Osallistuja tapahtumassa"],
+          ].map(([pts, desc]) => (
+            <div key={desc} style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <span style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:9, fontWeight:700, flexShrink:0 }}>{pts}</span>
+              <span style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11 }}>{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* All levels */}
+      <div style={{ borderTop:"0.5px solid #C9A84C", paddingTop:12, marginTop:10 }}>
+        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Tasot</p>
+        <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+          {FREQ_LEVELS.map(l => (
+            <div key={l.name} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", opacity: l.name === level.name ? 1 : 0.45 }}>
+              <span style={{ color:l.color, fontFamily:"'Cinzel',serif", fontSize:10, fontWeight: l.name===level.name ? 700 : 400 }}>
+                {l.icon} {l.name}
+                {l.name === level.name && <span style={{ fontSize:7, marginLeft:6, background:"rgba(201,168,76,0.1)", padding:"1px 6px", borderRadius:8 }}>SINÄ</span>}
+              </span>
+              <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9 }}>
+                {l.min.toLocaleString()}{l.max ? "–" + l.max.toLocaleString() : "+"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ShopSection() {
   const [selected, setSelected] = useState(null);
   const [cardOrdered, setCardOrdered] = useState(() => {
@@ -264,113 +371,118 @@ function ShopSection() {
   return (
     <div style={{ paddingBottom: 20 }}>
 
+      {/* Membership tiers */}
+      <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 12px" }}>Jäsenyystasot</p>
+
+      {/* Free */}
+      <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:16, padding:"16px 18px", marginBottom:10 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+          <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700 }}>Free</span>
+          <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600 }}>0€</span>
+        </div>
+        {["Duvaan Club feed","Julkiset klubit ja tapahtumat","Frequency-pisteiden kerääminen","Oma profiili ja tagit"].map(f => (
+          <p key={f} style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:"0 0 4px" }}>◦ {f}</p>
+        ))}
+      </div>
+
+      {/* Member */}
+      <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:16, padding:"16px 18px", marginBottom:10 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+          <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700 }}>Member</span>
+          <div style={{ textAlign:"right" }}>
+            <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700 }}>4€</span>
+            <span style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11 }}>/kk</span>
+          </div>
+        </div>
+        {["Kaikki Free-ominaisuudet","Frequency-pisteet käyttöön (liput, merch)","Yksityiset klubit","Tapahtumien järjestäminen"].map(f => (
+          <p key={f} style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:"0 0 4px" }}>◈ {f}</p>
+        ))}
+        <button style={{ width:"100%", padding:"11px 0", marginTop:10, background:"rgba(201,168,76,0.1)", border:"1.5px solid #C9A84C", borderRadius:12, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>
+          Aktivoi Member
+        </button>
+      </div>
+
       {/* Duvaan Deep hero */}
       <div style={{
         background: "linear-gradient(135deg, rgba(107,29,46,0.6) 0%, rgba(10,10,10,0.9) 50%, rgba(107,29,46,0.4) 100%)",
-        border: "1px solid rgba(201,168,76,0.5)",
-        borderRadius: 20, padding: "28px 20px", marginBottom: 16,
+        border: "1px solid #C9A84C",
+        borderRadius: 20, padding: "20px 18px", marginBottom: 16,
         position: "relative", overflow: "hidden",
         animation: "breatheBtn 6s ease-in-out infinite",
       }}>
-        {/* Decorative top line */}
         <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,#C9A84C,transparent)" }} />
-
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:16 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
           <div>
-            <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 6px" }}>Duvaan</p>
-            <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:24, fontWeight:700, letterSpacing:"0.08em", margin:0, animation:"todayText 8s ease-in-out infinite" }}>Deep</h3>
+            <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 4px" }}>Duvaan</p>
+            <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:22, fontWeight:700, letterSpacing:"0.08em", margin:0, animation:"todayText 8s ease-in-out infinite" }}>Deep</h3>
           </div>
           <div style={{ textAlign:"right" }}>
             <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:700, margin:0 }}>9€</p>
-            <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:11, fontStyle:"italic", margin:"2px 0 0" }}>/kk</p>
+            <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11, fontStyle:"italic", margin:"2px 0 0" }}>/kk</p>
           </div>
         </div>
-
-        <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.7, margin:"0 0 20px" }}>
-          Pääsy Duvaanin sisimpään. Yhteisöä, valuuttaa ja vaikutusvaltaa.
+        <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.7, margin:"0 0 14px" }}>
+          Taloudellinen taso. Myy palveluita, kerää tuloja, vaikuta.
         </p>
-
-        {/* Features */}
         {[
           { icon:"⚡", title:"Eliel Pro", desc:"Tehokkaampi AI — muistaa, oppii, ennakoi" },
-          { icon:"🔑", title:"Suljetut klubit", desc:"Pääsy eksklusiivisiin Duvaan-huoneisiin" },
+          { icon:"💼", title:"Palveluiden myynti", desc:"Tanssi, valmennus, ruoanlaitto — Duvaan ottaa komission" },
+          { icon:"🔑", title:"Suljetut klubit", desc:"Pääsy eksklusiivisiin Duvaan-tiloihin" },
           { icon:"◈", title:"D-Coin", desc:"Virtuaalivaluutta yhteistyökumppaneilla" },
-          { icon:"▣", title:"Duvaan-kortti", desc:"Fyysinen kortti Duvaan-ornamentilla" },
+          { icon:"▣", title:"Duvaan-kortti", desc:"Musta metallikortti NFC-sirulla" },
         ].map(({ icon, title, desc }) => (
-          <div key={title} style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom:14 }}>
-            <span style={{ fontSize:18, flexShrink:0, marginTop:1 }}>{icon}</span>
+          <div key={title} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:10 }}>
+            <span style={{ fontSize:16, flexShrink:0 }}>{icon}</span>
             <div>
-              <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, letterSpacing:"0.08em", margin:"0 0 2px" }}>{title}</p>
-              <p style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:0 }}>{desc}</p>
+              <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, letterSpacing:"0.06em", margin:"0 0 1px" }}>{title}</p>
+              <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:0 }}>{desc}</p>
             </div>
           </div>
         ))}
-
         <button style={{
-          width:"100%", padding:"15px 0", marginTop:8,
+          width:"100%", padding:"15px 0", marginTop:10,
           background:GOLD, border:"none", borderRadius:14,
           color:"#080808", fontFamily:"'Cinzel',serif",
           fontSize:12, fontWeight:700, letterSpacing:"0.18em",
           textTransform:"uppercase", cursor:"pointer",
-        }}>
-          Aktivoi Duvaan Deep
-        </button>
-
-        <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:11, textAlign:"center", margin:"10px 0 0", fontStyle:"italic" }}>
-          Peruuta milloin tahansa
-        </p>
+        }}>Aktivoi Duvaan Deep</button>
+        <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11, textAlign:"center", margin:"10px 0 0", fontStyle:"italic" }}>Peruuta milloin tahansa</p>
       </div>
 
       {/* D-Coin info */}
       <div style={{
-        background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)",
+        background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C",
         borderRadius:16, padding:"18px 20px", marginBottom:16,
       }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
           <div>
             <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.1em", margin:0 }}>D-Coin</p>
-            <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"3px 0 0" }}>Duvaan virtuaalivaluutta</p>
+            <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"3px 0 0" }}>Duvaan virtuaalivaluutta</p>
           </div>
-          <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:12, padding:"8px 16px" }}>
+          <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid #C9A84C", borderRadius:12, padding:"8px 16px" }}>
             <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, margin:0 }}>0</p>
-            <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", margin:"2px 0 0" }}>D-COIN</p>
+            <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", margin:"2px 0 0" }}>D-COIN</p>
           </div>
         </div>
-        <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:0 }}>
+        <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:0 }}>
           Käytä D-Coinia Duvaan-yhteistyökumppaneilla — tapahtumissa, ravintoloissa ja eksklusiiivisissa palveluissa. Revolut meets Amex, Duvaan-tyyliin.
         </p>
       </div>
 
       {/* Physical card */}
       <div style={{
-        background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)",
+        background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C",
         borderRadius:16, padding:"18px 20px", marginBottom:16,
       }}>
         <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 14px" }}>Duvaan-kortti</p>
 
         {/* Card visual */}
-        <div style={{
-          background:"linear-gradient(135deg, #0a0a0a 0%, #1a0a0f 40%, #0a0510 100%)",
-          border:"1px solid rgba(201,168,76,0.5)",
-          borderRadius:16, padding:"24px 22px", marginBottom:14,
-          position:"relative", overflow:"hidden",
-          aspectRatio:"1.586/1",
-        }}>
-          {/* Shimmer line */}
-          <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,rgba(201,168,76,0.6),transparent)" }} />
-          {/* Ornament placeholder */}
-          <div style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", opacity:0.15, fontSize:64 }}>✦</div>
-          <div>
-            <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 4px" }}>Duvaan</p>
-            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.14em", margin:0 }}>DEEP</p>
-          </div>
-          <div style={{ marginTop:28 }}>
-            <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", margin:"0 0 6px" }}>•••• •••• •••• 0001</p>
-            <div style={{ display:"flex", justifyContent:"space-between" }}>
-              <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.1em", margin:0 }}>JULIUS KÄÄRIÄ</p>
-              <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:10, margin:0 }}>12/28</p>
-            </div>
-          </div>
+        <div style={{ marginBottom:14, borderRadius:16, overflow:"hidden" }}>
+          <img
+            src="/DuvaanCard.png"
+            alt="Duvaan Card"
+            style={{ width:"100%", display:"block", borderRadius:16 }}
+          />
         </div>
 
         {cardOrdered ? (
@@ -379,12 +491,12 @@ function ShopSection() {
           </div>
         ) : (
           <>
-            <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:"0 0 14px" }}>
+            <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:"0 0 14px" }}>
               Musta metallikortti Duvaan-ornamentilla. Sisältää NFC-sirun yhteisöllisiin kohtaamisiin.
             </p>
             <button onClick={handleOrder} style={{
               width:"100%", padding:"13px 0",
-              background:"rgba(107,29,46,0.5)", border:"1.5px solid rgba(201,168,76,0.5)",
+              background:"rgba(107,29,46,0.5)", border:"1.5px solid #C9A84C",
               borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif",
               fontSize:11, fontWeight:600, letterSpacing:"0.16em",
               textTransform:"uppercase", cursor:"pointer",
@@ -420,7 +532,7 @@ function ProfileSection({ onSectionChange }) {
     <div style={{ marginBottom: 28, animation: "fadeInUp 0.5s ease both" }}>
 
       {/* Sub-nav */}
-      <div style={{ display:"flex", borderBottom:"0.5px solid rgba(201,168,76,0.2)", marginBottom:20 }}>
+      <div style={{ display:"flex", borderBottom:"0.5px solid #C9A84C", marginBottom:20 }}>
         {['Profiili','Training','Shop'].map((s, i) => {
           const id = i === 0 ? 'profile' : i === 1 ? 'training' : 'shop';
           const active = section === id;
@@ -428,7 +540,7 @@ function ProfileSection({ onSectionChange }) {
             <button key={s} onClick={() => { setSection(id); onSectionChange && onSectionChange(id); }} style={{
               background:"none", border:"none", cursor:"pointer",
               padding:"6px 16px 8px 0",
-              color: active ? GOLD : "rgba(201,168,76,0.5)",
+              color: active ? GOLD : "#C9A84C",
               fontFamily:"'Cinzel',serif", fontSize:"10px",
               letterSpacing:"0.14em", textTransform:"uppercase",
               borderBottom: active ? "1px solid " + GOLD : "1px solid transparent",
@@ -439,15 +551,16 @@ function ProfileSection({ onSectionChange }) {
       </div>
 
       {section === 'shop' && <ShopSection />}
+      {section === 'profile' && profile && !editing && <FrequencyCard />}
       {section === 'profile' && (
         <div>
           {!profile && !editing && (
-            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)", borderRadius:14, padding:"20px 16px", marginBottom:16, textAlign:"center" }}>
+            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:14, padding:"20px 16px", marginBottom:16, textAlign:"center" }}>
               <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", margin:"0 0 14px" }}>
                 Luo profiilisi — klubit ja tapahtumat löytävät sinut.
               </p>
               <button onClick={() => setEditing(true)} style={{
-                background:BURGUNDY, border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12,
+                background:BURGUNDY, border:"1.5px solid #C9A84C", borderRadius:12,
                 padding:"12px 24px", color:GOLD, fontFamily:"'Cinzel',serif",
                 fontSize:11, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer",
               }}>Luo profiili</button>
@@ -455,7 +568,7 @@ function ProfileSection({ onSectionChange }) {
           )}
 
           {editing && (
-            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
+            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
 
                 <div>
@@ -485,10 +598,10 @@ function ProfileSection({ onSectionChange }) {
                       const sel = form.tags.includes(tag);
                       return (
                         <button key={tag} onClick={() => toggleTag(tag)} style={{
-                          background: sel ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.02)",
-                          border: sel ? "1.5px solid #C9A84C" : "1px solid rgba(201,168,76,0.35)",
+                          background: sel ? "#C9A84C" : "rgba(255,255,255,0.02)",
+                          border: sel ? "1.5px solid #C9A84C" : "1px solid #C9A84C",
                           borderRadius:20, padding:"6px 14px", cursor:"pointer",
-                          color: sel ? GOLD : "rgba(201,168,76,0.7)",
+                          color: sel ? GOLD : "#C9A84C",
                           fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em",
                           transform: sel ? "scale(1.05)" : "scale(1)", transition:"all 0.2s",
                         }}>{tag}</button>
@@ -496,7 +609,7 @@ function ProfileSection({ onSectionChange }) {
                     })}
                   </div>
                   {form.tags.length > 0 && (
-                    <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"8px 0 0" }}>
+                    <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"8px 0 0" }}>
                       Löydät: {form.tags.join(', ')}
                     </p>
                   )}
@@ -505,14 +618,14 @@ function ProfileSection({ onSectionChange }) {
                 <div style={{ display:"flex", gap:8, marginTop:4 }}>
                   <button onClick={save} style={{
                     flex:1, padding:12, background:BURGUNDY,
-                    border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12,
+                    border:"1.5px solid #C9A84C", borderRadius:12,
                     color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10,
                     letterSpacing:"0.14em", textTransform:"uppercase", cursor:"pointer",
                   }}>Tallenna</button>
                   <button onClick={() => setEditing(false)} style={{
                     padding:"12px 16px", background:"none",
-                    border:"1px solid rgba(201,168,76,0.25)", borderRadius:12,
-                    color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, cursor:"pointer",
+                    border:"1px solid #C9A84C", borderRadius:12,
+                    color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, cursor:"pointer",
                   }}>Peruuta</button>
                 </div>
               </div>
@@ -520,7 +633,7 @@ function ProfileSection({ onSectionChange }) {
           )}
 
           {profile && !editing && (
-            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
+            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#6B1D2E,#C9A84C)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, color:"#fff", fontFamily:"'Cinzel',serif", fontWeight:700, flexShrink:0 }}>
@@ -531,15 +644,15 @@ function ProfileSection({ onSectionChange }) {
                     {profile.location && <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:0 }}>📍 {profile.location}</p>}
                   </div>
                 </div>
-                <button onClick={() => setEditing(true)} style={{ background:"none", border:"1px solid rgba(201,168,76,0.35)", borderRadius:8, padding:"5px 12px", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>Muokkaa</button>
+                <button onClick={() => setEditing(true)} style={{ background:"none", border:"1px solid #C9A84C", borderRadius:8, padding:"5px 12px", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>Muokkaa</button>
               </div>
               {profile.bio && <p style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.6, margin:"0 0 14px" }}>{profile.bio}</p>}
               {profile.tags?.length > 0 && (
                 <div>
-                  <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Tagit</p>
+                  <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Tagit</p>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                     {profile.tags.map(t => (
-                      <span key={t} style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.45)", borderRadius:20, padding:"4px 12px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em" }}>{t}</span>
+                      <span key={t} style={{ background:"rgba(201,168,76,0.1)", border:"1px solid #C9A84C", borderRadius:20, padding:"4px 12px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em" }}>{t}</span>
                     ))}
                   </div>
                 </div>
@@ -648,12 +761,12 @@ export default function PersonalView() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", animation: "fadeInUp 0.6s ease both" }}>
             <div>
               <h2 style={{ color: GOLD, fontSize: "22px", fontWeight: 700, letterSpacing: "0.1em", margin: 0, fontFamily: "'Cinzel', serif", animation: "todayText 8s ease-in-out infinite" }}>Personal</h2>
-              <p style={{ color: "rgba(201,168,76,0.6)", fontSize: "10px", fontFamily: "'Cinzel', serif", letterSpacing: "0.14em", margin: "4px 0 0", textTransform: "uppercase" }}>
+              <p style={{ color: "#C9A84C", fontSize: "10px", fontFamily: "'Cinzel', serif", letterSpacing: "0.14em", margin: "4px 0 0", textTransform: "uppercase" }}>
                 {new Date().toLocaleDateString('fi-FI', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
             <button onClick={() => { setIsEditing(true); setMode('onboarding'); setStep(0); }} style={{
-              background: "none", border: "1.5px solid rgba(201,168,76,0.55)", borderRadius: "10px",
+              background: "none", border: "1.5px solid #C9A84C", borderRadius: "10px",
               padding: "7px 14px", color: "rgba(201,168,76,0.8)", fontFamily: "'Cinzel', serif",
               fontSize: "9px", letterSpacing: "0.12em", cursor: "pointer", fontWeight: 600,
             }}>Muokkaa</button>
@@ -681,25 +794,25 @@ export default function PersonalView() {
                         {isToday && <span style={{ fontSize: "9px", marginLeft: "10px", opacity: 0.7, fontWeight: 400 }}>— tänään</span>}
                         {isDone(i) && <span style={{ fontSize: "9px", marginLeft: "10px", color: "#6effa0", fontWeight: 400 }}>✓ tehty</span>}
                       </p>
-                      <p style={{ color: "rgba(201,168,76,0.65)", fontSize: "12px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
+                      <p style={{ color: "#C9A84C", fontSize: "12px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
                         {day.focus}
                       </p>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       {day.exercises.length > 0 && (
-                        <span style={{ color: "rgba(201,168,76,0.7)", fontSize: "12px", fontFamily: "'Cinzel', serif", fontWeight: 600 }}>
+                        <span style={{ color: "#C9A84C", fontSize: "12px", fontFamily: "'Cinzel', serif", fontWeight: 600 }}>
                           {day.exercises.length}
                         </span>
                       )}
-                      <span style={{ color: "rgba(201,168,76,0.6)", fontSize: "12px", transition: "transform 0.3s", display: "inline-block", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>↓</span>
+                      <span style={{ color: "#C9A84C", fontSize: "12px", transition: "transform 0.3s", display: "inline-block", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>↓</span>
                     </div>
                   </div>
 
                   {isOpen && (
-                    <div style={{ borderTop: "1px solid rgba(201,168,76,0.15)" }}>
+                    <div style={{ borderTop: "1px solid #C9A84C" }}>
                       {day.rest ? (
                         <div style={{ padding: "16px 20px" }}>
-                          <p style={{ color: "rgba(201,168,76,0.5)", fontSize: "14px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>It's A Lifestyle</p>
+                          <p style={{ color: "#C9A84C", fontSize: "14px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>It's A Lifestyle</p>
                         </div>
                       ) : isEditingThis ? (
                         <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -712,8 +825,8 @@ export default function PersonalView() {
                             </div>
                           ))}
                           <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                            <button onClick={() => setEditingDay(null)} style={{ flex: 1, padding: "10px", background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.5)", borderRadius: "10px", color: GOLD, fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.1em", cursor: "pointer" }}>Tallenna</button>
-                            <button onClick={() => setEditingDay(null)} style={{ padding: "10px 14px", background: "none", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "10px", color: "rgba(201,168,76,0.5)", fontFamily: "'Cinzel', serif", fontSize: "10px", cursor: "pointer" }}>Peruuta</button>
+                            <button onClick={() => setEditingDay(null)} style={{ flex: 1, padding: "10px", background: "#C9A84C", border: "1px solid #C9A84C", borderRadius: "10px", color: GOLD, fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.1em", cursor: "pointer" }}>Tallenna</button>
+                            <button onClick={() => setEditingDay(null)} style={{ padding: "10px 14px", background: "none", border: "1px solid #C9A84C", borderRadius: "10px", color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: "10px", cursor: "pointer" }}>Peruuta</button>
                           </div>
                         </div>
                       ) : (
@@ -724,7 +837,7 @@ export default function PersonalView() {
                               <span style={{ color: GOLD, fontSize: "15px", fontStyle: "italic", fontFamily: "'Cormorant Garamond', serif" }}>{formatSets(ex)}</span>
                             </div>
                           ))}
-                          <button onClick={e => { e.stopPropagation(); startEditDay(i); }} style={{ width: "100%", padding: "10px", background: "none", border: "none", borderTop: "1px solid rgba(201,168,76,0.1)", color: "rgba(201,168,76,0.5)", fontFamily: "'Cinzel', serif", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer" }}>Muokkaa päivää</button>
+                          <button onClick={e => { e.stopPropagation(); startEditDay(i); }} style={{ width: "100%", padding: "10px", background: "none", border: "none", borderTop: "1px solid #C9A84C", color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer" }}>Muokkaa päivää</button>
                           {!isDone(i) && (
                             <button onClick={e => { e.stopPropagation(); markDone(i); }} style={{
                               width: "100%", padding: "14px",
@@ -771,10 +884,10 @@ export default function PersonalView() {
         <div style={{ width: "100%", animation: "fadeInUp 0.6s ease both" }}>
           <div style={{ display: "flex", gap: "4px", marginBottom: "6px" }}>
             {STEPS.map((_, i) => (
-              <div key={i} style={{ height: "2px", flex: 1, borderRadius: "2px", background: i < step ? "rgba(201,168,76,0.6)" : i === step ? "#C9A84C" : "rgba(255,255,255,0.06)", animation: i === step ? "progressShift 5s ease-in-out infinite" : "none", transition: "background 0.4s ease" }} />
+              <div key={i} style={{ height: "2px", flex: 1, borderRadius: "2px", background: i < step ? "#C9A84C" : i === step ? "#C9A84C" : "rgba(255,255,255,0.06)", animation: i === step ? "progressShift 5s ease-in-out infinite" : "none", transition: "background 0.4s ease" }} />
             ))}
           </div>
-          <p style={{ fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(201,168,76,0.55)", fontFamily: "'Cinzel', serif", textAlign: "right", margin: 0 }}>{step + 1} / {STEPS.length}</p>
+          <p style={{ fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: "#C9A84C", fontFamily: "'Cinzel', serif", textAlign: "right", margin: 0 }}>{step + 1} / {STEPS.length}</p>
         </div>
 
         <div ref={elRef} onClick={onInteract} onTouchStart={onInteract} style={{ cursor: "pointer", willChange: "transform", transformStyle: "preserve-3d" }}>

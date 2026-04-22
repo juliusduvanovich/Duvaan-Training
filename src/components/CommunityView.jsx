@@ -127,6 +127,29 @@ const MOCK_CHAT = [
   { id: 4, author: "Joonas H.", text: "King 👑", time: "14:32" },
 ];
 
+const MOCK_SERVICES = {
+  10: [ // Helsinki Runners
+    { id: 1, name: "Guided City Run", desc: "10km ohjattu kaupunkilenkki, kaikki tasot", duration: "90 min", price: 15, spots: 12, spotsLeft: 4, category: "Running" },
+    { id: 2, name: "Interval Training", desc: "Tehokas intervallitreeni Kaivopuistossa", duration: "60 min", price: 12, spots: 8, spotsLeft: 8, category: "Sports" },
+  ],
+  11: [ // Sound & Soul
+    { id: 3, name: "Yksityinen kitaratunti", desc: "1-1 tunti kokeneen muusikon kanssa", duration: "60 min", price: 55, spots: 1, spotsLeft: 1, category: "Music" },
+    { id: 4, name: "Yhteissoitto-sessio", desc: "Pienryhmä jam-sessio, max 5 henkilöä", duration: "120 min", price: 25, spots: 5, spotsLeft: 2, category: "Music" },
+  ],
+  12: [ // Good Food Club
+    { id: 5, name: "Private Dining Experience", desc: "Eksklusiivinen illallinen kokki-isännän kanssa", duration: "3h", price: 85, spots: 6, spotsLeft: 3, category: "Gastronomy" },
+    { id: 6, name: "Ruoanlaittotunti", desc: "Opi uusi keittiön taito", duration: "2h", price: 45, spots: 4, spotsLeft: 4, category: "Gastronomy" },
+  ],
+  13: [ // Mind & Body
+    { id: 7, name: "Yksityinen tanssitunti", desc: "1-1 sessio ammattitanssijan kanssa", duration: "60 min", price: 65, spots: 1, spotsLeft: 1, category: "Wellness" },
+    { id: 8, name: "Ryhmäjoogaclass", desc: "Max 8 henkilön aamu-joogasessio", duration: "75 min", price: 18, spots: 8, spotsLeft: 5, category: "Mindfulness" },
+    { id: 9, name: "Personal Training", desc: "Henkilökohtainen treeniohjelma + sessio", duration: "60 min", price: 70, spots: 1, spotsLeft: 1, category: "Sports" },
+  ],
+  14: [ // Builders
+    { id: 10, name: "Bisnes-mentoring", desc: "1h strateginen sparrailu kokeneen yrittäjän kanssa", duration: "60 min", price: 120, spots: 1, spotsLeft: 1, category: "Business" },
+  ],
+}
+
 const MOCK_PUBLIC_CLUBS = [
   { id: 10, name: 'Helsinki Runners', desc: 'Kaupunkilenkit ja juoksuhaasteet', tags: ['Running','Sports','Wellness'], members: 142, active: true },
   { id: 11, name: 'Sound & Soul', desc: 'Musiikki, luovuus ja yhteistyö', tags: ['Music','Art','Philosophy'], members: 89, active: false },
@@ -136,7 +159,7 @@ const MOCK_PUBLIC_CLUBS = [
   { id: 15, name: 'Visual Art Collective', desc: 'Taide, valokuvaus ja estetiikka', tags: ['Art','Fashion','Film'], members: 55, active: false },
 ];
 
-const SECTIONS = ['Duvaan Room', 'Homies', 'Clubs', 'Events'];
+const SECTIONS = ['Duvaan Club', 'Private', 'Clubs', 'Events'];
 
 export default function CommunityView({ onNavigate }) {
   const [section, setSection] = useState(0);
@@ -164,8 +187,8 @@ export default function CommunityView({ onNavigate }) {
           </div>
         </div>
 
-        {section === 0 && <DuvaanRoom />}
-        {section === 1 && <Homies />}
+        {section === 0 && <DuvaanClub />}
+        {section === 1 && <Private />}
         {section === 2 && <PublicClubs />}
         {section === 3 && <Events />}
       </div>
@@ -174,7 +197,7 @@ export default function CommunityView({ onNavigate }) {
 }
 
 // ─── DUVAAN ROOM ────────────────────────────────────────────────────────────
-function DuvaanRoom() {
+function DuvaanClub() {
   const [view, setView] = useState('feed');
   const [posts, setPosts] = useState(MOCK_POSTS);
   const [chat, setChat] = useState(MOCK_CHAT);
@@ -287,7 +310,7 @@ function DuvaanRoom() {
 }
 
 // ─── HOMIES ─────────────────────────────────────────────────────────────────
-function Homies() {
+function Private() {
   const [view, setView] = useState('list'); // list | create
   const [clubs, setClubs] = useState(() => {
     try { return JSON.parse(localStorage.getItem('duvaan_my_clubs') || '[]') } catch { return [] }
@@ -317,7 +340,7 @@ function Homies() {
     <div style={{ padding: "16px 16px 40px", animation: "fadeInUp 0.4s ease both" }}>
       <button onClick={() => setView('list')} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(201,168,76,0.9)", fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: "0.14em", marginBottom: 20, padding: 0 }}>← Takaisin</button>
       <h3 style={{ color: GOLD, fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, letterSpacing: "0.1em", margin: "0 0 4px" }}>Create a Club</h3>
-      <p style={{ color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 13, fontStyle: "italic", margin: "0 0 24px" }}>Yksityinen tila sinulle ja kavereillesi.</p>
+      <p style={{ color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 13, fontStyle: "italic", margin: "0 0 24px" }}>Yksityinen tila sinulle ja kavereillesi — vain kutsulla.</p>
 
       <div style={{ marginBottom: 14 }}>
         <p style={{ color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 7px" }}>Nimi</p>
@@ -398,55 +421,267 @@ function Homies() {
 }
 
 // ─── PUBLIC CLUBS ────────────────────────────────────────────────────────────
+function LocationPicker({ location, setLocation }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(location);
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+      <span style={{ color:"rgba(201,168,76,0.6)", fontSize:13, fontFamily:"'Cormorant Garamond',serif" }}>📍</span>
+      {editing ? (
+        <>
+          <input
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if(e.key==='Enter'){ setLocation(draft); setEditing(false); } }}
+            autoFocus
+            placeholder="Kaupunki tai maa..."
+            style={{
+              flex:1, background:"rgba(255,255,255,0.03)",
+              border:"1px solid rgba(201,168,76,0.5)", borderRadius:20,
+              padding:"6px 14px", color:GOLD,
+              fontFamily:"'Cormorant Garamond',serif", fontSize:13, outline:"none",
+            }}
+          />
+          <button onClick={() => { setLocation(draft); setEditing(false); }} style={{
+            background:BURGUNDY, border:"none", borderRadius:20,
+            padding:"6px 14px", color:GOLD,
+            fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer",
+          }}>OK</button>
+        </>
+      ) : (
+        <button onClick={() => { setDraft(location); setEditing(true); }} style={{
+          background:"none", border:"1px solid rgba(201,168,76,0.25)",
+          borderRadius:20, padding:"5px 14px", cursor:"pointer",
+          color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13,
+        }}>
+          {location || 'Valitse sijainti'} <span style={{ opacity:0.5, marginLeft:4 }}>✎</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+
+// ─── CLUB SERVICE VIEW ───────────────────────────────────────────────────────
+function ClubServiceView({ club, services, onBack, onPurchase }) {
+  const [selected, setSelected] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const handleConfirm = () => {
+    setDone(true);
+    setTimeout(() => {
+      // Add frequency points
+      const current = parseInt(localStorage.getItem('duvaan_frequency') || '0');
+      localStorage.setItem('duvaan_frequency', String(current + 20));
+      onPurchase(selected);
+    }, 1800);
+  };
+
+  if (confirming && selected) return (
+    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+      <button onClick={() => setConfirming(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
+
+      <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"24px 20px", marginBottom:16 }}>
+        <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>Varauksen yhteenveto</p>
+        <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, margin:"0 0 4px" }}>{selected.name}</h3>
+        <p style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 20px" }}>{club.name}</p>
+
+        <div style={{ borderTop:"0.5px solid rgba(201,168,76,0.15)", borderBottom:"0.5px solid rgba(201,168,76,0.15)", padding:"14px 0", marginBottom:20 }}>
+          {[
+            ["Kesto", selected.duration],
+            ["Hinta", selected.price + "€"],
+            ["Frequency", "+20 pistettä"],
+          ].map(([label, val]) => (
+            <div key={label} style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+              <span style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.1em" }}>{label}</span>
+              <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600 }}>{val}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Payment method mock */}
+        <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(201,168,76,0.2)", borderRadius:12, padding:"12px 14px", marginBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{ width:36, height:24, background:"linear-gradient(135deg,#1a1a2e,#16213e)", borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", border:"0.5px solid rgba(255,255,255,0.1)" }}>
+                <span style={{ color:"#fff", fontSize:7, fontWeight:700, letterSpacing:"0.05em" }}>VISA</span>
+              </div>
+              <span style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:11 }}>•••• 4242</span>
+            </div>
+            <span style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:9 }}>Vaihda</span>
+          </div>
+        </div>
+
+        {done ? (
+          <div style={{ textAlign:"center", padding:"16px 0" }}>
+            <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:14, letterSpacing:"0.1em", margin:0 }}>✓ Varattu — tervetuloa!</p>
+            <p style={{ color:"rgba(110,255,160,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"6px 0 0" }}>+20 Frequency-pistettä lisätty</p>
+          </div>
+        ) : (
+          <button onClick={handleConfirm} style={{
+            width:"100%", padding:"16px 0",
+            background:GOLD, border:"none", borderRadius:14,
+            color:"#080808", fontFamily:"'Cinzel',serif",
+            fontSize:12, fontWeight:700, letterSpacing:"0.18em",
+            textTransform:"uppercase", cursor:"pointer",
+          }}>
+            Vahvista — {selected.price}€
+          </button>
+        )}
+
+        <p style={{ color:"rgba(201,168,76,0.35)", fontFamily:"'Cormorant Garamond',serif", fontSize:11, textAlign:"center", margin:"10px 0 0", fontStyle:"italic" }}>
+          Maksunkäsittely suojattu · Stripe
+        </p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+      <button onClick={onBack} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:16, padding:0 }}>← Takaisin</button>
+
+      <div style={{ marginBottom:20 }}>
+        <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, letterSpacing:"0.08em", margin:"0 0 4px" }}>{club.name}</h3>
+        <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:0 }}>{club.desc}</p>
+      </div>
+
+      <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 12px" }}>Palvelut</p>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {services.map(service => (
+          <div key={service.id} style={{
+            background: selected?.id === service.id ? "rgba(201,168,76,0.06)" : "rgba(255,255,255,0.02)",
+            border: selected?.id === service.id ? "1px solid rgba(201,168,76,0.6)" : "1px solid rgba(201,168,76,0.25)",
+            borderRadius:16, padding:"16px 18px",
+            cursor:"pointer", transition:"all 0.2s",
+            animation:"breatheBtn 6s ease-in-out infinite",
+          }} onClick={() => setSelected(service)}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+              <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em" }}>{service.name}</span>
+              <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700 }}>{service.price}€</span>
+            </div>
+            <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 10px" }}>{service.desc}</p>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ display:"flex", gap:8 }}>
+                <span style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:9, background:"rgba(201,168,76,0.08)", padding:"3px 10px", borderRadius:20 }}>{service.duration}</span>
+                <span style={{ color: service.spotsLeft < 3 ? "#ff9a6e" : "rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:9, background:"rgba(201,168,76,0.08)", padding:"3px 10px", borderRadius:20 }}>
+                  {service.spotsLeft} paikkaa
+                </span>
+              </div>
+              {selected?.id === service.id && (
+                <span style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:9 }}>✓ Valittu</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {selected && (
+        <button onClick={() => setConfirming(true)} style={{
+          width:"100%", padding:"15px 0", marginTop:16,
+          background:GOLD, border:"none", borderRadius:14,
+          color:"#080808", fontFamily:"'Cinzel',serif",
+          fontSize:12, fontWeight:700, letterSpacing:"0.18em",
+          textTransform:"uppercase", cursor:"pointer",
+        }}>
+          Varaa — {selected.price}€
+        </button>
+      )}
+    </div>
+  );
+}
+
 function PublicClubs() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(null);
+  const [location, setLocation] = useState(() => localStorage.getItem('duvaan_location') || 'Helsinki');
+  const [selectedClub, setSelectedClub] = useState(null);
+  const [purchasedService, setPurchasedService] = useState(null);
+
+  const saveLocation = (loc) => { setLocation(loc); localStorage.setItem('duvaan_location', loc); };
   const allTags = [...new Set(MOCK_PUBLIC_CLUBS.flatMap(c => c.tags))];
   const filtered = MOCK_PUBLIC_CLUBS.filter(c =>
     (c.name.toLowerCase().includes(search.toLowerCase()) || c.desc.toLowerCase().includes(search.toLowerCase())) &&
     (!filter || c.tags.includes(filter))
   );
 
+  if (selectedClub) return (
+    <ClubServiceView
+      club={selectedClub}
+      services={MOCK_SERVICES[selectedClub.id] || []}
+      onBack={() => setSelectedClub(null)}
+      onPurchase={(service) => { setPurchasedService(service); setSelectedClub(null); }}
+    />
+  );
+
   return (
-    <div style={{ padding: "16px 16px 40px", animation: "fadeInUp 0.4s ease both" }}>
-      <p style={{ color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontStyle: "italic", margin: "0 0 14px" }}>
+    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+      {purchasedService && (
+        <div style={{ background:"rgba(110,255,160,0.06)", border:"1px solid rgba(110,255,160,0.3)", borderRadius:14, padding:"12px 16px", marginBottom:14, display:"flex", gap:10, alignItems:"center" }}>
+          <span style={{ fontSize:16 }}>✓</span>
+          <div>
+            <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, margin:0 }}>{purchasedService.name} varattu</p>
+            <p style={{ color:"rgba(110,255,160,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, margin:"2px 0 0" }}>+20 Frequency-pistettä kirjattu</p>
+          </div>
+        </div>
+      )}
+
+      <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 10px" }}>
         Löydä klubeja ja ihmisiä jotka resonoivat.
       </p>
+
+      <LocationPicker location={location} setLocation={saveLocation} />
+
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Etsi klubeja..." style={{
-        width: "100%", boxSizing: "border-box", marginBottom: 12,
-        background: "rgba(255,255,255,0.03)", border: "1px solid #C9A84C",
-        borderRadius: 24, padding: "10px 16px", color: GOLD,
-        fontFamily: "'Cormorant Garamond', serif", fontSize: 14, outline: "none",
+        width:"100%", boxSizing:"border-box", marginBottom:12,
+        background:"rgba(255,255,255,0.03)", border:"1px solid rgba(201,168,76,0.3)",
+        borderRadius:24, padding:"10px 16px", color:GOLD,
+        fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none",
       }} />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 18 }}>
+
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:18 }}>
         {allTags.map(t => (
           <button key={t} className={`tag-btn ${filter === t ? 'selected' : ''}`} onClick={() => setFilter(filter === t ? null : t)}>{t}</button>
         ))}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {filtered.map(club => (
           <div key={club.id} className="club-card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
               <div>
-                <span style={{ color: GOLD, fontFamily: "'Cinzel', serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.06em" }}>{club.name}</span>
-                {club.active && <span style={{ marginLeft: 8, fontSize: 8, color: "#6effa0" }}>● LIVE</span>}
+                <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em" }}>{club.name}</span>
+                {club.active && <span style={{ marginLeft:8, fontSize:8, color:"#6effa0" }}>● LIVE</span>}
               </div>
-              <span style={{ color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: 9 }}>{club.members} jäsentä</span>
+              <span style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:9 }}>{club.members} jäsentä</span>
             </div>
-            <p style={{ color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 13, fontStyle: "italic", margin: "0 0 10px" }}>{club.desc}</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+            <p style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 10px" }}>{club.desc}</p>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
               {club.tags.map(t => (
-                <span key={t} style={{ background: "rgba(201,168,76,0.35)", border: "0.5px solid rgba(201,168,76,0.45)", borderRadius: 20, padding: "3px 10px", color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: "0.1em" }}>{t}</span>
+                <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.35)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
               ))}
             </div>
-            <button style={{ background: "rgba(107,29,46,0.3)", border: "1px solid #C9A84C", borderRadius: 20, padding: "6px 16px", cursor: "pointer", color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase" }}>
-              Liity klubiin
-            </button>
+            <div style={{ display:"flex", gap:8 }}>
+              <button style={{ background:"rgba(107,29,46,0.3)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:20, padding:"7px 16px", cursor:"pointer", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
+                Liity
+              </button>
+              {MOCK_SERVICES[club.id] && (
+                <button onClick={() => setSelectedClub(club)} style={{
+                  background:"rgba(201,168,76,0.1)", border:"1.5px solid rgba(201,168,76,0.6)",
+                  borderRadius:20, padding:"7px 18px", cursor:"pointer",
+                  color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9,
+                  letterSpacing:"0.14em", textTransform:"uppercase",
+                }}>
+                  Palvelut →
+                </button>
+              )}
+            </div>
           </div>
         ))}
         {filtered.length === 0 && (
-          <p style={{ color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 13, fontStyle: "italic", textAlign: "center", marginTop: 20 }}>
-            Ei klubeja — luo oma Homies-osiossa.
+          <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", textAlign:"center", marginTop:20 }}>
+            Ei tuloksia — kokeile eri hakua.
           </p>
         )}
       </div>
@@ -455,50 +690,32 @@ function PublicClubs() {
 }
 
 
-// ─── EVENTS ─────────────────────────────────────────────────────────────────
+
+
 const MOCK_EVENTS = [
-  {
-    id: 1, name: 'Duvaan Live — Helsinki', desc: 'Eksklussiivinen keikta Duvaan-jäsenille. Rajattu kapasiteetti.',
-    date: '2025-05-15', time: '20:00', location: 'Tavastia, Helsinki',
-    capacity: 300, attending: 187, free: false, price: '15€',
-    tags: ['Music'], type: 'public', dresscode: 'Dark & elegant',
-    deadline: '2025-05-10', host: 'Duvaan', verified: true,
-  },
-  {
-    id: 2, name: 'Helsinki Runners — 10km', desc: 'Yhteinen kaupunkilenkki. Kaikki tasot tervetulleita.',
-    date: '2025-05-08', time: '07:00', location: 'Esplanadi, Helsinki',
-    capacity: 50, attending: 23, free: true, price: null,
-    tags: ['Running','Sports'], type: 'public', dresscode: null,
-    deadline: '2025-05-07', host: 'Helsinki Runners', verified: false,
-  },
+  { id:1, name:'Duvaan Live — Helsinki', desc:'Eksklusiivinen keikka Duvaan-jäsenille.', date:'2025-05-15', time:'20:00', location:'Tavastia, Helsinki', capacity:300, attending:187, free:false, price:'15€', tags:['Music'], type:'public', dresscode:'Dark & elegant', deadline:'2025-05-10', host:'Duvaan', verified:true },
+  { id:2, name:'Helsinki Runners — 10km', desc:'Yhteinen kaupunkilenkki. Kaikki tasot tervetulleita.', date:'2025-05-08', time:'07:00', location:'Esplanadi, Helsinki', capacity:50, attending:23, free:true, price:null, tags:['Running','Sports'], type:'public', dresscode:null, deadline:'2025-05-07', host:'Helsinki Runners', verified:false },
+  { id:3, name:'Mind & Body — Jooga & Aamiainen', desc:'Aamu-jooga + terveellinen aamiainen yhteisön kanssa.', date:'2025-05-10', time:'08:30', location:'Studio Flow, Helsinki', capacity:20, attending:14, free:false, price:'22€', tags:['Mindfulness','Wellness'], type:'public', dresscode:null, deadline:'2025-05-09', host:'Mind & Body', verified:false },
 ]
 
 function Events() {
   const [view, setView] = useState('list')
+  const [location, setLocation] = useState(() => localStorage.getItem('duvaan_location') || 'Helsinki')
+  const saveLocation = (loc) => { setLocation(loc); localStorage.setItem('duvaan_location', loc) }
   const [events, setEvents] = useState(() => {
     try { return [...MOCK_EVENTS, ...JSON.parse(localStorage.getItem('duvaan_events') || '[]')] } catch { return MOCK_EVENTS }
   })
-  const [form, setForm] = useState({
-    name: '', desc: '', date: '', time: '', location: '',
-    capacity: '', free: true, price: '',
-    tags: [], type: 'public', dresscode: '', deadline: '',
-  })
+  const [form, setForm] = useState({ name:'', desc:'', date:'', time:'', location:'', capacity:'', free:true, price:'', tags:[], type:'public', dresscode:'', deadline:'' })
   const [created, setCreated] = useState(false)
 
-  const toggleTag = tag => setForm(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag] }))
+  const toggleTag = tag => setForm(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t=>t!==tag) : [...f.tags, tag] }))
 
   const handleCreate = () => {
     if (!form.name.trim() || !form.date || !form.location) return
-    const newEvent = {
-      id: Date.now(), ...form,
-      capacity: parseInt(form.capacity) || 0,
-      attending: 0, host: 'Julius', verified: true,
-      price: form.free ? null : form.price,
-    }
-    const stored = JSON.parse(localStorage.getItem('duvaan_events') || '[]')
-    const updated = [...stored, newEvent]
-    localStorage.setItem('duvaan_events', JSON.stringify(updated))
-    setEvents([...MOCK_EVENTS, ...updated])
+    const newEvent = { id:Date.now(), ...form, capacity:parseInt(form.capacity)||0, attending:0, host:'Julius', verified:true, price:form.free?null:form.price }
+    const stored = JSON.parse(localStorage.getItem('duvaan_events')||'[]')
+    localStorage.setItem('duvaan_events', JSON.stringify([...stored, newEvent]))
+    setEvents([...MOCK_EVENTS, ...stored, newEvent])
     setCreated(true)
     setTimeout(() => { setView('list'); setCreated(false); setForm({ name:'',desc:'',date:'',time:'',location:'',capacity:'',free:true,price:'',tags:[],type:'public',dresscode:'',deadline:'' }) }, 1500)
   }
@@ -506,86 +723,67 @@ function Events() {
   const canCreate = form.name.trim() && form.date && form.location.trim()
 
   if (view === 'create') return (
-    <div style={{ padding: "16px 16px 60px", animation: "fadeInUp 0.4s ease both" }}>
-      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
-      <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Create Event</h3>
-      <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 24px" }}>Luo tapahtuma klubillesi tai koko yhteisölle.</p>
+    <div style={{ padding:"16px 16px 60px", animation:"fadeInUp 0.4s ease both" }}>
+      <button onClick={()=>setView('list')} style={{ background:"none",border:"none",cursor:"pointer",color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:"0.14em",marginBottom:20,padding:0 }}>← Takaisin</button>
+      <h3 style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,letterSpacing:"0.1em",margin:"0 0 4px" }}>Create Event</h3>
+      <p style={{ color:"rgba(201,168,76,0.7)",fontFamily:"'Cormorant Garamond',serif",fontSize:13,fontStyle:"italic",margin:"0 0 22px" }}>Luo tapahtuma klubillesi tai koko yhteisölle.</p>
 
-      {[
-        { label:"Nimi *", field:"name", placeholder:"Event name..." },
-        { label:"Sijainti *", field:"location", placeholder:"Missä tapahtuu..." },
-        { label:"Dress Code", field:"dresscode", placeholder:"Dark & elegant, casual..." },
-      ].map(({ label, field, placeholder }) => (
+      {[["Nimi *","name","Event name..."],["Sijainti *","location","Missä tapahtuu..."],["Dress Code","dresscode","Dark & elegant, casual..."]].map(([label,field,ph]) => (
         <div key={field} style={{ marginBottom:14 }}>
-          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>{label}</p>
-          <input className="text-field" value={form[field]} onChange={e => setForm(f=>({...f,[field]:e.target.value}))} placeholder={placeholder} />
+          <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>{label}</p>
+          <input className="text-field" value={form[field]} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph} />
         </div>
       ))}
 
       <div style={{ marginBottom:14 }}>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Kuvaus</p>
+        <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Kuvaus</p>
         <textarea className="text-field" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} placeholder="Mistä on kyse..." rows={2} style={{ resize:"none" }} />
       </div>
 
-      <div style={{ display:"flex", gap:10, marginBottom:14 }}>
+      <div style={{ display:"flex",gap:10,marginBottom:14 }}>
         <div style={{ flex:1 }}>
-          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Päivämäärä *</p>
+          <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Päivämäärä *</p>
           <input className="text-field" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ colorScheme:"dark" }} />
         </div>
         <div style={{ flex:1 }}>
-          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Kellonaika</p>
+          <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Kellonaika</p>
           <input className="text-field" type="time" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={{ colorScheme:"dark" }} />
         </div>
       </div>
 
-      <div style={{ display:"flex", gap:10, marginBottom:14 }}>
+      <div style={{ display:"flex",gap:10,marginBottom:14 }}>
         <div style={{ flex:1 }}>
-          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Kapasiteetti</p>
+          <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Kapasiteetti</p>
           <input className="text-field" type="number" value={form.capacity} onChange={e=>setForm(f=>({...f,capacity:e.target.value}))} placeholder="Max henkilöä" />
         </div>
         <div style={{ flex:1 }}>
-          <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>RSVP deadline</p>
+          <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>RSVP deadline</p>
           <input className="text-field" type="date" value={form.deadline} onChange={e=>setForm(f=>({...f,deadline:e.target.value}))} style={{ colorScheme:"dark" }} />
         </div>
       </div>
 
-      {/* Type */}
       <div style={{ marginBottom:14 }}>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Tyyppi</p>
-        <div style={{ display:"flex", gap:8 }}>
-          {[['public','Julkinen'],['private','Yksityinen (kutsu)']].map(([val,label]) => (
-            <button key={val} onClick={()=>setForm(f=>({...f,type:val}))} style={{
-              flex:1, padding:"10px 8px", cursor:"pointer",
-              background: form.type===val ? "rgba(201,168,76,0.1)" : "rgba(255,255,255,0.02)",
-              border: form.type===val ? "1.5px solid #C9A84C" : "1px solid rgba(201,168,76,0.4)",
-              borderRadius:12, color: form.type===val ? GOLD : "rgba(201,168,76,0.7)",
-              fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em",
-            }}>{label}</button>
+        <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Tyyppi</p>
+        <div style={{ display:"flex",gap:8 }}>
+          {[['public','Julkinen'],['private','Yksityinen']].map(([val,label]) => (
+            <button key={val} onClick={()=>setForm(f=>({...f,type:val}))} style={{ flex:1,padding:"10px 8px",cursor:"pointer",background:form.type===val?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)",border:form.type===val?"1.5px solid #C9A84C":"1px solid rgba(201,168,76,0.4)",borderRadius:12,color:form.type===val?GOLD:"rgba(201,168,76,0.7)",fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.1em" }}>{label}</button>
           ))}
         </div>
       </div>
 
-      {/* Pricing */}
       <div style={{ marginBottom:20 }}>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Hinta</p>
-        <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+        <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 7px" }}>Hinta</p>
+        <div style={{ display:"flex",gap:8,marginBottom:8 }}>
           {[[true,'Ilmainen'],[false,'Maksullinen']].map(([val,label]) => (
-            <button key={String(val)} onClick={()=>setForm(f=>({...f,free:val}))} style={{
-              flex:1, padding:"10px 8px", cursor:"pointer",
-              background: form.free===val ? "rgba(201,168,76,0.1)" : "rgba(255,255,255,0.02)",
-              border: form.free===val ? "1.5px solid #C9A84C" : "1px solid rgba(201,168,76,0.4)",
-              borderRadius:12, color: form.free===val ? GOLD : "rgba(201,168,76,0.7)",
-              fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em",
-            }}>{label}</button>
+            <button key={String(val)} onClick={()=>setForm(f=>({...f,free:val}))} style={{ flex:1,padding:"10px 8px",cursor:"pointer",background:form.free===val?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)",border:form.free===val?"1.5px solid #C9A84C":"1px solid rgba(201,168,76,0.4)",borderRadius:12,color:form.free===val?GOLD:"rgba(201,168,76,0.7)",fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.1em" }}>{label}</button>
           ))}
         </div>
         {!form.free && <input className="text-field" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} placeholder="esim. 15€" />}
       </div>
 
-      {/* Tags */}
       <div style={{ marginBottom:28 }}>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>Kategoria</p>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+        <p style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 10px" }}>Kategoria</p>
+        <div style={{ display:"flex",flexWrap:"wrap",gap:7 }}>
           {ALL_TAGS.map(tag => (
             <button key={tag} className={`tag-btn ${form.tags.includes(tag)?'selected':''}`} onClick={()=>toggleTag(tag)}>{tag}</button>
           ))}
@@ -593,82 +791,49 @@ function Events() {
       </div>
 
       {created ? (
-        <div style={{ textAlign:"center", padding:"16px 0" }}>
-          <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em" }}>✓ Tapahtuma luotu</p>
+        <div style={{ textAlign:"center",padding:"16px 0" }}>
+          <p style={{ color:"#6effa0",fontFamily:"'Cinzel',serif",fontSize:13,letterSpacing:"0.1em" }}>✓ Tapahtuma luotu</p>
         </div>
       ) : (
-        <button onClick={handleCreate} disabled={!canCreate} style={{
-          width:"100%", padding:16, background: canCreate ? BURGUNDY : "rgba(107,29,46,0.2)",
-          border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:16,
-          color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em",
-          textTransform:"uppercase", cursor: canCreate ? "pointer" : "default",
-          opacity: canCreate ? 1 : 0.35,
-        }}>Create Event</button>
+        <button onClick={handleCreate} disabled={!canCreate} style={{ width:"100%",padding:16,background:canCreate?BURGUNDY:"rgba(107,29,46,0.2)",border:"1.5px solid rgba(201,168,76,0.5)",borderRadius:16,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:12,letterSpacing:"0.18em",textTransform:"uppercase",cursor:canCreate?"pointer":"default",opacity:canCreate?1:0.35 }}>Create Event</button>
       )}
     </div>
   )
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <button onClick={()=>setView('create')} style={{
-        width:"100%", padding:"14px 0", marginBottom:24,
-        background:"rgba(107,29,46,0.2)", border:"1.5px solid rgba(201,168,76,0.5)",
-        borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif",
-        fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer",
-      }}>+ Create Event</button>
+      <button onClick={()=>setView('create')} style={{ width:"100%",padding:"14px 0",marginBottom:14,background:"rgba(107,29,46,0.2)",border:"1.5px solid rgba(201,168,76,0.5)",borderRadius:14,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:11,letterSpacing:"0.18em",textTransform:"uppercase",cursor:"pointer" }}>+ Create Event</button>
 
-      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+      <LocationPicker location={location} setLocation={saveLocation} />
+
+      <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
         {events.map(ev => {
           const spotsLeft = ev.capacity ? ev.capacity - ev.attending : null
           const full = spotsLeft !== null && spotsLeft <= 0
           const dateStr = new Date(ev.date).toLocaleDateString('fi-FI', { weekday:'short', day:'numeric', month:'long' })
           return (
             <div key={ev.id} className="club-card">
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6 }}>
                 <div>
-                  <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700, letterSpacing:"0.06em" }}>{ev.name}</span>
-                  {ev.verified && <span style={{ color:"#6eb4ff", fontSize:10, marginLeft:6 }}>✦</span>}
+                  <span style={{ color:GOLD,fontFamily:"'Cinzel',serif",fontSize:13,fontWeight:700,letterSpacing:"0.06em" }}>{ev.name}</span>
+                  {ev.verified && <span style={{ color:"#6eb4ff",fontSize:10,marginLeft:6 }}>✦</span>}
                 </div>
-                <span style={{ color: ev.free ? "#6effa0" : GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600 }}>
-                  {ev.free ? 'Ilmainen' : ev.price}
-                </span>
+                <span style={{ color:ev.free?"#6effa0":GOLD,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:600 }}>{ev.free?'Ilmainen':ev.price}</span>
               </div>
-
-              {ev.desc && <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 10px", lineHeight:1.5 }}>{ev.desc}</p>}
-
-              <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:10 }}>
-                <span style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:13 }}>📅 {dateStr}{ev.time ? ` · klo ${ev.time}` : ''}</span>
-                <span style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:13 }}>📍 {ev.location}</span>
-                {ev.dresscode && <span style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic" }}>👔 {ev.dresscode}</span>}
-                {ev.deadline && <span style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:12 }}>
-                  RSVP: {new Date(ev.deadline).toLocaleDateString('fi-FI', { day:'numeric', month:'long' })}
-                </span>}
+              {ev.desc && <p style={{ color:GOLD,fontFamily:"'Cormorant Garamond',serif",fontSize:14,fontStyle:"italic",margin:"0 0 10px",lineHeight:1.5 }}>{ev.desc}</p>}
+              <div style={{ display:"flex",flexDirection:"column",gap:4,marginBottom:10 }}>
+                <span style={{ color:GOLD,fontFamily:"'Cormorant Garamond',serif",fontSize:13 }}>📅 {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
+                <span style={{ color:GOLD,fontFamily:"'Cormorant Garamond',serif",fontSize:13 }}>📍 {ev.location}</span>
+                {ev.dresscode && <span style={{ color:"rgba(201,168,76,0.8)",fontFamily:"'Cormorant Garamond',serif",fontSize:13,fontStyle:"italic" }}>👔 {ev.dresscode}</span>}
+                {ev.deadline && <span style={{ color:"rgba(201,168,76,0.7)",fontFamily:"'Cormorant Garamond',serif",fontSize:12 }}>RSVP: {new Date(ev.deadline).toLocaleDateString('fi-FI',{day:'numeric',month:'long'})}</span>}
               </div>
-
-              <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
-                {ev.tags.map(t => (
-                  <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.35)", borderRadius:20, padding:"3px 10px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
-                ))}
-                <span style={{ background: ev.type==='public' ? "rgba(110,255,160,0.08)" : "rgba(110,180,255,0.08)", border: `0.5px solid ${ev.type==='public'?"rgba(110,255,160,0.4)":"rgba(110,180,255,0.4)"}`, borderRadius:20, padding:"3px 10px", color: ev.type==='public'?"#6effa0":"#6eb4ff", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>
-                  {ev.type==='public' ? 'Julkinen' : 'Yksityinen'}
-                </span>
+              <div style={{ display:"flex",flexWrap:"wrap",gap:5,marginBottom:12 }}>
+                {ev.tags.map(t => <span key={t} style={{ background:"rgba(201,168,76,0.08)",border:"0.5px solid rgba(201,168,76,0.35)",borderRadius:20,padding:"3px 10px",color:GOLD,fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:"0.1em" }}>{t}</span>)}
               </div>
-
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                {spotsLeft !== null && (
-                  <span style={{ color: full ? "#ff6eb4" : "#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.1em" }}>
-                    {full ? 'Täynnä' : `${spotsLeft} paikkaa jäljellä`}
-                  </span>
-                )}
-                <button disabled={full} style={{
-                  background: full ? "rgba(255,255,255,0.03)" : BURGUNDY,
-                  border:"1px solid rgba(201,168,76,0.5)", borderRadius:20,
-                  padding:"8px 20px", cursor: full ? "default" : "pointer",
-                  color: full ? "rgba(201,168,76,0.4)" : GOLD,
-                  fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase",
-                  opacity: full ? 0.5 : 1,
-                }}>
-                  {full ? 'Täynnä' : 'Ilmoittaudu'}
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+                {spotsLeft!==null && <span style={{ color:full?"#ff6eb4":GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:"0.1em" }}>{full?'Täynnä':`${spotsLeft} paikkaa jäljellä`}</span>}
+                <button disabled={full} style={{ background:full?"rgba(255,255,255,0.03)":BURGUNDY,border:"1px solid rgba(201,168,76,0.5)",borderRadius:20,padding:"8px 20px",cursor:full?"default":"pointer",color:full?"rgba(201,168,76,0.4)":GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",opacity:full?0.5:1 }}>
+                  {full?'Täynnä':'Ilmoittaudu'}
                 </button>
               </div>
             </div>
