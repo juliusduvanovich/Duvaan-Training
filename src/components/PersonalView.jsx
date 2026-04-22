@@ -249,6 +249,155 @@ const STEPS = [
 const PERSONAL_TAGS = ['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion'];
 const BURGUNDY = "#6B1D2E";
 
+
+function ShopSection() {
+  const [selected, setSelected] = useState(null);
+  const [cardOrdered, setCardOrdered] = useState(() => {
+    try { return localStorage.getItem('duvaan_card_ordered') === 'true'; } catch { return false; }
+  });
+
+  const handleOrder = () => {
+    localStorage.setItem('duvaan_card_ordered', 'true');
+    setCardOrdered(true);
+  };
+
+  return (
+    <div style={{ paddingBottom: 20 }}>
+
+      {/* Duvaan Deep hero */}
+      <div style={{
+        background: "linear-gradient(135deg, rgba(107,29,46,0.6) 0%, rgba(10,10,10,0.9) 50%, rgba(107,29,46,0.4) 100%)",
+        border: "1px solid rgba(201,168,76,0.5)",
+        borderRadius: 20, padding: "28px 20px", marginBottom: 16,
+        position: "relative", overflow: "hidden",
+        animation: "breatheBtn 6s ease-in-out infinite",
+      }}>
+        {/* Decorative top line */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,#C9A84C,transparent)" }} />
+
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:16 }}>
+          <div>
+            <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 6px" }}>Duvaan</p>
+            <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:24, fontWeight:700, letterSpacing:"0.08em", margin:0, animation:"todayText 8s ease-in-out infinite" }}>Deep</h3>
+          </div>
+          <div style={{ textAlign:"right" }}>
+            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:700, margin:0 }}>9€</p>
+            <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:11, fontStyle:"italic", margin:"2px 0 0" }}>/kk</p>
+          </div>
+        </div>
+
+        <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.7, margin:"0 0 20px" }}>
+          Pääsy Duvaanin sisimpään. Yhteisöä, valuuttaa ja vaikutusvaltaa.
+        </p>
+
+        {/* Features */}
+        {[
+          { icon:"⚡", title:"Eliel Pro", desc:"Tehokkaampi AI — muistaa, oppii, ennakoi" },
+          { icon:"🔑", title:"Suljetut klubit", desc:"Pääsy eksklusiivisiin Duvaan-huoneisiin" },
+          { icon:"◈", title:"D-Coin", desc:"Virtuaalivaluutta yhteistyökumppaneilla" },
+          { icon:"▣", title:"Duvaan-kortti", desc:"Fyysinen kortti Duvaan-ornamentilla" },
+        ].map(({ icon, title, desc }) => (
+          <div key={title} style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom:14 }}>
+            <span style={{ fontSize:18, flexShrink:0, marginTop:1 }}>{icon}</span>
+            <div>
+              <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, letterSpacing:"0.08em", margin:"0 0 2px" }}>{title}</p>
+              <p style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:0 }}>{desc}</p>
+            </div>
+          </div>
+        ))}
+
+        <button style={{
+          width:"100%", padding:"15px 0", marginTop:8,
+          background:GOLD, border:"none", borderRadius:14,
+          color:"#080808", fontFamily:"'Cinzel',serif",
+          fontSize:12, fontWeight:700, letterSpacing:"0.18em",
+          textTransform:"uppercase", cursor:"pointer",
+        }}>
+          Aktivoi Duvaan Deep
+        </button>
+
+        <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:11, textAlign:"center", margin:"10px 0 0", fontStyle:"italic" }}>
+          Peruuta milloin tahansa
+        </p>
+      </div>
+
+      {/* D-Coin info */}
+      <div style={{
+        background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)",
+        borderRadius:16, padding:"18px 20px", marginBottom:16,
+      }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+          <div>
+            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.1em", margin:0 }}>D-Coin</p>
+            <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"3px 0 0" }}>Duvaan virtuaalivaluutta</p>
+          </div>
+          <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:12, padding:"8px 16px" }}>
+            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, margin:0 }}>0</p>
+            <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", margin:"2px 0 0" }}>D-COIN</p>
+          </div>
+        </div>
+        <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:0 }}>
+          Käytä D-Coinia Duvaan-yhteistyökumppaneilla — tapahtumissa, ravintoloissa ja eksklusiiivisissa palveluissa. Revolut meets Amex, Duvaan-tyyliin.
+        </p>
+      </div>
+
+      {/* Physical card */}
+      <div style={{
+        background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)",
+        borderRadius:16, padding:"18px 20px", marginBottom:16,
+      }}>
+        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 14px" }}>Duvaan-kortti</p>
+
+        {/* Card visual */}
+        <div style={{
+          background:"linear-gradient(135deg, #0a0a0a 0%, #1a0a0f 40%, #0a0510 100%)",
+          border:"1px solid rgba(201,168,76,0.5)",
+          borderRadius:16, padding:"24px 22px", marginBottom:14,
+          position:"relative", overflow:"hidden",
+          aspectRatio:"1.586/1",
+        }}>
+          {/* Shimmer line */}
+          <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,rgba(201,168,76,0.6),transparent)" }} />
+          {/* Ornament placeholder */}
+          <div style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", opacity:0.15, fontSize:64 }}>✦</div>
+          <div>
+            <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 4px" }}>Duvaan</p>
+            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.14em", margin:0 }}>DEEP</p>
+          </div>
+          <div style={{ marginTop:28 }}>
+            <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", margin:"0 0 6px" }}>•••• •••• •••• 0001</p>
+            <div style={{ display:"flex", justifyContent:"space-between" }}>
+              <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.1em", margin:0 }}>JULIUS KÄÄRIÄ</p>
+              <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:10, margin:0 }}>12/28</p>
+            </div>
+          </div>
+        </div>
+
+        {cardOrdered ? (
+          <div style={{ textAlign:"center", padding:"10px 0" }}>
+            <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.1em", margin:0 }}>✓ Kortti tilattu — tulossa postissa</p>
+          </div>
+        ) : (
+          <>
+            <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:"0 0 14px" }}>
+              Musta metallikortti Duvaan-ornamentilla. Sisältää NFC-sirun yhteisöllisiin kohtaamisiin.
+            </p>
+            <button onClick={handleOrder} style={{
+              width:"100%", padding:"13px 0",
+              background:"rgba(107,29,46,0.5)", border:"1.5px solid rgba(201,168,76,0.5)",
+              borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif",
+              fontSize:11, fontWeight:600, letterSpacing:"0.16em",
+              textTransform:"uppercase", cursor:"pointer",
+            }}>
+              Tilaa kortti — Deep-jäsenille
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ProfileSection({ onSectionChange }) {
   const [editing, setEditing] = useState(false);
   const [section, setSection] = useState('profile');
@@ -272,8 +421,8 @@ function ProfileSection({ onSectionChange }) {
 
       {/* Sub-nav */}
       <div style={{ display:"flex", borderBottom:"0.5px solid rgba(201,168,76,0.2)", marginBottom:20 }}>
-        {['Profiili','Training'].map((s, i) => {
-          const id = i === 0 ? 'profile' : 'training';
+        {['Profiili','Training','Shop'].map((s, i) => {
+          const id = i === 0 ? 'profile' : i === 1 ? 'training' : 'shop';
           const active = section === id;
           return (
             <button key={s} onClick={() => { setSection(id); onSectionChange && onSectionChange(id); }} style={{
@@ -289,6 +438,7 @@ function ProfileSection({ onSectionChange }) {
         })}
       </div>
 
+      {section === 'shop' && <ShopSection />}
       {section === 'profile' && (
         <div>
           {!profile && !editing && (
