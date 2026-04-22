@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import SplashScreen from './components/SplashScreen'
 import LobbyView from './components/LobbyView'
-import TrainView from './components/TrainView'
+import PersonalView from './components/PersonalView'
 import CommunityView from './components/CommunityView'
 
 const GOLD = '#C9A84C'
@@ -247,8 +247,8 @@ function FireflyBg() {
 
     let dnaPairs = [], solos = []
     const init = () => {
-      dnaPairs = [new DNAPair(canvas.width, canvas.height), new DNAPair(canvas.width, canvas.height)]
-      solos = [new Firefly(canvas.width, canvas.height), new Firefly(canvas.width, canvas.height), new Firefly(canvas.width, canvas.height)]
+      dnaPairs = [new DNAPair(canvas.width, canvas.height)]
+      solos = [new Firefly(canvas.width, canvas.height)]
     }
     init()
     window.addEventListener('resize', init)
@@ -511,7 +511,7 @@ export default function App() {
   if (splash) return <SplashScreen onComplete={() => setSplash(false)} />
 
   const tabs = [
-    { id: 'train',     label: 'Training' },
+    { id: 'personal',  label: 'Personal' },
     { id: 'eliel',     label: 'Eliel' },
     { id: 'community', label: 'Community' },
   ]
@@ -525,7 +525,7 @@ export default function App() {
 
       <div style={{ position: 'relative', zIndex: 1, paddingBottom: 80 }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView onNavigate={setTab} />}
-        {tab === 'train'     && <TrainView onNavigate={setTab} />}
+        {tab === 'personal'  && <PersonalView onNavigate={setTab} />}
         {tab === 'community' && <CommunityView onNavigate={setTab} />}
       </div>
 

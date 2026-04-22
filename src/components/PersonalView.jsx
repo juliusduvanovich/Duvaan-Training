@@ -245,14 +245,189 @@ const STEPS = [
   { eliel: "Haluatko kertoa jotain muuta?" },
 ];
 
-export default function TrainView() {
+
+const PERSONAL_TAGS = ['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion'];
+const BURGUNDY = "#6B1D2E";
+
+function ProfileSection({ onSectionChange }) {
+  const [editing, setEditing] = useState(false);
+  const [section, setSection] = useState('profile');
+  const [profile, setProfile] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('duvaan_user_profile') || 'null'); } catch { return null; }
+  });
+  const [form, setForm] = useState(profile || { name:'', location:'', bio:'', tags:[] });
+
+  const toggleTag = (tag) => setForm(f => ({
+    ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag]
+  }));
+
+  const save = () => {
+    localStorage.setItem('duvaan_user_profile', JSON.stringify(form));
+    setProfile(form);
+    setEditing(false);
+  };
+
+  return (
+    <div style={{ marginBottom: 28, animation: "fadeInUp 0.5s ease both" }}>
+
+      {/* Sub-nav */}
+      <div style={{ display:"flex", borderBottom:"0.5px solid rgba(201,168,76,0.2)", marginBottom:20 }}>
+        {['Profiili','Training'].map((s, i) => {
+          const id = i === 0 ? 'profile' : 'training';
+          const active = section === id;
+          return (
+            <button key={s} onClick={() => { setSection(id); onSectionChange && onSectionChange(id); }} style={{
+              background:"none", border:"none", cursor:"pointer",
+              padding:"6px 16px 8px 0",
+              color: active ? GOLD : "rgba(201,168,76,0.5)",
+              fontFamily:"'Cinzel',serif", fontSize:"10px",
+              letterSpacing:"0.14em", textTransform:"uppercase",
+              borderBottom: active ? "1px solid " + GOLD : "1px solid transparent",
+              transition:"all 0.3s",
+            }}>{s}</button>
+          );
+        })}
+      </div>
+
+      {section === 'profile' && (
+        <div>
+          {!profile && !editing && (
+            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)", borderRadius:14, padding:"20px 16px", marginBottom:16, textAlign:"center" }}>
+              <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", margin:"0 0 14px" }}>
+                Luo profiilisi — klubit ja tapahtumat löytävät sinut.
+              </p>
+              <button onClick={() => setEditing(true)} style={{
+                background:BURGUNDY, border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12,
+                padding:"12px 24px", color:GOLD, fontFamily:"'Cinzel',serif",
+                fontSize:11, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer",
+              }}>Luo profiili</button>
+            </div>
+          )}
+
+          {editing && (
+            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.3)", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+
+                <div>
+                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>Nimi</p>
+                  <input className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px" }}
+                    value={form.name} onChange={e => setForm(f => ({...f, name:e.target.value}))} placeholder="Julius Kääriä" />
+                </div>
+
+                <div>
+                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>Paikkakunta</p>
+                  <input className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px" }}
+                    value={form.location} onChange={e => setForm(f => ({...f, location:e.target.value}))} placeholder="Helsinki" />
+                </div>
+
+                <div>
+                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>Bio</p>
+                  <textarea className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px", resize:"none", fontFamily:"'Cormorant Garamond',serif", fontSize:14 }}
+                    rows={2} value={form.bio} onChange={e => setForm(f => ({...f, bio:e.target.value}))} placeholder="Solisti, säveltäjä..." />
+                </div>
+
+                <div>
+                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 8px" }}>
+                    Personal tagit — määrittää mitä löydät
+                  </p>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                    {PERSONAL_TAGS.map(tag => {
+                      const sel = form.tags.includes(tag);
+                      return (
+                        <button key={tag} onClick={() => toggleTag(tag)} style={{
+                          background: sel ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.02)",
+                          border: sel ? "1.5px solid #C9A84C" : "1px solid rgba(201,168,76,0.35)",
+                          borderRadius:20, padding:"6px 14px", cursor:"pointer",
+                          color: sel ? GOLD : "rgba(201,168,76,0.7)",
+                          fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em",
+                          transform: sel ? "scale(1.05)" : "scale(1)", transition:"all 0.2s",
+                        }}>{tag}</button>
+                      );
+                    })}
+                  </div>
+                  {form.tags.length > 0 && (
+                    <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"8px 0 0" }}>
+                      Löydät: {form.tags.join(', ')}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ display:"flex", gap:8, marginTop:4 }}>
+                  <button onClick={save} style={{
+                    flex:1, padding:12, background:BURGUNDY,
+                    border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12,
+                    color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10,
+                    letterSpacing:"0.14em", textTransform:"uppercase", cursor:"pointer",
+                  }}>Tallenna</button>
+                  <button onClick={() => setEditing(false)} style={{
+                    padding:"12px 16px", background:"none",
+                    border:"1px solid rgba(201,168,76,0.25)", borderRadius:12,
+                    color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, cursor:"pointer",
+                  }}>Peruuta</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {profile && !editing && (
+            <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#6B1D2E,#C9A84C)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, color:"#fff", fontFamily:"'Cinzel',serif", fontWeight:700, flexShrink:0 }}>
+                    {profile.name?.[0] || 'D'}
+                  </div>
+                  <div>
+                    <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:"0.06em", margin:"0 0 2px" }}>{profile.name || '—'}</p>
+                    {profile.location && <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:0 }}>📍 {profile.location}</p>}
+                  </div>
+                </div>
+                <button onClick={() => setEditing(true)} style={{ background:"none", border:"1px solid rgba(201,168,76,0.35)", borderRadius:8, padding:"5px 12px", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>Muokkaa</button>
+              </div>
+              {profile.bio && <p style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.6, margin:"0 0 14px" }}>{profile.bio}</p>}
+              {profile.tags?.length > 0 && (
+                <div>
+                  <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Tagit</p>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                    {profile.tags.map(t => (
+                      <span key={t} style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.45)", borderRadius:20, padding:"4px 12px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em" }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+export default function PersonalView() {
   const saved = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } })();
   const [mode, setMode] = useState(saved ? 'program' : 'onboarding');
   const [isEditing, setIsEditing] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(saved || { gender: null, age: '', height: '', weight: '', frequency: null, level: null, equipment: null, goal: null, extra: '' });
   const [expanded, setExpanded] = useState(null);
+  const [completed, setCompleted] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('duvaan_completed') || '{}') } catch { return {} }
+  });
+
+  const markDone = (i) => {
+    const key = `${new Date().toISOString().split('T')[0]}_${i}`;
+    const updated = { ...completed, [key]: true };
+    setCompleted(updated);
+    localStorage.setItem('duvaan_completed', JSON.stringify(updated));
+    setExpanded(null);
+  };
+
+  const isDone = (i) => {
+    const key = `${new Date().toISOString().split('T')[0]}_${i}`;
+    return completed[key] === true;
+  };
   const [editingDay, setEditingDay] = useState(null);
+  const [personalTab, setPersonalTab] = useState('profile');
   const [drafts, setDrafts] = useState({});
   const { elRef, onInteract } = useSpringTilt();
 
@@ -320,10 +495,10 @@ export default function TrainView() {
       <>
         <style>{css}</style>
         <div style={{ minHeight: "100vh", padding: "48px 24px 100px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", animation: "fadeInUp 0.6s ease both" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", animation: "fadeInUp 0.6s ease both" }}>
             <div>
-              <h2 style={{ color: GOLD, fontSize: "22px", fontWeight: 700, letterSpacing: "0.1em", margin: 0, fontFamily: "'Cinzel', serif", animation: "todayText 8s ease-in-out infinite" }}>Training</h2>
-              <p style={{ color: "rgba(201,168,76,0.5)", fontSize: "10px", fontFamily: "'Cinzel', serif", letterSpacing: "0.14em", margin: "4px 0 0", textTransform: "uppercase" }}>
+              <h2 style={{ color: GOLD, fontSize: "22px", fontWeight: 700, letterSpacing: "0.1em", margin: 0, fontFamily: "'Cinzel', serif", animation: "todayText 8s ease-in-out infinite" }}>Personal</h2>
+              <p style={{ color: "rgba(201,168,76,0.6)", fontSize: "10px", fontFamily: "'Cinzel', serif", letterSpacing: "0.14em", margin: "4px 0 0", textTransform: "uppercase" }}>
                 {new Date().toLocaleDateString('fi-FI', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
@@ -334,13 +509,16 @@ export default function TrainView() {
             }}>Muokkaa</button>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", animation: "fadeInUp 0.8s ease both" }}>
+          <ProfileSection onSectionChange={setPersonalTab} />
+
+
+          {personalTab === 'training' && <div style={{ display: "flex", flexDirection: "column", gap: "10px", animation: "fadeInUp 0.8s ease both" }}>
             {PROGRAM.map((day, i) => {
               const isToday = i === todayIdx;
               const isOpen = expanded === i;
               const isEditingThis = editingDay === i;
               return (
-                <div key={i} className={`day-card ${isToday ? 'today' : ''}`}>
+                <div key={i} className={`day-card ${isToday ? 'today' : ''}`} style={isDone(i) ? { borderColor: 'rgba(110,255,160,0.3)' } : {}}>
                   <div className="day-header" onClick={() => !isEditingThis && setExpanded(isOpen ? null : i)}>
                     <div>
                       <p className={isToday ? "today-name" : ""} style={{
@@ -351,6 +529,7 @@ export default function TrainView() {
                       }}>
                         {day.name}
                         {isToday && <span style={{ fontSize: "9px", marginLeft: "10px", opacity: 0.7, fontWeight: 400 }}>— tänään</span>}
+                        {isDone(i) && <span style={{ fontSize: "9px", marginLeft: "10px", color: "#6effa0", fontWeight: 400 }}>✓ tehty</span>}
                       </p>
                       <p style={{ color: "rgba(201,168,76,0.65)", fontSize: "12px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
                         {day.focus}
@@ -396,6 +575,31 @@ export default function TrainView() {
                             </div>
                           ))}
                           <button onClick={e => { e.stopPropagation(); startEditDay(i); }} style={{ width: "100%", padding: "10px", background: "none", border: "none", borderTop: "1px solid rgba(201,168,76,0.1)", color: "rgba(201,168,76,0.5)", fontFamily: "'Cinzel', serif", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer" }}>Muokkaa päivää</button>
+                          {!isDone(i) && (
+                            <button onClick={e => { e.stopPropagation(); markDone(i); }} style={{
+                              width: "100%", padding: "14px",
+                              background: "rgba(110,255,160,0.08)",
+                              border: "none", borderTop: "1px solid rgba(110,255,160,0.15)",
+                              color: "#6effa0",
+                              fontFamily: "'Cinzel', serif", fontSize: "11px",
+                              letterSpacing: "0.18em", textTransform: "uppercase",
+                              cursor: "pointer", fontWeight: 600,
+                              transition: "background 0.2s",
+                            }}>
+                              ✓ Done
+                            </button>
+                          )}
+                          {isDone(i) && (
+                            <div style={{
+                              width: "100%", padding: "14px", textAlign: "center",
+                              borderTop: "1px solid rgba(110,255,160,0.1)",
+                              color: "rgba(110,255,160,0.5)",
+                              fontFamily: "'Cinzel', serif", fontSize: "10px",
+                              letterSpacing: "0.18em", textTransform: "uppercase",
+                            }}>
+                              ✓ Suoritettu
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
@@ -403,7 +607,7 @@ export default function TrainView() {
                 </div>
               );
             })}
-          </div>
+          </div>}
         </div>
       </>
     );

@@ -63,6 +63,16 @@ const css = `
     75%  { color: #9a6b2e; }
     100% { color: #C9A84C; }
   }
+  
+  @keyframes waterShimmer {
+    0%,100% { opacity: 0.4; transform: translateX(0); }
+    50%     { opacity: 0.7; transform: translateX(-8px); }
+  }
+  @keyframes waterShimmer2 {
+    0%,100% { opacity: 0.3; transform: translateX(0); }
+    50%     { opacity: 0.6; transform: translateX(10px); }
+  }
+
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -272,6 +282,310 @@ function useSpringTilt() {
   return { elRef, onInteract };
 }
 
+
+
+function ElielGlow({ size = 300 }) {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    canvas.width = size
+    canvas.height = size
+    let raf
+
+    const COLORS = ['#C9A84C','#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e','#C9A84C']
+    let colorIdx = 0, colorT = 0
+
+    function lerpColor(c1, c2, t) {
+      const parse = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)]
+      const [r1,g1,b1] = parse(c1), [r2,g2,b2] = parse(c2)
+      return [Math.round(r1+(r2-r1)*t), Math.round(g1+(g2-g1)*t), Math.round(b1+(b2-b1)*t)]
+    }
+
+    const img = new Image()
+    img.src = '/ElielTransparentt.png'
+    img.onload = () => {
+      const off = document.createElement('canvas')
+      off.width = size; off.height = size
+      const offCtx = off.getContext('2d')
+      offCtx.drawImage(img, 0, 0, size, size)
+      const data = offCtx.getImageData(0, 0, size, size).data
+
+      // Find edge pixels
+      const edgePixels = []
+      for (let y = 1; y < size - 1; y++) {
+        for (let x = 1; x < size - 1; x++) {
+          const i = (y * size + x) * 4
+          if (data[i + 3] < 20) continue
+          const neighbors = [
+            data[((y-1)*size+x)*4+3],
+            data[((y+1)*size+x)*4+3],
+            data[(y*size+(x-1))*4+3],
+            data[(y*size+(x+1))*4+3],
+          ]
+          if (neighbors.some(n => n < 20)) edgePixels.push({ x, y })
+        }
+      }
+      if (edgePixels.length === 0) return
+
+      // Sort into continuous path
+      const path = [edgePixels[0]]
+      const used = new Set([0])
+      for (let i = 1; i < edgePixels.length; i++) {
+        const last = path[path.length - 1]
+        let minDist = Infinity, minIdx = -1
+        for (let j = 0; j < edgePixels.length; j++) {
+          if (used.has(j)) continue
+          const dx = edgePixels[j].x - last.x
+          const dy = edgePixels[j].y - last.y
+          const d = dx*dx + dy*dy
+          if (d < minDist) { minDist = d; minIdx = j }
+        }
+        if (minIdx === -1 || minDist > 300) break
+        path.push(edgePixels[minIdx])
+        used.add(minIdx)
+      }
+
+      const INTERVAL = 6000  // ms between sweeps
+      const SWEEP_DURATION = 1000  // ms per sweep
+      const TAIL = 55  // trail length in pixels along path
+
+      let sweeping = false
+      let sweepStart = null
+      let nextSweep = Date.now() + INTERVAL
+
+      function draw() {
+        ctx.clearRect(0, 0, size, size)
+        const now = Date.now()
+
+        // Trigger new sweep
+        if (!sweeping && now >= nextSweep) {
+          sweeping = true
+          sweepStart = now
+          colorIdx = (colorIdx + 1) % (COLORS.length - 1)
+          colorT = 0
+        }
+
+        if (sweeping) {
+          const elapsed = now - sweepStart
+          const progress = elapsed / SWEEP_DURATION
+
+          if (progress >= 1.0) {
+            sweeping = false
+            nextSweep = now + INTERVAL
+          } else {
+            colorT += 0.008
+            if (colorT >= 1) { colorT = 0; colorIdx = (colorIdx+1) % (COLORS.length-1) }
+            const [r,g,b] = lerpColor(COLORS[colorIdx], COLORS[colorIdx+1], colorT)
+
+            const headIdx = Math.floor(progress * path.length)
+
+            // Draw tail
+            for (let i = 0; i < TAIL; i++) {
+              const idx = headIdx - i
+              if (idx < 0) continue
+              const p = path[idx]
+              if (!p) continue
+              const ratio = 1 - i / TAIL
+              const eased = ratio * ratio
+
+              ctx.beginPath()
+              ctx.arc(p.x, p.y, 1.2 + eased * 0.8, 0, Math.PI * 2)
+              ctx.fillStyle = `rgba(${r},${g},${b},${eased * 0.7})`
+              ctx.fill()
+            }
+
+            // Sharp bright head — thin line, no ball
+            const head = path[headIdx]
+            if (head) {
+              // Tight glow — elongated, not round
+              const prev = path[Math.max(0, headIdx - 3)]
+              if (prev) {
+                const grad = ctx.createLinearGradient(prev.x, prev.y, head.x, head.y)
+                grad.addColorStop(0, `rgba(${r},${g},${b},0)`)
+                grad.addColorStop(1, `rgba(255,255,255,0.95)`)
+                ctx.beginPath()
+                ctx.moveTo(prev.x, prev.y)
+                ctx.lineTo(head.x, head.y)
+                ctx.strokeStyle = grad
+                ctx.lineWidth = 2.5
+                ctx.lineCap = 'round'
+                ctx.stroke()
+              }
+
+              // Tiny tight core — 1.5px max
+              ctx.beginPath()
+              ctx.arc(head.x, head.y, 1.5, 0, Math.PI * 2)
+              ctx.fillStyle = 'rgba(255,255,255,0.98)'
+              ctx.fill()
+
+              // Soft ambient glow — subtle, small
+              const glow = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, 7)
+              glow.addColorStop(0, `rgba(${r},${g},${b},0.5)`)
+              glow.addColorStop(1, 'transparent')
+              ctx.beginPath()
+              ctx.arc(head.x, head.y, 7, 0, Math.PI * 2)
+              ctx.fillStyle = glow
+              ctx.fill()
+            }
+          }
+        }
+
+        raf = requestAnimationFrame(draw)
+      }
+      draw()
+    }
+
+    return () => cancelAnimationFrame(raf)
+  }, [size])
+
+  return (
+    <canvas ref={canvasRef} style={{
+      position: "absolute", top: 0, left: 0,
+      width: size + "px", height: size + "px",
+      pointerEvents: "none", zIndex: 10,
+    }} />
+  )
+}
+
+function WaterBox() {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let raf
+
+    const W = canvas.width = canvas.parentElement?.offsetWidth || 320
+    const H = canvas.height = canvas.parentElement?.offsetHeight || 90
+
+    const COLS = ['#C9A84C','#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e','#C9A84C']
+    let colorIdx = 0, colorT = 0
+
+    function lerpColor(c1, c2, t) {
+      const p = c => [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]
+      const [r1,g1,b1]=p(c1),[r2,g2,b2]=p(c2)
+      return [Math.round(r1+(r2-r1)*t),Math.round(g1+(g2-g1)*t),Math.round(b1+(b2-b1)*t)]
+    }
+
+    const cols = Math.floor(W / 3)
+    const rows = Math.floor(H / 3)
+    let cur = new Float32Array(cols * rows)
+    let prev = new Float32Array(cols * rows)
+    const DAMP = 0.992  // higher = slower decay, more gentle
+
+    function idx(x, y) { return y * cols + x }
+
+    // Seed very gentle initial waves
+    for (let i = 0; i < 6; i++) {
+      const x = 2 + Math.floor(Math.random() * (cols - 4))
+      const y = 2 + Math.floor(Math.random() * (rows - 4))
+      cur[idx(x, y)] = 60 + Math.random() * 80
+    }
+
+    // Occasional very gentle surface disturbance — no drips, just a soft push
+    let nextNudge = Date.now() + 2000
+
+    function nudge() {
+      const x = 2 + Math.floor(Math.random() * (cols - 4))
+      const y = 2 + Math.floor(Math.random() * (rows - 4))
+      cur[idx(x, y)] += 55 + Math.random() * 65
+    }
+
+    function stepWater() {
+      const next = new Float32Array(cols * rows)
+      for (let y = 1; y < rows - 1; y++) {
+        for (let x = 1; x < cols - 1; x++) {
+          const i = idx(x, y)
+          next[i] = (
+            cur[idx(x-1,y)] + cur[idx(x+1,y)] +
+            cur[idx(x,y-1)] + cur[idx(x,y+1)]
+          ) / 2 - prev[i]
+          next[i] *= DAMP
+        }
+      }
+      prev = cur
+      cur = next
+    }
+
+    let frame = 0
+
+    function draw() {
+      frame++
+      // Only step physics every 2 frames for slower feel
+      if (frame % 2 === 0) stepWater()
+
+      const now = Date.now()
+      if (now >= nextNudge) {
+        nudge()
+        nextNudge = now + 1200 + Math.random() * 1800
+      }
+
+      colorT += 0.0015
+      if (colorT >= 1) { colorT = 0; colorIdx = (colorIdx+1) % (COLS.length-1) }
+      const [r,g,b] = lerpColor(COLS[colorIdx], COLS[colorIdx+1], colorT)
+
+      ctx.clearRect(0, 0, W, H)
+
+      const imgData = ctx.createImageData(W, H)
+      const d = imgData.data
+
+      for (let py = 0; py < H; py++) {
+        for (let px = 0; px < W; px++) {
+          const cx = Math.min(Math.floor(px/3), cols-1)
+          const cy = Math.min(Math.floor(py/3), rows-1)
+
+          const left  = cx > 0 ? cur[idx(cx-1,cy)] : 0
+          const right = cx < cols-1 ? cur[idx(cx+1,cy)] : 0
+          const up    = cy > 0 ? cur[idx(cx,cy-1)] : 0
+          const down  = cy < rows-1 ? cur[idx(cx,cy+1)] : 0
+
+          const nx = (left - right) / 28
+          const ny = (up - down) / 28
+          const dot = Math.max(0, nx * 0.5 + ny * (-0.7))
+          const specular = Math.pow(dot, 2.5) * 1.2
+
+          const h = cur[idx(cx,cy)]
+          const depth = Math.min(1, Math.abs(h) / 22)
+
+          const pi = (py * W + px) * 4
+          d[pi]   = Math.min(255, r * 0.12 + r * depth * 0.22 + specular * 255)
+          d[pi+1] = Math.min(255, g * 0.12 + g * depth * 0.22 + specular * 255)
+          d[pi+2] = Math.min(255, b * 0.12 + b * depth * 0.25 + specular * 255)
+          d[pi+3] = Math.min(255, 18 + depth * 65 + specular * 180)
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0)
+
+      // Slow drifting highlight
+      const t2 = now * 0.00015
+      const shimX = (Math.sin(t2) * 0.4 + 0.5) * W
+      const shim = ctx.createRadialGradient(shimX, H*0.3, 0, shimX, H*0.3, W*0.45)
+      shim.addColorStop(0, 'rgba(255,255,255,0.12)')
+      shim.addColorStop(1, 'transparent')
+      ctx.fillStyle = shim
+      ctx.fillRect(0, 0, W, H)
+
+      raf = requestAnimationFrame(draw)
+    }
+    draw()
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  return (
+    <canvas ref={canvasRef} style={{
+      position: "absolute", inset: 0,
+      width: "100%", height: "100%",
+      borderRadius: "20px", zIndex: 1, pointerEvents: "none",
+    }} />
+  )
+}
+
+
 export default function LobbyView({ onNavigate }) {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -371,9 +685,10 @@ export default function LobbyView({ onNavigate }) {
           ref={elRef}
           onClick={onInteract}
           onTouchStart={onInteract}
-          style={{ cursor: "pointer", willChange: "transform", transformStyle: "preserve-3d" }}
+          style={{ cursor: "pointer", willChange: "transform", transformStyle: "preserve-3d", position: "relative" }}
         >
           <img src="/ElielTransparentt.png" className="eliel-img" />
+          <ElielGlow size={300} />
         </div>
 
         {/* NAME */}
@@ -389,13 +704,14 @@ export default function LobbyView({ onNavigate }) {
           </div>
         </div>
 
-        {/* CHAT BOX */}
+        {/* CHAT BOX - WATER */}
         <div className="tube-border-wrap">
           <div
             className="glass-bubble"
             onClick={handleBubbleClick}
-            style={{ padding: "22px 24px 18px" }}
+            style={{ padding: "22px 24px 18px", position: "relative", zIndex: 1, overflow: "hidden" }}
           >
+            <WaterBox />
             <div className="glass-sheen" />
 
             {/* Rotating message */}
