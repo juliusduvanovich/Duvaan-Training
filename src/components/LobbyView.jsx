@@ -119,35 +119,26 @@ const css = `
     40%         { opacity: 1; transform: translateY(-4px); }
   }
 
-  .tube-border-wrap {
-    padding: 1.5px;
-    border-radius: 22px;
-    background: linear-gradient(135deg,
-      #ff6eb4 0%, #C9A84C 15%, #6B1D2E 28%,
-      #1a3a6e 42%, #1a5a3a 55%, #C9A84C 68%,
-      #ff6eb4 80%, #6B1D2E 90%, #1a3a6e 100%
-    );
-    background-size: 400% 400%;
-    animation: fadeInUp 1.4s ease both, tubeColorShift 12s ease-in-out infinite;
+  .water-sphere-wrap {
+    position: relative;
     width: 100%;
     max-width: 340px;
-    box-shadow: 0 0 20px rgba(201,168,76,0.1), 0 0 50px rgba(107,29,46,0.08);
-  }
-  .glass-bubble {
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 20px;
-    animation: glassBgShift 12s ease-in-out infinite;
+    animation: fadeInUp 1.4s ease both;
     cursor: pointer;
   }
-  .glass-sheen {
+  .water-sphere-canvas {
+    width: 100%;
+    border-radius: 50%;
+    display: block;
+  }
+  .water-sphere-text {
     position: absolute;
-    top: -60%; left: -60%;
-    width: 40%; height: 220%;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%);
-    animation: glassSheen 7s ease-in-out infinite;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 28px;
     pointer-events: none;
   }
   .eliel-img {
@@ -450,138 +441,164 @@ function ElielGlow({ size = 300 }) {
   )
 }
 
-function WaterBox() {
+function WaterSphere({ children, onClick }) {
   const canvasRef = useRef(null)
+  const frameRef = useRef(0)
+  const rafRef = useRef(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const SIZE = 340
+    canvas.width = SIZE
+    canvas.height = SIZE
     const ctx = canvas.getContext('2d')
-    let raf
+    const cx = SIZE / 2, cy = SIZE / 2
+    const R = SIZE / 2 - 2
 
-    const W = canvas.width = canvas.parentElement?.offsetWidth || 320
-    const H = canvas.height = canvas.parentElement?.offsetHeight || 90
-
-    const COLS = ['#C9A84C','#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e','#C9A84C']
+    // Color cycle — subtle, dark tones
+    const COLORS = [
+      [107, 29, 46],   // burgundy
+      [30, 15, 60],    // deep purple
+      [20, 60, 80],    // dark teal
+      [60, 40, 10],    // dark amber
+      [15, 45, 30],    // dark green
+    ]
     let colorIdx = 0, colorT = 0
 
-    function lerpColor(c1, c2, t) {
-      const p = c => [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]
-      const [r1,g1,b1]=p(c1),[r2,g2,b2]=p(c2)
-      return [Math.round(r1+(r2-r1)*t),Math.round(g1+(g2-g1)*t),Math.round(b1+(b2-b1)*t)]
+    function lerpRGB(a, b, t) {
+      return a.map((v, i) => Math.round(v + (b[i] - v) * t))
     }
 
-    const cols = Math.floor(W / 3)
-    const rows = Math.floor(H / 3)
-    let cur = new Float32Array(cols * rows)
-    let prev = new Float32Array(cols * rows)
-    const DAMP = 0.992  // higher = slower decay, more gentle
+    function render() {
+      const f = frameRef.current++
+      ctx.clearRect(0, 0, SIZE, SIZE)
 
-    function idx(x, y) { return y * cols + x }
+      // Color shift
+      colorT += 0.004
+      if (colorT >= 1) { colorT = 0; colorIdx = (colorIdx + 1) % COLORS.length }
+      const [r, g, b] = lerpRGB(COLORS[colorIdx], COLORS[(colorIdx + 1) % COLORS.length], colorT)
 
-    // Seed very gentle initial waves
-    for (let i = 0; i < 6; i++) {
-      const x = 2 + Math.floor(Math.random() * (cols - 4))
-      const y = 2 + Math.floor(Math.random() * (rows - 4))
-      cur[idx(x, y)] = 60 + Math.random() * 80
-    }
+      // ── 3D SPHERE BASE ──
+      // Back-face gradient — deep dark center, lighter towards lit side
+      const baseGrad = ctx.createRadialGradient(
+        cx - R * 0.3, cy - R * 0.3, R * 0.05,  // light source top-left
+        cx, cy, R
+      )
+      baseGrad.addColorStop(0,   `rgba(${Math.min(255,r+18)},${Math.min(255,g+12)},${Math.min(255,b+8)},0.82)`)
+      baseGrad.addColorStop(0.4, `rgba(${r},${g},${b},0.72)`)
+      baseGrad.addColorStop(0.8, `rgba(${Math.round(r*.4)},${Math.round(g*.4)},${Math.round(b*.4)},0.88)`)
+      baseGrad.addColorStop(1,   `rgba(${Math.round(r*.15)},${Math.round(g*.15)},${Math.round(b*.15)},0.95)`)
 
-    // Occasional very gentle surface disturbance — no drips, just a soft push
-    let nextNudge = Date.now() + 2000
+      ctx.beginPath()
+      ctx.arc(cx, cy, R, 0, Math.PI * 2)
+      ctx.fillStyle = baseGrad
+      ctx.fill()
 
-    function nudge() {
-      const x = 2 + Math.floor(Math.random() * (cols - 4))
-      const y = 2 + Math.floor(Math.random() * (rows - 4))
-      cur[idx(x, y)] += 55 + Math.random() * 65
-    }
-
-    function stepWater() {
-      const next = new Float32Array(cols * rows)
-      for (let y = 1; y < rows - 1; y++) {
-        for (let x = 1; x < cols - 1; x++) {
-          const i = idx(x, y)
-          next[i] = (
-            cur[idx(x-1,y)] + cur[idx(x+1,y)] +
-            cur[idx(x,y-1)] + cur[idx(x,y+1)]
-          ) / 2 - prev[i]
-          next[i] *= DAMP
-        }
-      }
-      prev = cur
-      cur = next
-    }
-
-    let frame = 0
-
-    function draw() {
-      frame++
-      // Only step physics every 2 frames for slower feel
-      if (frame % 2 === 0) stepWater()
-
-      const now = Date.now()
-      if (now >= nextNudge) {
-        nudge()
-        nextNudge = now + 1200 + Math.random() * 1800
+      // ── WATER SHIMMER LAYERS ──
+      // Moving caustic rings
+      for (let i = 0; i < 4; i++) {
+        const phase = f * 0.008 + i * 1.4
+        const wave = Math.sin(phase)
+        const rx = R * (0.55 + i * 0.08 + wave * 0.04)
+        const ry = R * (0.2 + i * 0.05 + Math.cos(phase * 0.7) * 0.03)
+        const ox2 = Math.cos(phase * 0.3) * R * 0.12
+        const oy2 = Math.sin(phase * 0.4) * R * 0.08
+        ctx.beginPath()
+        ctx.ellipse(cx + ox2, cy + oy2, rx, ry, phase * 0.1, 0, Math.PI * 2)
+        ctx.strokeStyle = `rgba(255,255,255,${0.025 + i * 0.008})`
+        ctx.lineWidth = 0.8 + i * 0.3
+        ctx.stroke()
       }
 
-      colorT += 0.0015
-      if (colorT >= 1) { colorT = 0; colorIdx = (colorIdx+1) % (COLS.length-1) }
-      const [r,g,b] = lerpColor(COLS[colorIdx], COLS[colorIdx+1], colorT)
-
-      ctx.clearRect(0, 0, W, H)
-
-      const imgData = ctx.createImageData(W, H)
-      const d = imgData.data
-
-      for (let py = 0; py < H; py++) {
-        for (let px = 0; px < W; px++) {
-          const cx = Math.min(Math.floor(px/3), cols-1)
-          const cy = Math.min(Math.floor(py/3), rows-1)
-
-          const left  = cx > 0 ? cur[idx(cx-1,cy)] : 0
-          const right = cx < cols-1 ? cur[idx(cx+1,cy)] : 0
-          const up    = cy > 0 ? cur[idx(cx,cy-1)] : 0
-          const down  = cy < rows-1 ? cur[idx(cx,cy+1)] : 0
-
-          const nx = (left - right) / 28
-          const ny = (up - down) / 28
-          const dot = Math.max(0, nx * 0.5 + ny * (-0.7))
-          const specular = Math.pow(dot, 2.5) * 1.2
-
-          const h = cur[idx(cx,cy)]
-          const depth = Math.min(1, Math.abs(h) / 22)
-
-          const pi = (py * W + px) * 4
-          d[pi]   = Math.min(255, r * 0.12 + r * depth * 0.22 + specular * 255)
-          d[pi+1] = Math.min(255, g * 0.12 + g * depth * 0.22 + specular * 255)
-          d[pi+2] = Math.min(255, b * 0.12 + b * depth * 0.25 + specular * 255)
-          d[pi+3] = Math.min(255, 18 + depth * 65 + specular * 180)
-        }
+      // Ripple from bottom
+      for (let i = 0; i < 3; i++) {
+        const phase = f * 0.006 + i * 2.1 + Math.PI
+        const rr = R * (0.3 + i * 0.12)
+        const oy2 = R * 0.25 + Math.sin(phase) * R * 0.05
+        ctx.beginPath()
+        ctx.ellipse(cx, cy + oy2, rr, rr * 0.18, 0, 0, Math.PI * 2)
+        ctx.strokeStyle = `rgba(255,255,255,${0.018 + i * 0.006})`
+        ctx.lineWidth = 0.6
+        ctx.stroke()
       }
 
-      ctx.putImageData(imgData, 0, 0)
+      // ── SPECULAR HIGHLIGHTS ──
+      // Primary highlight — sharp, top-left
+      const hl1 = ctx.createRadialGradient(
+        cx - R * 0.32, cy - R * 0.35, 0,
+        cx - R * 0.32, cy - R * 0.35, R * 0.28
+      )
+      hl1.addColorStop(0,   'rgba(255,255,255,0.55)')
+      hl1.addColorStop(0.3, 'rgba(255,255,255,0.18)')
+      hl1.addColorStop(1,   'rgba(255,255,255,0)')
+      ctx.beginPath()
+      ctx.ellipse(cx - R * 0.32, cy - R * 0.35, R * 0.22, R * 0.14, -0.5, 0, Math.PI * 2)
+      ctx.fillStyle = hl1
+      ctx.fill()
 
-      // Slow drifting highlight
-      const t2 = now * 0.00015
-      const shimX = (Math.sin(t2) * 0.4 + 0.5) * W
-      const shim = ctx.createRadialGradient(shimX, H*0.3, 0, shimX, H*0.3, W*0.45)
-      shim.addColorStop(0, 'rgba(255,255,255,0.12)')
-      shim.addColorStop(1, 'transparent')
-      ctx.fillStyle = shim
-      ctx.fillRect(0, 0, W, H)
+      // Secondary highlight — soft, bottom-right (backlit)
+      const hl2 = ctx.createRadialGradient(
+        cx + R * 0.38, cy + R * 0.38, 0,
+        cx + R * 0.38, cy + R * 0.38, R * 0.22
+      )
+      hl2.addColorStop(0,   `rgba(${Math.min(255,r+60)},${Math.min(255,g+40)},${Math.min(255,b+30)},0.22)`)
+      hl2.addColorStop(1,   'rgba(0,0,0,0)')
+      ctx.beginPath()
+      ctx.arc(cx + R * 0.38, cy + R * 0.38, R * 0.22, 0, Math.PI * 2)
+      ctx.fillStyle = hl2
+      ctx.fill()
 
-      raf = requestAnimationFrame(draw)
+      // ── EDGE DARKENING — sphere terminator ──
+      const edgeGrad = ctx.createRadialGradient(cx, cy, R * 0.55, cx, cy, R)
+      edgeGrad.addColorStop(0,   'rgba(0,0,0,0)')
+      edgeGrad.addColorStop(0.7, 'rgba(0,0,0,0.08)')
+      edgeGrad.addColorStop(1,   'rgba(0,0,0,0.55)')
+      ctx.beginPath()
+      ctx.arc(cx, cy, R, 0, Math.PI * 2)
+      ctx.fillStyle = edgeGrad
+      ctx.fill()
+
+      // ── SURFACE REFLECTION — animated water ──
+      const animOff = Math.sin(f * 0.012) * R * 0.06
+      const reflGrad = ctx.createLinearGradient(cx - R, cy + animOff, cx + R, cy + animOff + R * 0.3)
+      reflGrad.addColorStop(0,   'rgba(255,255,255,0)')
+      reflGrad.addColorStop(0.4, `rgba(255,255,255,${0.04 + Math.sin(f * 0.02) * 0.015})`)
+      reflGrad.addColorStop(0.6, 'rgba(255,255,255,0.02)')
+      reflGrad.addColorStop(1,   'rgba(255,255,255,0)')
+
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(cx, cy, R, 0, Math.PI * 2)
+      ctx.clip()
+      ctx.fillStyle = reflGrad
+      ctx.fillRect(0, 0, SIZE, SIZE)
+      ctx.restore()
+
+      // ── SUBTLE OUTER GLOW ──
+      const glow = ctx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.15)
+      glow.addColorStop(0,   'rgba(0,0,0,0)')
+      glow.addColorStop(0.5, `rgba(${r},${g},${b},0.08)`)
+      glow.addColorStop(1,   'rgba(0,0,0,0)')
+      ctx.beginPath()
+      ctx.arc(cx, cy, R * 1.15, 0, Math.PI * 2)
+      ctx.fillStyle = glow
+      ctx.fill()
+
+      rafRef.current = requestAnimationFrame(render)
     }
-    draw()
-    return () => cancelAnimationFrame(raf)
+
+    rafRef.current = requestAnimationFrame(render)
+    return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
   return (
-    <canvas ref={canvasRef} style={{
-      position: "absolute", inset: 0,
-      width: "100%", height: "100%",
-      borderRadius: "20px", zIndex: 1, pointerEvents: "none",
-    }} />
+    <div className="water-sphere-wrap" onClick={onClick}>
+      <canvas ref={canvasRef} className="water-sphere-canvas" style={{ height: 'auto', aspectRatio: '1' }} />
+      <div className="water-sphere-text">
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -704,28 +721,19 @@ export default function LobbyView({ onNavigate }) {
           </div>
         </div>
 
-        {/* CHAT BOX - WATER */}
-        <div className="tube-border-wrap">
-          <div
-            className="glass-bubble"
-            onClick={handleBubbleClick}
-            style={{ padding: "22px 24px 18px", position: "relative", zIndex: 1, overflow: "hidden" }}
-          >
-            <WaterBox />
-            <div className="glass-sheen" />
-
+        {/* CHAT BOX - WATER SPHERE */}
+        <WaterSphere>
             {/* Rotating message */}
             {messages.length === 0 && (
               <p key={msgKey} className="eliel-bubble-text" style={{
                 margin: 0,
-                fontSize: "15px",
+                fontSize: "14px",
                 lineHeight: 1.85,
                 fontFamily: "'Cinzel', serif",
                 fontWeight: 400,
                 letterSpacing: "0.06em",
                 textAlign: "center",
-                position: "relative",
-                zIndex: 1,
+                color: "rgba(255,255,255,0.75)",
               }}>
                 {renderBubbleText()}
               </p>
@@ -733,9 +741,9 @@ export default function LobbyView({ onNavigate }) {
 
             {/* Chat history */}
             {messages.length > 0 && (
-              <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ width: "100%", textAlign: "center" }}>
                 {messages.map((m, i) => (
-                  <p key={i} className={m.role === "user" ? "msg-user" : "msg-eliel"}>
+                  <p key={i} className={m.role === "user" ? "msg-user" : "msg-eliel"} style={{ color: m.role === "user" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.8)" }}>
                     {m.content}
                   </p>
                 ))}
@@ -743,7 +751,7 @@ export default function LobbyView({ onNavigate }) {
             )}
 
             {loading && (
-              <div style={{ position: "relative", zIndex: 1, marginTop: "12px", display: "flex", justifyContent: "center" }}>
+              <div style={{ marginTop: "12px", display: "flex", justifyContent: "center" }}>
                 <span className="typing-dot" />
                 <span className="typing-dot" />
                 <span className="typing-dot" />
@@ -751,7 +759,7 @@ export default function LobbyView({ onNavigate }) {
             )}
 
             {open && (
-              <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ width: "100%", marginTop: 8 }}>
                 <textarea
                   ref={inputRef}
                   className="chat-input"
@@ -784,8 +792,7 @@ export default function LobbyView({ onNavigate }) {
                 </div>
               </div>
             )}
-          </div>
-        </div>
+        </WaterSphere>
 
       </div>
     </>

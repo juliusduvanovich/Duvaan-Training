@@ -3,6 +3,19 @@ import ScrollPicker from "./ScrollPicker";
 
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "duvaan_profile";
+const PROGRAM_KEY = "duvaan_program";
+
+function loadProgram() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROGRAM_KEY) || 'null')
+    if (saved) return saved
+  } catch {}
+  return null
+}
+
+function saveProgram(program) {
+  try { localStorage.setItem(PROGRAM_KEY, JSON.stringify(program)) } catch {}
+}
 
 const PROGRAM = [
   { day: 0, name: 'Maanantai', focus: 'Chest · Shoulder · Tricep', exercises: [
@@ -670,6 +683,7 @@ function ProfileSection({ onSectionChange }) {
 export default function PersonalView() {
   const saved = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } })();
   const [mode, setMode] = useState(saved ? 'program' : 'onboarding');
+  const [program, setProgram] = useState(() => loadProgram() || PROGRAM);
   const [isEditing, setIsEditing] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(saved || { gender: null, age: '', height: '', weight: '', frequency: null, level: null, equipment: null, goal: null, extra: '' });
@@ -678,9 +692,26 @@ export default function PersonalView() {
     try { return JSON.parse(localStorage.getItem('duvaan_completed') || '{}') } catch { return {} }
   });
 
+  // Sync completed from localStorage whenever tab becomes visible
+  useEffect(() => {
+    const sync = () => {
+      try {
+        const fresh = JSON.parse(localStorage.getItem('duvaan_completed') || '{}')
+        setCompleted(fresh)
+      } catch {}
+    }
+    window.addEventListener('focus', sync)
+    document.addEventListener('visibilitychange', sync)
+    return () => {
+      window.removeEventListener('focus', sync)
+      document.removeEventListener('visibilitychange', sync)
+    }
+  }, [])
+
   const markDone = (i) => {
     const key = `${new Date().toISOString().split('T')[0]}_${i}`;
-    const updated = { ...completed, [key]: true };
+    const current = (() => { try { return JSON.parse(localStorage.getItem('duvaan_completed') || '{}') } catch { return {} } })()
+    const updated = { ...current, [key]: true };
     setCompleted(updated);
     localStorage.setItem('duvaan_completed', JSON.stringify(updated));
     setExpanded(null);
@@ -750,8 +781,26 @@ export default function PersonalView() {
 
   const startEditDay = (i) => {
     const d = {};
-    PROGRAM[i].exercises.forEach(ex => { d[ex.id] = { name: ex.name, sets: String(ex.sets), reps: ex.reps, weight: ex.weight || '' }; });
+    program[i].exercises.forEach(ex => { d[ex.id] = { name: ex.name, sets: String(ex.sets), reps: ex.reps, weight: ex.weight || '' }; });
     setDrafts(d); setEditingDay(i);
+  };
+
+  const saveDayEdits = (i) => {
+    const updated = program.map((day, di) => {
+      if (di !== i) return day
+      return {
+        ...day,
+        exercises: day.exercises.map(ex => {
+          const d = drafts[ex.id]
+          if (!d) return ex
+          return { ...ex, name: d.name, sets: Number(d.sets) || ex.sets, reps: d.reps, weight: d.weight || null }
+        })
+      }
+    })
+    setProgram(updated)
+    saveProgram(updated)
+    setEditingDay(null)
+    setDrafts({})
   };
 
   if (mode === 'program') {
@@ -777,7 +826,7 @@ export default function PersonalView() {
 
 
           {personalTab === 'training' && <div style={{ display: "flex", flexDirection: "column", gap: "10px", animation: "fadeInUp 0.8s ease both" }}>
-            {PROGRAM.map((day, i) => {
+            {program.map((day, i) => {
               const isToday = i === todayIdx;
               const isOpen = expanded === i;
               const isEditingThis = editingDay === i;
@@ -817,7 +866,7 @@ export default function PersonalView() {
                         </div>
                       ) : isEditingThis ? (
                         <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                          {PROGRAM[i].exercises.map(ex => (
+                          {program[i].exercises.map(ex => (
                             <div key={ex.id} style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                               <input className="edit-input" style={{ flex: 2 }} value={drafts[ex.id]?.name || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], name: e.target.value } }))} placeholder="Liike" />
                               <input className="edit-input" style={{ width: 40 }} value={drafts[ex.id]?.sets || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], sets: e.target.value } }))} placeholder="S" />
