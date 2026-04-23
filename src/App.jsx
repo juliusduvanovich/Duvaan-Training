@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import SplashScreen from './components/SplashScreen'
 import LobbyView from './components/LobbyView'
 import PersonalView from './components/PersonalView'
@@ -9,34 +9,14 @@ const GOLD = '#C9A84C'
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
 
-  @keyframes navLiquid {
-    0%   { color: #C9A84C; } 16% { color: #e8d5a3; }
-    33%  { color: #ff6eb4; } 50% { color: #6eb4ff; }
-    66%  { color: #6effa0; } 83% { color: #ff9a6e; }
-    100% { color: #C9A84C; }
-  }
-  @keyframes dotLiquid {
-    0%   { background: #C9A84C; } 16% { background: #e8d5a3; }
-    33%  { background: #ff6eb4; } 50% { background: #6eb4ff; }
-    66%  { background: #6effa0; } 83% { background: #ff9a6e; }
-    100% { background: #C9A84C; }
-  }
 
-  .nav-btn {
-    background: none; border: none; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center;
-    gap: 6px; padding: 0 4px; transition: transform 0.3s ease; flex: 1;
+  @keyframes gearColorShift {
+    0%   { filter: hue-rotate(0deg) brightness(1); }
+    25%  { filter: hue-rotate(30deg) brightness(1.2); }
+    50%  { filter: hue-rotate(0deg) brightness(0.9); }
+    75%  { filter: hue-rotate(-20deg) brightness(1.1); }
+    100% { filter: hue-rotate(0deg) brightness(1); }
   }
-  .nav-btn.active { transform: scale(1.15); }
-  .nav-dot { width: 4px; height: 4px; border-radius: 50%; }
-  .nav-dot.inactive { background: #C9A84C; }
-  .nav-dot.active   { animation: dotLiquid 6s ease-in-out infinite; }
-  .nav-label {
-    font-family: 'Cinzel', serif; font-size: 11px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-  }
-  .nav-label.inactive { color: #C9A84C; font-weight: 400; }
-  .nav-label.active   { font-weight: 700; animation: navLiquid 6s ease-in-out infinite; }
 
   @keyframes zoomIn {
     0%   { transform: scale(1);   opacity: 1;   filter: brightness(1); }
@@ -482,87 +462,289 @@ function TesseractBg() {
   )
 }
 
+// ─── GEAR NAV ────────────────────────────────────────────────────────────────
+const TABS = ['personal', 'eliel', 'community']
+const LABELS = { personal: 'Personal', eliel: 'Eliel', community: 'Community' }
+const TEETH = 16
+const GEAR_R = 36
+const TOOTH_H = 9
+const TOOTH_W = 8
+
+function GearSVG({ rotation, color, activeTab }) {
+  // Horizontal gear - wide ellipse viewed from slight angle
+  const W = 280  // wide
+  const H = 54   // flat/horizontal - 3D perspective
+  const RX = 130 // ellipse x radius
+  const RY = 22  // ellipse y radius - flat
+  const TOOTH_COUNT = 24
+  const TOOTH_H_X = 10
+  const TOOTH_H_Y = 5
+
+  const teeth = []
+  for (let i = 0; i < TOOTH_COUNT; i++) {
+    const angle = (i / TOOTH_COUNT) * Math.PI * 2 + (rotation * Math.PI / 180)
+    const cx = Math.cos(angle) * RX
+    const cy = Math.sin(angle) * RY
+    const tx = Math.cos(angle) * (RX + TOOTH_H_X)
+    const ty = Math.sin(angle) * (RY + TOOTH_H_Y)
+    const perp = angle + Math.PI / 2
+    const hw = 5
+    const p1x = cx + Math.cos(perp) * hw * 0.5
+    const p1y = cy + Math.sin(perp) * hw * 0.3
+    const p2x = cx - Math.cos(perp) * hw * 0.5
+    const p2y = cy - Math.sin(perp) * hw * 0.3
+    const p3x = tx - Math.cos(perp) * hw * 0.35
+    const p3y = ty - Math.sin(perp) * hw * 0.2
+    const p4x = tx + Math.cos(perp) * hw * 0.35
+    const p4y = ty + Math.sin(perp) * hw * 0.2
+    teeth.push(`M${p1x.toFixed(1)},${p1y.toFixed(1)} L${p4x.toFixed(1)},${p4y.toFixed(1)} L${p3x.toFixed(1)},${p3y.toFixed(1)} L${p2x.toFixed(1)},${p2y.toFixed(1)}Z`)
+  }
+
+  // Tab label positions on gear - 3 positions around ellipse
+  const tabAngles = {
+    personal:  rotation * Math.PI / 180 + Math.PI,        // left
+    eliel:     rotation * Math.PI / 180 + 0,              // right... but we rotate
+    community: rotation * Math.PI / 180 + Math.PI * 2/3,  // right
+  }
+
+  // The 3 section angles (fixed, text rotates with gear)
+  const sectionAngles = [Math.PI, Math.PI/3 * 2, Math.PI/3 * 4] // 3 evenly spaced
+  const sectionLabels = ['Personal', 'Community', 'Eliel']
+  const sectionTabs =   ['personal', 'community', 'eliel']
+
+  const textPositions = sectionAngles.map((baseAngle, i) => {
+    const a = baseAngle + rotation * Math.PI / 180
+    const tx = Math.cos(a) * RX * 0.62
+    const ty = Math.sin(a) * RY * 0.62
+    return { x: tx, y: ty, label: sectionLabels[i], tab: sectionTabs[i] }
+  })
+
+  return (
+    <svg
+      width={W + (TOOTH_H_X+4)*2}
+      height={H + (TOOTH_H_Y+4)*2}
+      viewBox={`${-(W/2+TOOTH_H_X+4)} ${-(H/2+TOOTH_H_Y+4)} ${W+(TOOTH_H_X+4)*2} ${H+(TOOTH_H_Y+4)*2}`}
+      style={{ overflow:'visible', filter:`drop-shadow(0 0 6px ${color}44)` }}
+    >
+      {/* Outer ellipse */}
+      <ellipse rx={RX} ry={RY} fill="rgba(8,8,8,0.7)" stroke={color} strokeWidth="1.5" />
+      {/* Inner ellipse */}
+      <ellipse rx={RX*0.7} ry={RY*0.7} fill="none" stroke={color} strokeWidth="0.8" opacity="0.4" />
+      {/* Center dot */}
+      <ellipse rx={RX*0.08} ry={RY*0.08} fill={color} opacity="0.8" />
+
+      {/* Divider lines - 3 sections */}
+      {sectionAngles.map((baseAngle, i) => {
+        const a = baseAngle + rotation * Math.PI / 180
+        return <line key={i}
+          x1={(Math.cos(a)*RX*0.1).toFixed(1)} y1={(Math.sin(a)*RY*0.1).toFixed(1)}
+          x2={(Math.cos(a)*RX*0.68).toFixed(1)} y2={(Math.sin(a)*RY*0.68).toFixed(1)}
+          stroke={color} strokeWidth="0.8" opacity="0.35" />
+      })}
+
+      {/* Section labels */}
+      {textPositions.map(({ x, y, label, tab: t }, i) => {
+        const isActive = activeTab === t
+        return (
+          <text key={i}
+            x={x.toFixed(1)} y={(y + 4).toFixed(1)}
+            textAnchor="middle"
+            fontFamily="'Cinzel', serif"
+            fontSize={isActive ? "8.5" : "7"}
+            fontWeight={isActive ? "700" : "400"}
+            fill={isActive ? color : `${color}88`}
+            letterSpacing="0.1"
+          >{label}</text>
+        )
+      })}
+
+      {/* Teeth */}
+      {teeth.map((d, i) => <path key={i} d={d} fill={color} opacity="0.8" />)}
+
+      {/* Highlight arc on top */}
+      <path
+        d={`M${(-RX*0.6).toFixed(1)},${(-RY*0.3).toFixed(1)} A${RX*0.7} ${RY*0.7} 0 0 1 ${(RX*0.3).toFixed(1)},${(-RY*0.7).toFixed(1)}`}
+        fill="none" stroke="white" strokeWidth="1" opacity="0.1" strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function GearNav({ tab, onTabChange }) {
+  const tabIdx = TABS.indexOf(tab)
+  const gearRotRef = useRef(tabIdx * (360 / 3))
+  const [gearRot, setGearRot] = useState(gearRotRef.current)
+  const [slideOffset, setSlideOffset] = useState(0)
+  const dragRef = useRef({ active: false, startX: 0, startRot: 0, startOffset: 0 })
+  const rafRef = useRef(null)
+  const containerRef = useRef(null)
+  const W = 480
+
+  const COLORS = ['#C9A84C','#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e','#C9A84C']
+  const colorIdxRef = useRef(0)
+  const colorTRef = useRef(0)
+  const [gearColor, setGearColor] = useState('#C9A84C')
+
+  // Color animation
+  useEffect(() => {
+    let raf
+    const animate = () => {
+      colorTRef.current += 0.003
+      if (colorTRef.current >= 1) { colorTRef.current = 0; colorIdxRef.current = (colorIdxRef.current + 1) % (COLORS.length - 1) }
+      const c1 = COLORS[colorIdxRef.current], c2 = COLORS[colorIdxRef.current + 1]
+      const t = colorTRef.current
+      const r1=parseInt(c1.slice(1,3),16),g1=parseInt(c1.slice(3,5),16),b1=parseInt(c1.slice(5,7),16)
+      const r2=parseInt(c2.slice(1,3),16),g2=parseInt(c2.slice(3,5),16),b2=parseInt(c2.slice(5,7),16)
+      setGearColor(`rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`)
+      raf = requestAnimationFrame(animate)
+    }
+    raf = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  const snapToTab = useCallback((currentRot, currentOffset, vel) => {
+    const rotPerTab = 360 / 3
+    const rawIdx = -currentOffset / W
+    const targetIdx = Math.max(0, Math.min(2, Math.round(rawIdx)))
+    const targetOffset = -targetIdx * W
+    const targetRot = targetIdx * rotPerTab
+
+    let rot = currentRot
+    let off = currentOffset
+    const animate = () => {
+      const dRot = targetRot - rot
+      const dOff = targetOffset - off
+      rot += dRot * 0.18
+      off += dOff * 0.18
+      gearRotRef.current = rot
+      setGearRot(rot)
+      setSlideOffset(off)
+      if (Math.abs(dRot) > 0.3 || Math.abs(dOff) > 0.5) {
+        rafRef.current = requestAnimationFrame(animate)
+      } else {
+        setGearRot(targetRot)
+        setSlideOffset(targetOffset)
+        gearRotRef.current = targetRot
+        onTabChange(TABS[targetIdx])
+      }
+    }
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(animate)
+  }, [onTabChange])
+
+  const onPointerDown = useCallback((e) => {
+    cancelAnimationFrame(rafRef.current)
+    const x = e.touches ? e.touches[0].clientX : e.clientX
+    dragRef.current = { active: true, startX: x, startRot: gearRotRef.current, startOffset: slideOffset }
+    e.preventDefault()
+  }, [slideOffset])
+
+  const onPointerMove = useCallback((e) => {
+    if (!dragRef.current.active) return
+    const x = e.touches ? e.touches[0].clientX : e.clientX
+    const dx = x - dragRef.current.startX
+    // Gear rotation: 1/3 turn per full screen swipe
+    const rot = dragRef.current.startRot - (dx / W) * 120
+    const off = dragRef.current.startOffset + dx
+    // Clamp offset
+    const clampedOff = Math.max(-2 * W, Math.min(0, off))
+    const clampedRot = Math.max(0, Math.min(240, rot))
+    gearRotRef.current = clampedRot
+    setGearRot(clampedRot)
+    setSlideOffset(clampedOff)
+    e.preventDefault()
+  }, [])
+
+  const onPointerUp = useCallback((e) => {
+    if (!dragRef.current.active) return
+    dragRef.current.active = false
+    snapToTab(gearRotRef.current, slideOffset, 0)
+  }, [slideOffset, snapToTab])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    el.addEventListener('touchstart', onPointerDown, { passive: false })
+    el.addEventListener('touchmove', onPointerMove, { passive: false })
+    el.addEventListener('touchend', onPointerUp)
+    el.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('mousemove', onPointerMove)
+    window.addEventListener('mouseup', onPointerUp)
+    return () => {
+      el.removeEventListener('touchstart', onPointerDown)
+      el.removeEventListener('touchmove', onPointerMove)
+      el.removeEventListener('touchend', onPointerUp)
+      el.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('mousemove', onPointerMove)
+      window.removeEventListener('mouseup', onPointerUp)
+    }
+  }, [onPointerDown, onPointerMove, onPointerUp])
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
+
+  const currentTabIdx = TABS.indexOf(tab)
+
+  return (
+    <div ref={containerRef} style={{
+      position: 'fixed', bottom: 0,
+      left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: '480px',
+      height: 90,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 100,
+      cursor: 'grab',
+      background: 'rgba(8,8,8,0.85)',
+      backdropFilter: 'blur(12px)',
+      userSelect: 'none', touchAction: 'none',
+    }}>
+      {/* Gear only - labels are inside the gear */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <GearSVG rotation={gearRot} color={gearColor} activeTab={tab} />
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [splash, setSplash] = useState(true)
   const [tab, setTab] = useState('eliel')
-  const [transitioning, setTransitioning] = useState(false)
-  const [exitClass, setExitClass] = useState('')
-  const [enterClass, setEnterClass] = useState('')
+  const [slideOffset, setSlideOffset] = useState(0)
 
-  const switchTab = (id) => {
-    if (id === tab || transitioning) return
-    setTransitioning(true)
-    setExitClass('zoom-exit')
-    setTimeout(() => {
-      setTab(id)
-      setExitClass('')
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setEnterClass('zoom-enter')
-          setTimeout(() => {
-            setEnterClass('')
-            setTransitioning(false)
-          }, 520)
-        })
-      })
-    }, 420)
-  }
+  const handleTabChange = useCallback((newTab) => {
+    setTab(newTab)
+  }, [])
 
   if (splash) return <SplashScreen onComplete={() => setSplash(false)} />
 
-  const tabs = [
-    { id: 'personal',  label: 'Personal' },
-    { id: 'eliel',     label: 'Eliel' },
-    { id: 'community', label: 'Community' },
-  ]
+  const tabIdx = TABS.indexOf(tab)
 
   return (
-    <div style={{ background: '#080808', minHeight: '100vh', maxWidth: '480px', margin: '0 auto', position: 'relative' }}>
+    <div style={{ background: '#080808', minHeight: '100vh', maxWidth: '480px', margin: '0 auto', position: 'relative', overflow: 'hidden' }}>
       <style>{css}</style>
 
       <TesseractBg />
       <FireflyBg />
 
-      <div style={{ position: 'relative', zIndex: 1, paddingBottom: 80 }} className={exitClass || enterClass}>
-        {tab === 'eliel'     && <LobbyView onNavigate={setTab} />}
-        {tab === 'personal'  && <PersonalView onNavigate={setTab} />}
-        {tab === 'community' && <CommunityView onNavigate={setTab} />}
+      {/* Sliding content - 3 panels side by side */}
+      <div style={{
+        display: 'flex',
+        width: '300%',
+        transform: `translateX(calc(${-tabIdx * 100 / 3}% + ${slideOffset / 3}px))`,
+        transition: 'none',
+        willChange: 'transform',
+        paddingBottom: 90,
+        minHeight: '100vh',
+      }}>
+        {TABS.map((t, i) => (
+          <div key={t} style={{ width: '33.333%', flexShrink: 0, minHeight: '100vh' }}>
+            {t === 'personal'  && <PersonalView onNavigate={handleTabChange} />}
+            {t === 'eliel'     && <LobbyView onNavigate={handleTabChange} />}
+            {t === 'community' && <CommunityView onNavigate={handleTabChange} />}
+          </div>
+        ))}
       </div>
 
-      <nav style={{
-        position: 'fixed', bottom: 0,
-        left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: '480px',
-        background: 'rgba(10,10,10,0.92)',
-        backdropFilter: 'blur(10px)',
-        borderTop: 'none',
-        display: 'flex', flexDirection: 'column',
-        zIndex: 100,
-        overflow: 'hidden',
-      }}>
-        <style>{`
-          @keyframes navLine {
-            0%,100% { background: linear-gradient(90deg, transparent, #C9A84C 35%, #C9A84C 65%, transparent); opacity: 0.55; }
-            16%     { background: linear-gradient(90deg, transparent, #e8d5a3 35%, #e8d5a3 65%, transparent); opacity: 0.75; }
-            33%     { background: linear-gradient(90deg, transparent, #ff6eb4 35%, #ff6eb4 65%, transparent); opacity: 0.65; }
-            50%     { background: linear-gradient(90deg, transparent, #6eb4ff 35%, #6eb4ff 65%, transparent); opacity: 0.75; }
-            66%     { background: linear-gradient(90deg, transparent, #6effa0 35%, #6effa0 65%, transparent); opacity: 0.55; }
-            83%     { background: linear-gradient(90deg, transparent, #ff9a6e 35%, #ff9a6e 65%, transparent); opacity: 0.65; }
-          }
-        `}</style>
-        <div style={{ width: '100%', height: '1px', animation: 'navLine 6s ease-in-out infinite' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 16px 28px' }}>
-        {tabs.map(({ id, label }) => {
-          const active = tab === id
-          return (
-            <button key={id} className={`nav-btn ${active ? 'active' : ''}`} onClick={() => switchTab(id)}>
-              <div className={`nav-dot ${active ? 'active' : 'inactive'}`} />
-              <span className={`nav-label ${active ? 'active' : 'inactive'}`}>{label}</span>
-            </button>
-          )
-        })}
-        </div>
-      </nav>
+      <GearNav tab={tab} onTabChange={handleTabChange} />
     </div>
   )
 }

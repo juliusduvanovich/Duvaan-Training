@@ -480,7 +480,7 @@ function ShopSection() {
         {/* Card visual */}
         <div style={{ marginBottom:14, borderRadius:16, overflow:"hidden" }}>
           <img
-            src="/DuvaanCard.png"
+            src="/DuvaanPlatinum.png"
             alt="Duvaan Card"
             style={{ width:"100%", display:"block", borderRadius:16 }}
           />
@@ -827,7 +827,6 @@ export default function PersonalView() {
                   value={parseFloat(drafts[ex.id]?.weight) || 0}
                   onChange={v => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], weight: v > 0 ? v + ' kg' : '' } }))}
                   min={0} max={200} step={0.5} unit=" kg"
-                  height={100} itemHeight={32}
                 />
               </div>
                             </div>
