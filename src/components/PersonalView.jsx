@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ScrollPicker from "./ScrollPicker";
+import NotesView from "./NotesView";
 
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "duvaan_profile";
@@ -191,6 +192,26 @@ const css = `
     font-family:'Cormorant Garamond',serif; font-size:13px; outline:none;
   }
   .edit-input:focus { border-color:rgba(201,168,76,0.8); }
+
+  /* Sub-nav */
+  .personal-subnav {
+    display: flex;
+    border-bottom: 0.5px solid rgba(201,168,76,0.2);
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .personal-subnav::-webkit-scrollbar { display: none; }
+  .personal-subnav-btn {
+    background: none; border: none; cursor: pointer;
+    padding: 6px 16px 10px 0;
+    font-family: 'Cinzel', serif; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid transparent;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
 `;
 
 function useSpringScale() {
@@ -259,19 +280,15 @@ const STEPS = [
   { eliel: "Haluatko kertoa jotain muuta?" },
 ];
 
-
 const PERSONAL_TAGS = ['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion'];
 const BURGUNDY = "#6B1D2E";
 
-
-
-// ─── FREQUENCY SYSTEM ──────────────────────────────────────────────────────
 const FREQ_LEVELS = [
-  { name: 'Newcomer',  min: 0,    max: 99,   color: '#C9A84C',  icon: '◦' },
-  { name: 'Member',    min: 100,  max: 499,  color: '#C9A84C',               icon: '◈' },
-  { name: 'Regular',   min: 500,  max: 1999, color: '#e8d5a3',               icon: '◉' },
-  { name: 'Insider',   min: 2000, max: 4999, color: '#ff9a6e',               icon: '✦' },
-  { name: 'Elite',     min: 5000, max: null, color: '#ff6eb4',               icon: '✸' },
+  { name: 'Newcomer',  min: 0,    max: 99,   color: '#C9A84C', icon: '◦' },
+  { name: 'Member',    min: 100,  max: 499,  color: '#C9A84C', icon: '◈' },
+  { name: 'Regular',   min: 500,  max: 1999, color: '#e8d5a3', icon: '◉' },
+  { name: 'Insider',   min: 2000, max: 4999, color: '#ff9a6e', icon: '✦' },
+  { name: 'Elite',     min: 5000, max: null, color: '#ff6eb4', icon: '✸' },
 ]
 
 function getLevel(pts) {
@@ -279,116 +296,45 @@ function getLevel(pts) {
 }
 
 function FrequencyCard() {
-  const [points, setPoints] = useState(() => {
+  const [points] = useState(() => {
     try { return parseInt(localStorage.getItem('duvaan_frequency') || '0') } catch { return 0 }
   })
-
   const level = getLevel(points)
   const nextLevel = FREQ_LEVELS[FREQ_LEVELS.indexOf(level) + 1]
-  const progress = nextLevel
-    ? ((points - level.min) / (nextLevel.min - level.min)) * 100
-    : 100
+  const progress = nextLevel ? ((points - level.min) / (nextLevel.min - level.min)) * 100 : 100
 
   return (
-    <div style={{
-      background: "rgba(255,255,255,0.02)",
-      border: "1px solid #C9A84C",
-      borderRadius: 16, padding: "18px 20px", marginBottom: 16,
-      animation: "breatheBtn 6s ease-in-out infinite",
-    }}>
+    <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:16, padding:"18px 20px", marginBottom:16, animation:"breatheBtn 6s ease-in-out infinite" }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
         <div>
           <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 4px" }}>Frequency</p>
-          <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-            <span style={{ color:level.color, fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:700, letterSpacing:"0.04em" }}>{level.icon} {level.name}</span>
-          </div>
+          <span style={{ color:level.color, fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:700, letterSpacing:"0.04em" }}>{level.icon} {level.name}</span>
         </div>
         <div style={{ textAlign:"right" }}>
           <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:22, fontWeight:700, margin:0 }}>{points.toLocaleString()}</p>
           <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", margin:"2px 0 0" }}>PISTETTÄ</p>
         </div>
       </div>
-
-      {/* Progress bar */}
-      <div style={{ marginBottom:10 }}>
-        <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:4, height:4, overflow:"hidden" }}>
-          <div style={{
-            height:"100%", borderRadius:4,
-            width: progress + "%",
-            background: `linear-gradient(90deg, ${level.color}, ${nextLevel?.color || level.color})`,
-            transition:"width 0.8s ease",
-            boxShadow: `0 0 8px ${level.color}`,
-          }} />
-        </div>
-        {nextLevel && (
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-            <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8 }}>{level.name}</span>
-            <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8 }}>{nextLevel.name} — {nextLevel.min.toLocaleString()} pistettä</span>
-          </div>
-        )}
-        {!nextLevel && (
-          <p style={{ color:level.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", textAlign:"center", marginTop:5 }}>MAX TASO</p>
-        )}
+      <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:4, height:4, overflow:"hidden", marginBottom:6 }}>
+        <div style={{ height:"100%", borderRadius:4, width:progress+"%", background:`linear-gradient(90deg,${level.color},${nextLevel?.color||level.color})`, boxShadow:`0 0 8px ${level.color}`, transition:"width 0.8s ease" }} />
       </div>
-
-      {/* How to earn */}
-      <div style={{ borderTop:"0.5px solid #C9A84C", paddingTop:12 }}>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Pisteiden kertyminen</p>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:5 }}>
-          {[
-            ["+50", "Tapahtuman järjestäminen"],
-            ["+30", "Uuden jäsenen rekrytointi"],
-            ["+20", "Transaktio appin kautta"],
-            ["+10", "Klubi-aktiivisuus/vko"],
-            ["+5",  "Osallistuja tapahtumassa"],
-          ].map(([pts, desc]) => (
-            <div key={desc} style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <span style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:9, fontWeight:700, flexShrink:0 }}>{pts}</span>
-              <span style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11 }}>{desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* All levels */}
-      <div style={{ borderTop:"0.5px solid #C9A84C", paddingTop:12, marginTop:10 }}>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.16em", textTransform:"uppercase", margin:"0 0 8px" }}>Tasot</p>
-        <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-          {FREQ_LEVELS.map(l => (
-            <div key={l.name} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", opacity: l.name === level.name ? 1 : 0.45 }}>
-              <span style={{ color:l.color, fontFamily:"'Cinzel',serif", fontSize:10, fontWeight: l.name===level.name ? 700 : 400 }}>
-                {l.icon} {l.name}
-                {l.name === level.name && <span style={{ fontSize:7, marginLeft:6, background:"rgba(201,168,76,0.1)", padding:"1px 6px", borderRadius:8 }}>SINÄ</span>}
-              </span>
-              <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9 }}>
-                {l.min.toLocaleString()}{l.max ? "–" + l.max.toLocaleString() : "+"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {nextLevel && <div style={{ display:"flex", justifyContent:"space-between" }}>
+        <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8 }}>{level.name}</span>
+        <span style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8 }}>{nextLevel.name} — {nextLevel.min.toLocaleString()} p</span>
+      </div>}
     </div>
   )
 }
 
 function ShopSection() {
-  const [selected, setSelected] = useState(null);
   const [cardOrdered, setCardOrdered] = useState(() => {
     try { return localStorage.getItem('duvaan_card_ordered') === 'true'; } catch { return false; }
   });
 
-  const handleOrder = () => {
-    localStorage.setItem('duvaan_card_ordered', 'true');
-    setCardOrdered(true);
-  };
-
   return (
     <div style={{ paddingBottom: 20 }}>
-
-      {/* Membership tiers */}
       <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 12px" }}>Jäsenyystasot</p>
 
-      {/* Free */}
       <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:16, padding:"16px 18px", marginBottom:10 }}>
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
           <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700 }}>Free</span>
@@ -399,7 +345,6 @@ function ShopSection() {
         ))}
       </div>
 
-      {/* Member */}
       <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:16, padding:"16px 18px", marginBottom:10 }}>
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
           <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700 }}>Member</span>
@@ -408,7 +353,7 @@ function ShopSection() {
             <span style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11 }}>/kk</span>
           </div>
         </div>
-        {["Kaikki Free-ominaisuudet","Frequency-pisteet käyttöön (liput, merch)","Yksityiset klubit","Tapahtumien järjestäminen"].map(f => (
+        {["Kaikki Free-ominaisuudet","Frequency-pisteet käyttöön","Yksityiset klubit","Tapahtumien järjestäminen"].map(f => (
           <p key={f} style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:"0 0 4px" }}>◈ {f}</p>
         ))}
         <button style={{ width:"100%", padding:"11px 0", marginTop:10, background:"rgba(201,168,76,0.1)", border:"1.5px solid #C9A84C", borderRadius:12, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>
@@ -416,14 +361,7 @@ function ShopSection() {
         </button>
       </div>
 
-      {/* Duvaan Deep hero */}
-      <div style={{
-        background: "linear-gradient(135deg, rgba(107,29,46,0.6) 0%, rgba(10,10,10,0.9) 50%, rgba(107,29,46,0.4) 100%)",
-        border: "1px solid #C9A84C",
-        borderRadius: 20, padding: "20px 18px", marginBottom: 16,
-        position: "relative", overflow: "hidden",
-        animation: "breatheBtn 6s ease-in-out infinite",
-      }}>
+      <div style={{ background:"linear-gradient(135deg,rgba(107,29,46,0.6) 0%,rgba(10,10,10,0.9) 50%,rgba(107,29,46,0.4) 100%)", border:"1px solid #C9A84C", borderRadius:20, padding:"20px 18px", marginBottom:16, position:"relative", overflow:"hidden", animation:"breatheBtn 6s ease-in-out infinite" }}>
         <div style={{ position:"absolute", top:0, left:0, right:0, height:1, background:"linear-gradient(90deg,transparent,#C9A84C,transparent)" }} />
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
           <div>
@@ -435,16 +373,7 @@ function ShopSection() {
             <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11, fontStyle:"italic", margin:"2px 0 0" }}>/kk</p>
           </div>
         </div>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.7, margin:"0 0 14px" }}>
-          Taloudellinen taso. Myy palveluita, kerää tuloja, vaikuta.
-        </p>
-        {[
-          { icon:"⚡", title:"Eliel Pro", desc:"Tehokkaampi AI — muistaa, oppii, ennakoi" },
-          { icon:"💼", title:"Palveluiden myynti", desc:"Tanssi, valmennus, ruoanlaitto — Duvaan ottaa komission" },
-          { icon:"🔑", title:"Suljetut klubit", desc:"Pääsy eksklusiivisiin Duvaan-tiloihin" },
-          { icon:"◈", title:"D-Coin", desc:"Virtuaalivaluutta yhteistyökumppaneilla" },
-          { icon:"▣", title:"Duvaan-kortti", desc:"Musta metallikortti NFC-sirulla" },
-        ].map(({ icon, title, desc }) => (
+        {[["⚡","Eliel Pro","Tehokkaampi AI — muistaa, oppii, ennakoi"],["💼","Palveluiden myynti","Tanssi, valmennus, ruoanlaitto"],["🔑","Suljetut klubit","Pääsy eksklusiivisiin Duvaan-tiloihin"],["◈","D-Coin","Virtuaalivaluutta yhteistyökumppaneilla"],["▣","Duvaan-kortti","Musta metallikortti NFC-sirulla"]].map(([icon,title,desc])=>(
           <div key={title} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:10 }}>
             <span style={{ fontSize:16, flexShrink:0 }}>{icon}</span>
             <div>
@@ -453,80 +382,28 @@ function ShopSection() {
             </div>
           </div>
         ))}
-        <button style={{
-          width:"100%", padding:"15px 0", marginTop:10,
-          background:GOLD, border:"none", borderRadius:14,
-          color:"#080808", fontFamily:"'Cinzel',serif",
-          fontSize:12, fontWeight:700, letterSpacing:"0.18em",
-          textTransform:"uppercase", cursor:"pointer",
-        }}>Aktivoi Duvaan Deep</button>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:11, textAlign:"center", margin:"10px 0 0", fontStyle:"italic" }}>Peruuta milloin tahansa</p>
+        <button style={{ width:"100%", padding:"15px 0", marginTop:10, background:GOLD, border:"none", borderRadius:14, color:"#080808", fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>Aktivoi Duvaan Deep</button>
       </div>
 
-      {/* D-Coin info */}
-      <div style={{
-        background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C",
-        borderRadius:16, padding:"18px 20px", marginBottom:16,
-      }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-          <div>
-            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.1em", margin:0 }}>D-Coin</p>
-            <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"3px 0 0" }}>Duvaan virtuaalivaluutta</p>
-          </div>
-          <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid #C9A84C", borderRadius:12, padding:"8px 16px" }}>
-            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, margin:0 }}>0</p>
-            <p style={{ color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em", margin:"2px 0 0" }}>D-COIN</p>
-          </div>
-        </div>
-        <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:0 }}>
-          Käytä D-Coinia Duvaan-yhteistyökumppaneilla — tapahtumissa, ravintoloissa ja eksklusiiivisissa palveluissa. Revolut meets Amex, Duvaan-tyyliin.
-        </p>
-      </div>
-
-      {/* Physical card */}
-      <div style={{
-        background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C",
-        borderRadius:16, padding:"18px 20px", marginBottom:16,
-      }}>
+      <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:16, padding:"18px 20px", marginBottom:16 }}>
         <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:14, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 14px" }}>Duvaan-kortti</p>
-
-        {/* Card visual */}
         <div style={{ marginBottom:14, borderRadius:16, overflow:"hidden" }}>
-          <img
-            src="/DuvaanPlatinum.png"
-            alt="Duvaan Card"
-            style={{ width:"100%", display:"block", borderRadius:16 }}
-          />
+          <img src="/DuvaanPlatinum.png" alt="Duvaan Card" style={{ width:"100%", display:"block", borderRadius:16 }} />
         </div>
-
         {cardOrdered ? (
-          <div style={{ textAlign:"center", padding:"10px 0" }}>
-            <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.1em", margin:0 }}>✓ Kortti tilattu — tulossa postissa</p>
-          </div>
+          <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.1em", margin:0, textAlign:"center" }}>✓ Kortti tilattu</p>
         ) : (
-          <>
-            <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:13, lineHeight:1.6, margin:"0 0 14px" }}>
-              Musta metallikortti Duvaan-ornamentilla. Sisältää NFC-sirun yhteisöllisiin kohtaamisiin.
-            </p>
-            <button onClick={handleOrder} style={{
-              width:"100%", padding:"13px 0",
-              background:"rgba(107,29,46,0.5)", border:"1.5px solid #C9A84C",
-              borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif",
-              fontSize:11, fontWeight:600, letterSpacing:"0.16em",
-              textTransform:"uppercase", cursor:"pointer",
-            }}>
-              Tilaa kortti — Deep-jäsenille
-            </button>
-          </>
+          <button onClick={()=>{ localStorage.setItem('duvaan_card_ordered','true'); setCardOrdered(true); }} style={{ width:"100%", padding:"13px 0", background:"rgba(107,29,46,0.5)", border:"1.5px solid #C9A84C", borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>
+            Tilaa kortti — Deep-jäsenille
+          </button>
         )}
       </div>
     </div>
   );
 }
 
-function ProfileSection({ onSectionChange }) {
+function ProfileSection({ section, setSection }) {
   const [editing, setEditing] = useState(false);
-  const [section, setSection] = useState('profile');
   const [profile, setProfile] = useState(() => {
     try { return JSON.parse(localStorage.getItem('duvaan_user_profile') || 'null'); } catch { return null; }
   });
@@ -538,127 +415,100 @@ function ProfileSection({ onSectionChange }) {
 
   const save = () => {
     localStorage.setItem('duvaan_user_profile', JSON.stringify(form));
-    setProfile(form);
-    setEditing(false);
+    setProfile(form); setEditing(false);
   };
+
+  // Sub-nav tabs
+  const tabs = [
+    { id: 'profile', label: 'Profiili' },
+    { id: 'training', label: 'Training' },
+    { id: 'notes', label: 'Notes' },
+    { id: 'shop', label: 'Shop' },
+  ];
 
   return (
     <div style={{ marginBottom: 28, animation: "fadeInUp 0.5s ease both" }}>
-
       {/* Sub-nav */}
-      <div style={{ display:"flex", borderBottom:"0.5px solid #C9A84C", marginBottom:20 }}>
-        {['Profiili','Training','Shop'].map((s, i) => {
-          const id = i === 0 ? 'profile' : i === 1 ? 'training' : 'shop';
-          const active = section === id;
-          return (
-            <button key={s} onClick={() => { setSection(id); onSectionChange && onSectionChange(id); }} style={{
-              background:"none", border:"none", cursor:"pointer",
-              padding:"6px 16px 8px 0",
-              color: active ? GOLD : "#C9A84C",
-              fontFamily:"'Cinzel',serif", fontSize:"10px",
-              letterSpacing:"0.14em", textTransform:"uppercase",
-              borderBottom: active ? "1px solid " + GOLD : "1px solid transparent",
-              transition:"all 0.3s",
-            }}>{s}</button>
-          );
-        })}
+      <div className="personal-subnav">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            className="personal-subnav-btn"
+            onClick={() => setSection(t.id)}
+            style={{
+              color: section === t.id ? GOLD : '#C9A84C',
+              borderBottom: section === t.id ? `1px solid ${GOLD}` : '1px solid transparent',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
+      {/* Notes tab — renders NotesView directly */}
+      {section === 'notes' && <NotesView isClub={false} />}
+
+      {/* Shop tab */}
       {section === 'shop' && <ShopSection />}
-      {section === 'profile' && profile && !editing && <FrequencyCard />}
+
+      {/* Profile tab */}
       {section === 'profile' && (
         <div>
+          {profile && <FrequencyCard />}
           {!profile && !editing && (
             <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:14, padding:"20px 16px", marginBottom:16, textAlign:"center" }}>
               <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", margin:"0 0 14px" }}>
                 Luo profiilisi — klubit ja tapahtumat löytävät sinut.
               </p>
-              <button onClick={() => setEditing(true)} style={{
-                background:BURGUNDY, border:"1.5px solid #C9A84C", borderRadius:12,
-                padding:"12px 24px", color:GOLD, fontFamily:"'Cinzel',serif",
-                fontSize:11, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer",
-              }}>Luo profiili</button>
+              <button onClick={() => setEditing(true)} style={{ background:BURGUNDY, border:"1.5px solid #C9A84C", borderRadius:12, padding:"12px 24px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>Luo profiili</button>
             </div>
           )}
-
           {editing && (
             <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-
                 <div>
                   <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>Nimi</p>
-                  <input className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px" }}
-                    value={form.name} onChange={e => setForm(f => ({...f, name:e.target.value}))} placeholder="Julius Kääriä" />
+                  <input className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px" }} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Julius Kääriä" />
                 </div>
-
                 <div>
                   <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>Paikkakunta</p>
-                  <input className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px" }}
-                    value={form.location} onChange={e => setForm(f => ({...f, location:e.target.value}))} placeholder="Helsinki" />
+                  <input className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px" }} value={form.location} onChange={e=>setForm(f=>({...f,location:e.target.value}))} placeholder="Helsinki" />
                 </div>
-
                 <div>
                   <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 6px" }}>Bio</p>
-                  <textarea className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px", resize:"none", fontFamily:"'Cormorant Garamond',serif", fontSize:14 }}
-                    rows={2} value={form.bio} onChange={e => setForm(f => ({...f, bio:e.target.value}))} placeholder="Solisti, säveltäjä..." />
+                  <textarea className="num-input" style={{ width:"100%", boxSizing:"border-box", textAlign:"left", padding:"11px 14px", resize:"none", fontFamily:"'Cormorant Garamond',serif", fontSize:14 }} rows={2} value={form.bio} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} placeholder="Solisti, säveltäjä..." />
                 </div>
-
                 <div>
-                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 8px" }}>
-                    Personal tagit — määrittää mitä löydät
-                  </p>
+                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 8px" }}>Personal tagit</p>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                     {PERSONAL_TAGS.map(tag => {
                       const sel = form.tags.includes(tag);
                       return (
-                        <button key={tag} onClick={() => toggleTag(tag)} style={{
-                          background: sel ? "#C9A84C" : "rgba(255,255,255,0.02)",
-                          border: sel ? "1.5px solid #C9A84C" : "1px solid #C9A84C",
-                          borderRadius:20, padding:"6px 14px", cursor:"pointer",
-                          color: sel ? GOLD : "#C9A84C",
-                          fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em",
-                          transform: sel ? "scale(1.05)" : "scale(1)", transition:"all 0.2s",
-                        }}>{tag}</button>
+                        <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?"#C9A84C":"rgba(255,255,255,0.02)", border:sel?"1.5px solid #C9A84C":"1px solid #C9A84C", borderRadius:20, padding:"6px 14px", cursor:"pointer", color:sel?GOLD:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", transform:sel?"scale(1.05)":"scale(1)", transition:"all 0.2s" }}>{tag}</button>
                       );
                     })}
                   </div>
-                  {form.tags.length > 0 && (
-                    <p style={{ color:"#C9A84C", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"8px 0 0" }}>
-                      Löydät: {form.tags.join(', ')}
-                    </p>
-                  )}
                 </div>
-
                 <div style={{ display:"flex", gap:8, marginTop:4 }}>
-                  <button onClick={save} style={{
-                    flex:1, padding:12, background:BURGUNDY,
-                    border:"1.5px solid #C9A84C", borderRadius:12,
-                    color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10,
-                    letterSpacing:"0.14em", textTransform:"uppercase", cursor:"pointer",
-                  }}>Tallenna</button>
-                  <button onClick={() => setEditing(false)} style={{
-                    padding:"12px 16px", background:"none",
-                    border:"1px solid #C9A84C", borderRadius:12,
-                    color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, cursor:"pointer",
-                  }}>Peruuta</button>
+                  <button onClick={save} style={{ flex:1, padding:12, background:BURGUNDY, border:"1.5px solid #C9A84C", borderRadius:12, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase", cursor:"pointer" }}>Tallenna</button>
+                  <button onClick={()=>setEditing(false)} style={{ padding:"12px 16px", background:"none", border:"1px solid #C9A84C", borderRadius:12, color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, cursor:"pointer" }}>Peruuta</button>
                 </div>
               </div>
             </div>
           )}
-
           {profile && !editing && (
             <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid #C9A84C", borderRadius:14, padding:"18px 16px", marginBottom:16 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                   <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#6B1D2E,#C9A84C)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, color:"#fff", fontFamily:"'Cinzel',serif", fontWeight:700, flexShrink:0 }}>
-                    {profile.name?.[0] || 'D'}
+                    {profile.name?.[0]||'D'}
                   </div>
                   <div>
-                    <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:"0.06em", margin:"0 0 2px" }}>{profile.name || '—'}</p>
+                    <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:"0.06em", margin:"0 0 2px" }}>{profile.name||'—'}</p>
                     {profile.location && <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:0 }}>📍 {profile.location}</p>}
                   </div>
                 </div>
-                <button onClick={() => setEditing(true)} style={{ background:"none", border:"1px solid #C9A84C", borderRadius:8, padding:"5px 12px", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>Muokkaa</button>
+                <button onClick={()=>setEditing(true)} style={{ background:"none", border:"1px solid #C9A84C", borderRadius:8, padding:"5px 12px", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>Muokkaa</button>
               </div>
               {profile.bio && <p style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", lineHeight:1.6, margin:"0 0 14px" }}>{profile.bio}</p>}
               {profile.tags?.length > 0 && (
@@ -679,7 +529,6 @@ function ProfileSection({ onSectionChange }) {
   );
 }
 
-
 export default function PersonalView() {
   const saved = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } })();
   const [mode, setMode] = useState(saved ? 'program' : 'onboarding');
@@ -691,38 +540,29 @@ export default function PersonalView() {
   const [completed, setCompleted] = useState(() => {
     try { return JSON.parse(localStorage.getItem('duvaan_completed') || '{}') } catch { return {} }
   });
+  const [personalSection, setPersonalSection] = useState('profile');
 
-  // Sync completed from localStorage whenever tab becomes visible
   useEffect(() => {
     const sync = () => {
-      try {
-        const fresh = JSON.parse(localStorage.getItem('duvaan_completed') || '{}')
-        setCompleted(fresh)
-      } catch {}
-    }
-    window.addEventListener('focus', sync)
-    document.addEventListener('visibilitychange', sync)
-    return () => {
-      window.removeEventListener('focus', sync)
-      document.removeEventListener('visibilitychange', sync)
-    }
-  }, [])
+      try { setCompleted(JSON.parse(localStorage.getItem('duvaan_completed') || '{}')); } catch {}
+    };
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    return () => { window.removeEventListener('focus', sync); document.removeEventListener('visibilitychange', sync); };
+  }, []);
 
   const markDone = (i) => {
     const key = `${new Date().toISOString().split('T')[0]}_${i}`;
-    const current = (() => { try { return JSON.parse(localStorage.getItem('duvaan_completed') || '{}') } catch { return {} } })()
+    const current = (() => { try { return JSON.parse(localStorage.getItem('duvaan_completed') || '{}') } catch { return {} } })();
     const updated = { ...current, [key]: true };
     setCompleted(updated);
     localStorage.setItem('duvaan_completed', JSON.stringify(updated));
     setExpanded(null);
   };
 
-  const isDone = (i) => {
-    const key = `${new Date().toISOString().split('T')[0]}_${i}`;
-    return completed[key] === true;
-  };
+  const isDone = (i) => completed[`${new Date().toISOString().split('T')[0]}_${i}`] === true;
+
   const [editingDay, setEditingDay] = useState(null);
-  const [personalTab, setPersonalTab] = useState('profile');
   const [drafts, setDrafts] = useState({});
   const { elRef, onInteract } = useSpringTilt();
 
@@ -751,8 +591,7 @@ export default function PersonalView() {
         setStep(s => {
           if (s < STEPS.length - 1) return s + 1;
           setAnswers(a => { const u = { ...a, [field]: value }; localStorage.setItem(STORAGE_KEY, JSON.stringify(u)); return u; });
-          setMode('program');
-          return s;
+          setMode('program'); return s;
         });
       }, 350);
     }
@@ -787,146 +626,96 @@ export default function PersonalView() {
 
   const saveDayEdits = (i) => {
     const updated = program.map((day, di) => {
-      if (di !== i) return day
-      return {
-        ...day,
-        exercises: day.exercises.map(ex => {
-          const d = drafts[ex.id]
-          if (!d) return ex
-          return { ...ex, name: d.name, sets: Number(d.sets) || ex.sets, reps: d.reps, weight: d.weight || null }
-        })
-      }
-    })
-    setProgram(updated)
-    saveProgram(updated)
-    setEditingDay(null)
-    setDrafts({})
+      if (di !== i) return day;
+      return { ...day, exercises: day.exercises.map(ex => { const d = drafts[ex.id]; if (!d) return ex; return { ...ex, name: d.name, sets: Number(d.sets)||ex.sets, reps: d.reps, weight: d.weight||null }; }) };
+    });
+    setProgram(updated); saveProgram(updated); setEditingDay(null); setDrafts({});
   };
 
   if (mode === 'program') {
     return (
       <>
         <style>{css}</style>
-        <div style={{ minHeight: "100vh", padding: "48px 24px 100px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", animation: "fadeInUp 0.6s ease both" }}>
+        <div style={{ minHeight:"100vh", padding:"48px 24px 100px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"20px", animation:"fadeInUp 0.6s ease both" }}>
             <div>
-              <h2 style={{ color: GOLD, fontSize: "22px", fontWeight: 700, letterSpacing: "0.1em", margin: 0, fontFamily: "'Cinzel', serif", animation: "todayText 8s ease-in-out infinite" }}>Personal</h2>
-              <p style={{ color: "#C9A84C", fontSize: "10px", fontFamily: "'Cinzel', serif", letterSpacing: "0.14em", margin: "4px 0 0", textTransform: "uppercase" }}>
-                {new Date().toLocaleDateString('fi-FI', { weekday: 'long', day: 'numeric', month: 'long' })}
+              <h2 style={{ color:GOLD, fontSize:"22px", fontWeight:700, letterSpacing:"0.1em", margin:0, fontFamily:"'Cinzel',serif", animation:"todayText 8s ease-in-out infinite" }}>Personal</h2>
+              <p style={{ color:"#C9A84C", fontSize:"10px", fontFamily:"'Cinzel',serif", letterSpacing:"0.14em", margin:"4px 0 0", textTransform:"uppercase" }}>
+                {new Date().toLocaleDateString('fi-FI', { weekday:'long', day:'numeric', month:'long' })}
               </p>
             </div>
-            <button onClick={() => { setIsEditing(true); setMode('onboarding'); setStep(0); }} style={{
-              background: "none", border: "1.5px solid #C9A84C", borderRadius: "10px",
-              padding: "7px 14px", color: "rgba(201,168,76,0.8)", fontFamily: "'Cinzel', serif",
-              fontSize: "9px", letterSpacing: "0.12em", cursor: "pointer", fontWeight: 600,
-            }}>Muokkaa</button>
+            <button onClick={()=>{ setIsEditing(true); setMode('onboarding'); setStep(0); }} style={{ background:"none", border:"1.5px solid #C9A84C", borderRadius:"10px", padding:"7px 14px", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:"9px", letterSpacing:"0.12em", cursor:"pointer", fontWeight:600 }}>Muokkaa</button>
           </div>
 
-          <ProfileSection onSectionChange={setPersonalTab} />
+          <ProfileSection section={personalSection} setSection={setPersonalSection} />
 
-
-          {personalTab === 'training' && <div style={{ display: "flex", flexDirection: "column", gap: "10px", animation: "fadeInUp 0.8s ease both" }}>
-            {program.map((day, i) => {
-              const isToday = i === todayIdx;
-              const isOpen = expanded === i;
-              const isEditingThis = editingDay === i;
-              return (
-                <div key={i} className={`day-card ${isToday ? 'today' : ''}`} style={isDone(i) ? { borderColor: 'rgba(110,255,160,0.3)' } : {}}>
-                  <div className="day-header" onClick={() => !isEditingThis && setExpanded(isOpen ? null : i)}>
-                    <div>
-                      <p className={isToday ? "today-name" : ""} style={{
-                        color: isToday ? GOLD : "#C9A84C",
-                        fontSize: "14px", fontWeight: isToday ? 700 : 600,
-                        letterSpacing: "0.08em", margin: 0, marginBottom: "4px",
-                        fontFamily: "'Cinzel', serif",
-                      }}>
-                        {day.name}
-                        {isToday && <span style={{ fontSize: "9px", marginLeft: "10px", opacity: 0.7, fontWeight: 400 }}>— tänään</span>}
-                        {isDone(i) && <span style={{ fontSize: "9px", marginLeft: "10px", color: "#6effa0", fontWeight: 400 }}>✓ tehty</span>}
-                      </p>
-                      <p style={{ color: "#C9A84C", fontSize: "12px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
-                        {day.focus}
-                      </p>
+          {personalSection === 'training' && (
+            <div style={{ display:"flex", flexDirection:"column", gap:"10px", animation:"fadeInUp 0.8s ease both" }}>
+              {program.map((day, i) => {
+                const isToday = i === todayIdx;
+                const isOpen = expanded === i;
+                const isEditingThis = editingDay === i;
+                return (
+                  <div key={i} className={`day-card ${isToday?'today':''}`} style={isDone(i)?{borderColor:'rgba(110,255,160,0.3)'}:{}}>
+                    <div className="day-header" onClick={()=>!isEditingThis&&setExpanded(isOpen?null:i)}>
+                      <div>
+                        <p className={isToday?"today-name":""} style={{ color:isToday?GOLD:"#C9A84C", fontSize:"14px", fontWeight:isToday?700:600, letterSpacing:"0.08em", margin:0, marginBottom:"4px", fontFamily:"'Cinzel',serif" }}>
+                          {day.name}
+                          {isToday && <span style={{ fontSize:"9px", marginLeft:"10px", opacity:0.7, fontWeight:400 }}>— tänään</span>}
+                          {isDone(i) && <span style={{ fontSize:"9px", marginLeft:"10px", color:"#6effa0", fontWeight:400 }}>✓ tehty</span>}
+                        </p>
+                        <p style={{ color:"#C9A84C", fontSize:"12px", fontStyle:"italic", margin:0, fontFamily:"'Cormorant Garamond',serif" }}>{day.focus}</p>
+                      </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
+                        {day.exercises.length>0 && <span style={{ color:"#C9A84C", fontSize:"12px", fontFamily:"'Cinzel',serif", fontWeight:600 }}>{day.exercises.length}</span>}
+                        <span style={{ color:"#C9A84C", fontSize:"12px", transition:"transform 0.3s", display:"inline-block", transform:isOpen?"rotate(180deg)":"rotate(0deg)" }}>↓</span>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      {day.exercises.length > 0 && (
-                        <span style={{ color: "#C9A84C", fontSize: "12px", fontFamily: "'Cinzel', serif", fontWeight: 600 }}>
-                          {day.exercises.length}
-                        </span>
-                      )}
-                      <span style={{ color: "#C9A84C", fontSize: "12px", transition: "transform 0.3s", display: "inline-block", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>↓</span>
-                    </div>
-                  </div>
-
-                  {isOpen && (
-                    <div style={{ borderTop: "1px solid #C9A84C" }}>
-                      {day.rest ? (
-                        <div style={{ padding: "16px 20px" }}>
-                          <p style={{ color: "#C9A84C", fontSize: "14px", fontStyle: "italic", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>It's A Lifestyle</p>
-                        </div>
-                      ) : isEditingThis ? (
-                        <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                          {program[i].exercises.map(ex => (
-                            <div key={ex.id} style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                              <input className="edit-input" style={{ flex: 2 }} value={drafts[ex.id]?.name || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], name: e.target.value } }))} placeholder="Liike" />
-                              <input className="edit-input" style={{ width: 40 }} value={drafts[ex.id]?.sets || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], sets: e.target.value } }))} placeholder="S" />
-                              <input className="edit-input" style={{ width: 52 }} value={drafts[ex.id]?.reps || ''} onChange={e => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], reps: e.target.value } }))} placeholder="T" />
-                              <div style={{ width: 80 }}>
-                <ScrollPicker
-                  value={parseFloat(drafts[ex.id]?.weight) || 0}
-                  onChange={v => setDrafts(d => ({ ...d, [ex.id]: { ...d[ex.id], weight: v > 0 ? v + ' kg' : '' } }))}
-                  min={0} max={200} step={0.5} unit=" kg"
-                />
-              </div>
+                    {isOpen && (
+                      <div style={{ borderTop:"1px solid #C9A84C" }}>
+                        {day.rest ? (
+                          <div style={{ padding:"16px 20px" }}><p style={{ color:"#C9A84C", fontSize:"14px", fontStyle:"italic", margin:0, fontFamily:"'Cormorant Garamond',serif" }}>It's A Lifestyle</p></div>
+                        ) : isEditingThis ? (
+                          <div style={{ padding:"12px 18px", display:"flex", flexDirection:"column", gap:"8px" }}>
+                            {program[i].exercises.map(ex => (
+                              <div key={ex.id} style={{ display:"flex", gap:"6px", alignItems:"center" }}>
+                                <input className="edit-input" style={{ flex:2 }} value={drafts[ex.id]?.name||''} onChange={e=>setDrafts(d=>({...d,[ex.id]:{...d[ex.id],name:e.target.value}}))} placeholder="Liike" />
+                                <input className="edit-input" style={{ width:40 }} value={drafts[ex.id]?.sets||''} onChange={e=>setDrafts(d=>({...d,[ex.id]:{...d[ex.id],sets:e.target.value}}))} placeholder="S" />
+                                <input className="edit-input" style={{ width:52 }} value={drafts[ex.id]?.reps||''} onChange={e=>setDrafts(d=>({...d,[ex.id]:{...d[ex.id],reps:e.target.value}}))} placeholder="T" />
+                                <div style={{ width:80 }}>
+                                  <ScrollPicker value={parseFloat(drafts[ex.id]?.weight)||0} onChange={v=>setDrafts(d=>({...d,[ex.id]:{...d[ex.id],weight:v>0?v+' kg':''}}))} min={0} max={200} step={0.5} unit=" kg" />
+                                </div>
+                              </div>
+                            ))}
+                            <div style={{ display:"flex", gap:"8px", marginTop:"4px" }}>
+                              <button onClick={()=>saveDayEdits(i)} style={{ flex:1, padding:"10px", background:"#C9A84C", border:"1px solid #C9A84C", borderRadius:"10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.1em", cursor:"pointer" }}>Tallenna</button>
+                              <button onClick={()=>setEditingDay(null)} style={{ padding:"10px 14px", background:"none", border:"1px solid #C9A84C", borderRadius:"10px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:"10px", cursor:"pointer" }}>Peruuta</button>
                             </div>
-                          ))}
-                          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                            <button onClick={() => setEditingDay(null)} style={{ flex: 1, padding: "10px", background: "#C9A84C", border: "1px solid #C9A84C", borderRadius: "10px", color: GOLD, fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.1em", cursor: "pointer" }}>Tallenna</button>
-                            <button onClick={() => setEditingDay(null)} style={{ padding: "10px 14px", background: "none", border: "1px solid #C9A84C", borderRadius: "10px", color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: "10px", cursor: "pointer" }}>Peruuta</button>
                           </div>
-                        </div>
-                      ) : (
-                        <>
-                          {day.exercises.map(ex => (
-                            <div key={ex.id} className="exercise-row">
-                              <span style={{ color: "#C9A84C", fontSize: "16px", fontFamily: "'Cormorant Garamond', serif", fontWeight: 400 }}>{ex.name}</span>
-                              <span style={{ color: GOLD, fontSize: "15px", fontStyle: "italic", fontFamily: "'Cormorant Garamond', serif" }}>{formatSets(ex)}</span>
-                            </div>
-                          ))}
-                          <button onClick={e => { e.stopPropagation(); startEditDay(i); }} style={{ width: "100%", padding: "10px", background: "none", border: "none", borderTop: "1px solid #C9A84C", color: "#C9A84C", fontFamily: "'Cinzel', serif", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer" }}>Muokkaa päivää</button>
-                          {!isDone(i) && (
-                            <button onClick={e => { e.stopPropagation(); markDone(i); }} style={{
-                              width: "100%", padding: "14px",
-                              background: "rgba(110,255,160,0.08)",
-                              border: "none", borderTop: "1px solid rgba(110,255,160,0.15)",
-                              color: "#6effa0",
-                              fontFamily: "'Cinzel', serif", fontSize: "11px",
-                              letterSpacing: "0.18em", textTransform: "uppercase",
-                              cursor: "pointer", fontWeight: 600,
-                              transition: "background 0.2s",
-                            }}>
-                              ✓ Done
-                            </button>
-                          )}
-                          {isDone(i) && (
-                            <div style={{
-                              width: "100%", padding: "14px", textAlign: "center",
-                              borderTop: "1px solid rgba(110,255,160,0.1)",
-                              color: "rgba(110,255,160,0.5)",
-                              fontFamily: "'Cinzel', serif", fontSize: "10px",
-                              letterSpacing: "0.18em", textTransform: "uppercase",
-                            }}>
-                              ✓ Suoritettu
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>}
+                        ) : (
+                          <>
+                            {day.exercises.map(ex => (
+                              <div key={ex.id} className="exercise-row">
+                                <span style={{ color:"#C9A84C", fontSize:"16px", fontFamily:"'Cormorant Garamond',serif", fontWeight:400 }}>{ex.name}</span>
+                                <span style={{ color:GOLD, fontSize:"15px", fontStyle:"italic", fontFamily:"'Cormorant Garamond',serif" }}>{formatSets(ex)}</span>
+                              </div>
+                            ))}
+                            <button onClick={e=>{e.stopPropagation();startEditDay(i);}} style={{ width:"100%", padding:"10px", background:"none", border:"none", borderTop:"1px solid #C9A84C", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:"9px", letterSpacing:"0.14em", textTransform:"uppercase", cursor:"pointer" }}>Muokkaa päivää</button>
+                            {!isDone(i) && (
+                              <button onClick={e=>{e.stopPropagation();markDone(i);}} style={{ width:"100%", padding:"14px", background:"rgba(110,255,160,0.08)", border:"none", borderTop:"1px solid rgba(110,255,160,0.15)", color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:"11px", letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", fontWeight:600 }}>✓ Done</button>
+                            )}
+                            {isDone(i) && (
+                              <div style={{ width:"100%", padding:"14px", textAlign:"center", borderTop:"1px solid rgba(110,255,160,0.1)", color:"rgba(110,255,160,0.5)", fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", textTransform:"uppercase" }}>✓ Suoritettu</div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </>
     );
@@ -935,45 +724,32 @@ export default function PersonalView() {
   return (
     <>
       <style>{css}</style>
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 24px 100px", fontFamily: "'Cormorant Garamond', serif", gap: "24px" }}>
-
-        <div style={{ width: "100%", animation: "fadeInUp 0.6s ease both" }}>
-          <div style={{ display: "flex", gap: "4px", marginBottom: "6px" }}>
-            {STEPS.map((_, i) => (
-              <div key={i} style={{ height: "2px", flex: 1, borderRadius: "2px", background: i < step ? "#C9A84C" : i === step ? "#C9A84C" : "rgba(255,255,255,0.06)", animation: i === step ? "progressShift 5s ease-in-out infinite" : "none", transition: "background 0.4s ease" }} />
+      <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", padding:"48px 24px 100px", fontFamily:"'Cormorant Garamond',serif", gap:"24px" }}>
+        <div style={{ width:"100%", animation:"fadeInUp 0.6s ease both" }}>
+          <div style={{ display:"flex", gap:"4px", marginBottom:"6px" }}>
+            {STEPS.map((_,i) => (
+              <div key={i} style={{ height:"2px", flex:1, borderRadius:"2px", background:i<step?"#C9A84C":i===step?"#C9A84C":"rgba(255,255,255,0.06)", animation:i===step?"progressShift 5s ease-in-out infinite":"none", transition:"background 0.4s ease" }} />
             ))}
           </div>
-          <p style={{ fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: "#C9A84C", fontFamily: "'Cinzel', serif", textAlign: "right", margin: 0 }}>{step + 1} / {STEPS.length}</p>
+          <p style={{ fontSize:"9px", letterSpacing:"0.22em", textTransform:"uppercase", color:"#C9A84C", fontFamily:"'Cinzel',serif", textAlign:"right", margin:0 }}>{step+1} / {STEPS.length}</p>
         </div>
-
-        <div ref={elRef} onClick={onInteract} onTouchStart={onInteract} style={{ cursor: "pointer", willChange: "transform", transformStyle: "preserve-3d" }}>
-          <img src="/ElielTransparentt.png" style={{ width: "120px", height: "120px", objectFit: "contain", animation: "elielColorShift 12s ease-in-out infinite", display: "block", pointerEvents: "none" }} />
+        <div ref={elRef} onClick={onInteract} onTouchStart={onInteract} style={{ cursor:"pointer", willChange:"transform", transformStyle:"preserve-3d" }}>
+          <img src="/ElielTransparentt.png" style={{ width:"120px", height:"120px", objectFit:"contain", animation:"elielColorShift 12s ease-in-out infinite", display:"block", pointerEvents:"none" }} />
         </div>
-
-        <p key={step} style={{ fontSize: "17px", lineHeight: 1.7, color: "#ccc", fontStyle: "italic", fontWeight: 300, margin: 0, textAlign: "center", animation: "fadeInUp 0.5s ease both, breatheSlow 6s ease-in-out infinite" }}>
+        <p key={step} style={{ fontSize:"17px", lineHeight:1.7, color:"#ccc", fontStyle:"italic", fontWeight:300, margin:0, textAlign:"center", animation:"fadeInUp 0.5s ease both, breatheSlow 6s ease-in-out infinite" }}>
           {STEPS[step].eliel}
         </p>
-
-        <div style={{ width: "100%", animation: "fadeInUp 0.7s ease both" }}>
-          {step === 0 && <StepBasics answers={answers} setAnswers={setAnswers} />}
-          {step === 1 && <StepFrequency answers={answers} pick={pick} />}
-          {step === 2 && <StepLevel answers={answers} pick={pick} />}
-          {step === 3 && <StepEquipment answers={answers} pick={pick} />}
-          {step === 4 && <StepGoal answers={answers} pick={pick} />}
-          {step === 5 && <StepExtra answers={answers} setAnswers={setAnswers} onDone={() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(answers)); setMode('program'); setIsEditing(false); }} />}
+        <div style={{ width:"100%", animation:"fadeInUp 0.7s ease both" }}>
+          {step===0 && <StepBasics answers={answers} setAnswers={setAnswers} />}
+          {step===1 && <StepFrequency answers={answers} pick={pick} />}
+          {step===2 && <StepLevel answers={answers} pick={pick} />}
+          {step===3 && <StepEquipment answers={answers} pick={pick} />}
+          {step===4 && <StepGoal answers={answers} pick={pick} />}
+          {step===5 && <StepExtra answers={answers} setAnswers={setAnswers} onDone={()=>{ localStorage.setItem(STORAGE_KEY,JSON.stringify(answers)); setMode('program'); setIsEditing(false); }} />}
         </div>
-
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "40px", marginTop: "8px", minHeight: "60px" }}>
-          {step > 0 && (
-            <button className="nav-arrow" onClick={() => setStep(s => s - 1)}>
-              <svg className="arrow-svg" viewBox="0 0 56 34" fill="none"><path d="M52 17H4M4 17L18 4M4 17L18 30" stroke="#C9A84C" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
-          )}
-          {isEditing && (
-            <button className="nav-arrow" onClick={handleNext} disabled={!canProceed()} style={{ opacity: canProceed() ? 1 : 0.25 }}>
-              <svg className="arrow-svg" viewBox="0 0 56 34" fill="none"><path d="M4 17H52M52 17L38 4M52 17L38 30" stroke="#C9A84C" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
-          )}
+        <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:"40px", marginTop:"8px", minHeight:"60px" }}>
+          {step>0 && <button className="nav-arrow" onClick={()=>setStep(s=>s-1)}><svg className="arrow-svg" viewBox="0 0 56 34" fill="none"><path d="M52 17H4M4 17L18 4M4 17L18 30" stroke="#C9A84C" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg></button>}
+          {isEditing && <button className="nav-arrow" onClick={handleNext} disabled={!canProceed()} style={{ opacity:canProceed()?1:0.25 }}><svg className="arrow-svg" viewBox="0 0 56 34" fill="none"><path d="M4 17H52M52 17L38 4M52 17L38 30" stroke="#C9A84C" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg></button>}
         </div>
       </div>
     </>
@@ -983,36 +759,16 @@ export default function PersonalView() {
 function StepBasics({ answers, setAnswers }) {
   const set = (f, v) => setAnswers(a => ({ ...a, [f]: v }));
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <div style={{ display: "flex", gap: "10px" }}>
-        {["Mies", "Nainen", "Muu"].map(g => (
-          <SpringBtn key={g} className={`option-btn ${answers.gender === g ? "selected" : ""}`} style={{ flex: 1 }} onClick={() => set("gender", g)}>{g}</SpringBtn>
+    <div style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
+      <div style={{ display:"flex", gap:"10px" }}>
+        {["Mies","Nainen","Muu"].map(g => (
+          <SpringBtn key={g} className={`option-btn ${answers.gender===g?"selected":""}`} style={{ flex:1 }} onClick={()=>set("gender",g)}>{g}</SpringBtn>
         ))}
       </div>
-      <div style={{ display: "flex", gap: "10px" }}>
-        <ScrollPicker
-          label="Ikä"
-          value={parseInt(answers.age) || 20}
-          onChange={v => set("age", String(v))}
-          min={13} max={80} step={1}
-          height={120} itemHeight={32}
-        />
-        <ScrollPicker
-          label="Pituus"
-          value={parseInt(answers.height) || 170}
-          onChange={v => set("height", String(v))}
-          min={140} max={220} step={1}
-          unit=" cm"
-          height={120} itemHeight={32}
-        />
-        <ScrollPicker
-          label="Paino"
-          value={parseFloat(answers.weight) || 70}
-          onChange={v => set("weight", String(v))}
-          min={40} max={150} step={0.5}
-          unit=" kg"
-          height={120} itemHeight={32}
-        />
+      <div style={{ display:"flex", gap:"10px" }}>
+        <ScrollPicker label="Ikä" value={parseInt(answers.age)||20} onChange={v=>set("age",String(v))} min={13} max={80} step={1} height={120} itemHeight={32} />
+        <ScrollPicker label="Pituus" value={parseInt(answers.height)||170} onChange={v=>set("height",String(v))} min={140} max={220} step={1} unit=" cm" height={120} itemHeight={32} />
+        <ScrollPicker label="Paino" value={parseFloat(answers.weight)||70} onChange={v=>set("weight",String(v))} min={40} max={150} step={0.5} unit=" kg" height={120} itemHeight={32} />
       </div>
     </div>
   );
@@ -1020,9 +776,9 @@ function StepBasics({ answers, setAnswers }) {
 
 function StepFrequency({ answers, pick }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between" }}>
+    <div style={{ display:"flex", justifyContent:"space-between" }}>
       {[1,2,3,4,5,6,7].map(n => (
-        <SpringBtn key={n} className={`day-btn ${answers.frequency === n ? "selected" : ""}`} onClick={() => pick("frequency", n)}>{n}</SpringBtn>
+        <SpringBtn key={n} className={`day-btn ${answers.frequency===n?"selected":""}`} onClick={()=>pick("frequency",n)}>{n}</SpringBtn>
       ))}
     </div>
   );
@@ -1030,10 +786,10 @@ function StepFrequency({ answers, pick }) {
 
 function StepLevel({ answers, pick }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      {[["beginner","Beginner","Alle 1 vuosi"],["intermediate","Intermediate","1–3 vuotta"],["advanced","Advanced","3+ vuotta"]].map(([id, label, sub]) => (
-        <SpringBtn key={id} className={`option-btn ${answers.level === id ? "selected" : ""}`} style={{ display: "flex", justifyContent: "space-between" }} onClick={() => pick("level", id)}>
-          <span>{label}</span><span style={{ fontSize: "11px", opacity: 0.5, fontStyle: "italic", fontFamily: "'Cormorant Garamond', serif" }}>{sub}</span>
+    <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
+      {[["beginner","Beginner","Alle 1 vuosi"],["intermediate","Intermediate","1–3 vuotta"],["advanced","Advanced","3+ vuotta"]].map(([id,label,sub]) => (
+        <SpringBtn key={id} className={`option-btn ${answers.level===id?"selected":""}`} style={{ display:"flex", justifyContent:"space-between" }} onClick={()=>pick("level",id)}>
+          <span>{label}</span><span style={{ fontSize:"11px", opacity:0.5, fontStyle:"italic", fontFamily:"'Cormorant Garamond',serif" }}>{sub}</span>
         </SpringBtn>
       ))}
     </div>
@@ -1042,9 +798,9 @@ function StepLevel({ answers, pick }) {
 
 function StepEquipment({ answers, pick }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      {[["gym","Kuntosali"],["home","Kotitreeni"],["both","Molemmat"]].map(([id, label]) => (
-        <SpringBtn key={id} className={`option-btn ${answers.equipment === id ? "selected" : ""}`} onClick={() => pick("equipment", id)}>{label}</SpringBtn>
+    <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
+      {[["gym","Kuntosali"],["home","Kotitreeni"],["both","Molemmat"]].map(([id,label]) => (
+        <SpringBtn key={id} className={`option-btn ${answers.equipment===id?"selected":""}`} onClick={()=>pick("equipment",id)}>{label}</SpringBtn>
       ))}
     </div>
   );
@@ -1052,9 +808,9 @@ function StepEquipment({ answers, pick }) {
 
 function StepGoal({ answers, pick }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-      {[["muscle","Muscle Growth"],["weightloss","Weight Loss"],["cardio","Cardio"],["maintenance","Maintenance"]].map(([id, label]) => (
-        <SpringBtn key={id} className={`option-btn ${answers.goal === id ? "selected" : ""}`} onClick={() => pick("goal", id)}>{label}</SpringBtn>
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px" }}>
+      {[["muscle","Muscle Growth"],["weightloss","Weight Loss"],["cardio","Cardio"],["maintenance","Maintenance"]].map(([id,label]) => (
+        <SpringBtn key={id} className={`option-btn ${answers.goal===id?"selected":""}`} onClick={()=>pick("goal",id)}>{label}</SpringBtn>
       ))}
     </div>
   );
@@ -1062,8 +818,8 @@ function StepGoal({ answers, pick }) {
 
 function StepExtra({ answers, setAnswers, onDone }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      <textarea className="text-input" placeholder="Loukkaantumiset, erityistoiveet, muuta Elielille..." rows={4} value={answers.extra} onChange={e => setAnswers(a => ({ ...a, extra: e.target.value }))} style={{ resize: "none" }} />
+    <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
+      <textarea className="text-input" placeholder="Loukkaantumiset, erityistoiveet, muuta Elielille..." rows={4} value={answers.extra} onChange={e=>setAnswers(a=>({...a,extra:e.target.value}))} style={{ resize:"none" }} />
       <SpringBtn className="continue-btn" onClick={onDone}>Rakenna ohjelma →</SpringBtn>
     </div>
   );
