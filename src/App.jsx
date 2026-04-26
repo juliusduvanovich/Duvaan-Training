@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import SplashScreen from './components/SplashScreen'
 import LobbyView from './components/LobbyView'
 import PersonalView from './components/PersonalView'
 import CommunityView from './components/CommunityView'
 import SettingsView from './components/SettingsView'
+import { getUserTier, ELIEL_TIER_FILTERS } from './components/SettingsView'
 
 const ELIEL_SYSTEM = `You are Eliel — the resident guide of the Duvaan world.
 Your tone: Warm but never clingy. Witty but never at the user's expense. Wise but never preachy.
@@ -81,6 +82,8 @@ function FloatingEliel({ messages, setMessages, settings }) {
   const AURA_SHADOWS = { gold:"rgba(201,168,76,0.7)", ember:"rgba(255,107,53,0.7)", arctic:"rgba(110,180,255,0.7)", jade:"rgba(110,255,160,0.7)", amethyst:"rgba(192,110,255,0.7)", crimson:"rgba(255,64,96,0.7)" }
   const auraColor  = AURA_COLORS[settings?.aura] || "#C9A84C"
   const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
+  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
+  const elielFilter = ELIEL_TIER_FILTERS[getUserTier(points)]
   const [open, setOpen]       = useState(false)
   const [closing, setClosing] = useState(false)
   const [message, setMessage] = useState('')
@@ -119,14 +122,14 @@ function FloatingEliel({ messages, setMessages, settings }) {
       {!open && (
         <button onClick={() => setOpen(true)} className="float-icon"
           style={{ position:'absolute', top:10, right:16, zIndex:300, background:'none', border:'none', cursor:'pointer', padding:0, width:36, height:36 }}>
-          <img src="/ElielGold.png" style={{ width:36, height:36, objectFit:'contain', display:'block', filter:`drop-shadow(0 0 8px ${auraColor})` }} alt="Eliel" />
+          <img src="/ElielGold.png" style={{ width:36, height:36, objectFit:'contain', display:'block', filter:elielFilter }} alt="Eliel" />
         </button>
       )}
       {open && (
         <div style={{ position:'absolute', inset:0, zIndex:400, background:'rgba(8,2,6,0.93)', backdropFilter:'blur(18px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px 100px' }}>
           <button onClick={close} style={{ position:'absolute', top:18, right:20, background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.28)', fontSize:26, lineHeight:1 }}>×</button>
           <div className={closing ? 'panel-out' : 'panel-in'} style={{ display:'flex', flexDirection:'column', alignItems:'center', width:'100%', maxWidth:320 }}>
-            <img src="/ElielGold.png" style={{ width:150, height:150, objectFit:'contain', marginBottom:28, filter:`drop-shadow(0 0 18px rgba(201,168,76,0.5))` }} alt="Eliel" />
+            <img src="/ElielGold.png" style={{ width:150, height:150, objectFit:'contain', marginBottom:28, filter:elielFilter }} alt="Eliel" />
             <div style={{ width:'100%', maxHeight:'32vh', overflowY:'auto', marginBottom:20, textAlign:'center' }}>
               {messages.length===0 && !loading && (
                 <p style={{ color:'rgba(201,168,76,0.38)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:'italic', letterSpacing:'0.05em', margin:0, lineHeight:1.7 }}>Mitä sinulla on mielessä?</p>
@@ -203,6 +206,7 @@ export default function App() {
     localStorage.setItem('duvaan_settings', JSON.stringify(s))
   }
 
+  const bgImage = useMemo(() => settings.bgImage, [settings.bgImage])
   const AURA_COLORS  = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
   const AURA_SHADOWS = { gold:"rgba(201,168,76,0.7)", ember:"rgba(255,107,53,0.7)", arctic:"rgba(110,180,255,0.7)", jade:"rgba(110,255,160,0.7)", amethyst:"rgba(192,110,255,0.7)", crimson:"rgba(255,64,96,0.7)" }
   const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
@@ -212,9 +216,9 @@ export default function App() {
 
   return (
     <>
-    {settings.bgImage && (
+    {bgImage && (
       <img
-        src={settings.bgImage}
+        src={bgImage}
         style={{
           position:'fixed',
           top:0, left:0,
@@ -225,7 +229,7 @@ export default function App() {
           pointerEvents:'none',
           zIndex:0,
           willChange:'auto',
-          transform:'none',
+          transform:'translateZ(0)',
         }}
         alt=""
       />
@@ -235,7 +239,7 @@ export default function App() {
       <div style={{ position:'relative', zIndex:1, minHeight:'calc(100vh - 120px)' }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView    onNavigate={switchTab} settings={settings} />}
         {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} settings={settings} />}
-        {tab === 'community' && <CommunityView onNavigate={switchTab} />}
+        {tab === 'community' && <CommunityView onNavigate={switchTab} settings={settings} />}
       </div>
 
       {settings.showClock !== false && <ClockWidget />}

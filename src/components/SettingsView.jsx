@@ -3,14 +3,39 @@ import { useState, useRef } from "react";
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
 
+// Tier points (must match PersonalView FREQ_LEVELS)
+export const TIER_THRESHOLDS = { member:0, builder:1000, masterbuilder:5000 }
+
+export function getUserTier(points) {
+  if (points >= 5000) return 'masterbuilder'
+  if (points >= 1000) return 'builder'
+  return 'member'
+}
+
+// Eliel visual per tier — CSS filter applied to the image
+export const ELIEL_TIER_FILTERS = {
+  member:        'sepia(0.8) saturate(0.4) brightness(1.1) hue-rotate(180deg) drop-shadow(0 0 18px rgba(160,180,220,0.6))',
+  builder:       'drop-shadow(0 0 18px rgba(201,168,76,0.55))',
+  masterbuilder: 'sepia(0.05) saturate(0.6) brightness(1.4) contrast(1.1) drop-shadow(0 0 24px rgba(220,240,255,0.9))',
+}
+
+export const ELIEL_TIER_GLOW = {
+  member:        '#A0B4DC',
+  builder:       '#C9A84C',
+  masterbuilder: '#DCF0FF',
+}
+
+// Aura unlock requirements
 export const AURAS = [
-  { id:"gold",     name:"Gold",     color:"#C9A84C", shadow:"rgba(201,168,76,0.8)",  desc:"Viisaus · Luottamus" },
-  { id:"ember",    name:"Ember",    color:"#FF6B35", shadow:"rgba(255,107,53,0.8)",  desc:"Energia · Intohimo" },
-  { id:"arctic",   name:"Arctic",   color:"#6EB4FF", shadow:"rgba(110,180,255,0.8)", desc:"Rauha · Selkeys" },
-  { id:"jade",     name:"Jade",     color:"#6EFFA0", shadow:"rgba(110,255,160,0.8)", desc:"Kasvu · Tasapaino" },
-  { id:"amethyst", name:"Amethyst", color:"#C06EFF", shadow:"rgba(192,110,255,0.8)", desc:"Mystiikka · Luovuus" },
-  { id:"crimson",  name:"Crimson",  color:"#FF4060", shadow:"rgba(255,64,96,0.8)",   desc:"Voima · Intensiteetti" },
+  { id:"gold",     name:"Gold",     color:"#C9A84C", shadow:"rgba(201,168,76,0.8)",  desc:"Viisaus · Luottamus",   unlockedAt:'member'        },
+  { id:"arctic",   name:"Arctic",   color:"#6EB4FF", shadow:"rgba(110,180,255,0.8)", desc:"Rauha · Selkeys",       unlockedAt:'member'        },
+  { id:"ember",    name:"Ember",    color:"#FF6B35", shadow:"rgba(255,107,53,0.8)",  desc:"Energia · Intohimo",    unlockedAt:'member'        },
+  { id:"jade",     name:"Jade",     color:"#6EFFA0", shadow:"rgba(110,255,160,0.8)", desc:"Kasvu · Tasapaino",     unlockedAt:'builder'       },
+  { id:"amethyst", name:"Amethyst", color:"#C06EFF", shadow:"rgba(192,110,255,0.8)", desc:"Mystiikka · Luovuus",   unlockedAt:'builder'       },
+  { id:"crimson",  name:"Crimson",  color:"#FF4060", shadow:"rgba(255,64,96,0.8)",   desc:"Voima · Intensiteetti", unlockedAt:'masterbuilder' },
 ];
+
+const TIER_LABELS = { member:'Member', builder:'Builder', masterbuilder:'MasterBuilder' }
 
 const NOTIF_ITEMS = [
   { key:"notifFrequency",  label:"Frequency-muistutus",        sub:"Muistuttaa jos treenistreak on vaarassa" },
@@ -80,11 +105,29 @@ export default function SettingsView({ onClose, settings, onSave }) {
   const bgRef = useRef(null);
   const set = (key, val) => setLocal(s => ({ ...s, [key]:val }));
 
+  // Get current user tier
+  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
+  const userTier = getUserTier(points)
+  const tierOrder = ['member','builder','masterbuilder']
+  const isUnlocked = (requiredTier) => tierOrder.indexOf(userTier) >= tierOrder.indexOf(requiredTier)
+
   const handleBgPhoto = e => {
     const file = e.target.files?.[0]; if(!file) return;
-    const r = new FileReader();
-    r.onload = ev => set("bgImage", ev.target.result);
-    r.readAsDataURL(file);
+    // Compress to max 800px wide before saving as base64
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const MAX = 800;
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      set("bgImage", compressed);
+    };
+    img.src = url;
   };
 
   const handleSave = () => { onSave(local); onClose(); };
@@ -150,31 +193,42 @@ export default function SettingsView({ onClose, settings, onSave }) {
                 Eliel loistaa valitsemassasi sävyssä. Aura ei muuta hänen persoonaansa — vain sen miten hän näyttäytyy sinulle.
               </p>
 
-              {/* Preview — ring glow only */}
+              {/* Preview */}
               <div style={{ display:"flex", justifyContent:"center", marginBottom:24 }}>
-                <div
-                  className="aura-preview-ring"
-                  style={{
-                    "--ac": aura.shadow,
-                    "--ac2": aura.shadow.replace("0.8","0.3"),
-                    border:`1.5px solid ${aura.color}44`,
-                    boxShadow:`0 0 20px ${aura.shadow}, 0 0 40px ${aura.shadow.replace("0.8","0.3")}`,
-                  }}
-                >
-                  <img src="/ElielTransparentt.png" style={{ width:72, height:72, objectFit:"contain", filter:`drop-shadow(0 0 8px ${aura.color})` }} alt="Eliel" />
+                <div className="aura-preview-ring" style={{ "--ac":aura.shadow, "--ac2":aura.shadow.replace("0.8","0.3"), border:`1.5px solid ${aura.color}44`, boxShadow:`0 0 20px ${aura.shadow}, 0 0 40px ${aura.shadow.replace("0.8","0.3")}` }}>
+                  <img src="/ElielGold.png" style={{ width:72, height:72, objectFit:"contain", filter:`${ELIEL_TIER_FILTERS[userTier]} drop-shadow(0 0 8px ${aura.color})` }} alt="Eliel" />
                 </div>
               </div>
 
+              {/* Current Eliel tier label */}
+              <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", textAlign:"center", margin:"0 0 16px" }}>
+                {userTier === 'member' ? '◈ Hopea — Member' : userTier === 'builder' ? '✦ Kulta — Builder' : '✸ Timantti — MasterBuilder'}
+              </p>
+
               <div style={{ display:"flex", gap:5 }}>
-                {AURAS.map(a => (
-                  <button key={a.id} className={`aura-btn ${local.aura===a.id?"selected":""}`}
-                    onClick={() => set("aura", a.id)}
-                    style={{ border: local.aura===a.id ? `1.5px solid ${a.color}` : "1.5px solid rgba(201,168,76,0.08)" }}
-                  >
-                    <div className="aura-orb" style={{ background:`radial-gradient(circle at 35% 35%, ${a.color}, ${a.color}55)`, boxShadow:local.aura===a.id?`0 0 12px ${a.shadow}`:"none" }}/>
-                    <span style={{ color:local.aura===a.id?a.color:"rgba(201,168,76,0.45)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{a.name}</span>
-                  </button>
-                ))}
+                {AURAS.map(a => {
+                  const locked = !isUnlocked(a.unlockedAt)
+                  return (
+                    <button key={a.id}
+                      className={`aura-btn ${local.aura===a.id?"selected":""}`}
+                      onClick={() => !locked && set("aura", a.id)}
+                      style={{
+                        border: local.aura===a.id ? `1.5px solid ${a.color}` : "1.5px solid rgba(201,168,76,0.08)",
+                        opacity: locked ? 0.35 : 1,
+                        cursor: locked ? "default" : "pointer",
+                        position:"relative",
+                      }}
+                    >
+                      <div className="aura-orb" style={{ background:`radial-gradient(circle at 35% 35%, ${a.color}, ${a.color}55)`, boxShadow:local.aura===a.id?`0 0 12px ${a.shadow}`:"none", filter:locked?"grayscale(1)":"none" }}/>
+                      <span style={{ color:local.aura===a.id?a.color:"rgba(201,168,76,0.45)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{a.name}</span>
+                      {locked && (
+                        <span style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:7, letterSpacing:"0.08em", textAlign:"center", lineHeight:1.2 }}>
+                          🔒 {TIER_LABELS[a.unlockedAt]}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

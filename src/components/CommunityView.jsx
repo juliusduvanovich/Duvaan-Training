@@ -1,13 +1,72 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ScrollPicker, { TimePicker } from "./ScrollPicker";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
 
+// ─── WATER BUTTON ────────────────────────────────────────────────────────────
+function WaterButton({ children, onClick, style, auraColor = "#C9A84C" }) {
+  const [phase, setPhase] = useState('idle'); // idle | down | up
+  const [showRipple, setShowRipple] = useState(false);
+
+  const handlePress = () => {
+    if (phase !== 'idle') return;
+    // Sink down
+    setPhase('down');
+    setShowRipple(true);
+    // Rise back up
+    setTimeout(() => setPhase('up'), 200);
+    // Return to idle + navigate
+    setTimeout(() => {
+      setPhase('idle');
+      setShowRipple(false);
+    }, 550);
+    setTimeout(() => onClick?.(), 480);
+  };
+
+  return (
+    <div style={{ position:'relative', display:'block' }}>
+      <button
+        onPointerDown={handlePress}
+        style={{
+          ...style,
+          transform:
+            phase === 'down' ? 'translateY(4px) scale(0.98)' :
+            phase === 'up'   ? 'translateY(-2px) scale(1.01)' :
+                               'translateY(0) scale(1)',
+          transition:
+            phase === 'down' ? 'transform 0.18s ease-in' :
+            phase === 'up'   ? 'transform 0.32s cubic-bezier(0.34,1.56,0.64,1)' :
+                               'transform 0.2s ease-out',
+        }}
+      >
+        {children}
+      </button>
+
+      {/* Ripple — expands from button border outward */}
+      {showRipple && (
+        <span style={{
+          position: 'absolute',
+          inset: -2,
+          borderRadius: style?.borderRadius || 14,
+          border: `1.5px solid ${auraColor}`,
+          boxShadow: `0 0 12px ${auraColor}66`,
+          pointerEvents: 'none',
+          animation: 'auraRipple 0.6s ease-out forwards',
+        }}/>
+      )}
+    </div>
+  );
+}
+
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;600;700&display=swap');
 
   @keyframes fadeInUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes auraRipple {
+    0%   { opacity: 0.8; transform: scale(1); }
+    100% { opacity: 0;   transform: scale(1.18); }
+  }
   @keyframes todayText {
     0% { color:#C9A84C; } 25% { color:#e8d5a3; }
     50% { color:#ff6eb4; } 75% { color:#6eb4ff; } 100% { color:#C9A84C; }
@@ -141,8 +200,10 @@ const MOCK_PUBLIC_CLUBS = [
 
 const SECTIONS = ['Private', 'Clubs', 'Events'];
 
-export default function CommunityView({ onNavigate }) {
-  const [section, setSection] = useState(1); // default Clubs
+export default function CommunityView({ onNavigate, settings }) {
+  const AURA_COLORS = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
+  const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C"
+  const [section, setSection] = useState(1);
   return (
     <>
       <style>{css}</style>
@@ -155,28 +216,33 @@ export default function CommunityView({ onNavigate }) {
                 {new Date().toLocaleDateString('fi-FI', { weekday:'long', day:'numeric', month:'long' })}
               </p>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background:"#6effa0", animation:"pulseDot 2s ease-in-out infinite" }} />
-              <span style={{ color:"rgba(110,255,160,0.7)", fontSize:"9px", letterSpacing:"0.14em" }}>LIVE</span>
-            </div>
           </div>
-          <div style={{ display:"flex", borderBottom:"0.5px solid rgba(201,168,76,0.25)" }}>
+          <div style={{ display:"flex", borderBottom:`0.5px solid ${auraColor}22` }}>
             {SECTIONS.map((s,i) => (
-              <button key={i} className={`community-tab ${section===i?'active':''}`} onClick={() => setSection(i)}>{s}</button>
+              <button key={i}
+                className="community-tab"
+                onClick={() => setSection(i)}
+                style={{
+                  color: section===i ? auraColor : 'rgba(201,168,76,0.45)',
+                  borderBottom: section===i ? `1px solid ${auraColor}` : '1px solid transparent',
+                  textShadow: section===i ? `0 0 10px ${auraColor}55` : 'none',
+                  transition:'all 0.25s',
+                }}
+              >{s}</button>
             ))}
           </div>
         </div>
 
-        {section === 0 && <Private />}
-        {section === 1 && <PublicClubs />}
-        {section === 2 && <Events />}
+        {section === 0 && <Private auraColor={auraColor} />}
+        {section === 1 && <PublicClubs auraColor={auraColor} />}
+        {section === 2 && <Events auraColor={auraColor} />}
       </div>
     </>
   );
 }
 
 // ─── PRIVATE ────────────────────────────────────────────────────────────────
-function Private() {
+function Private({ auraColor = "#C9A84C" }) {
   const [view, setView] = useState('list');
   const [clubs, setClubs] = useState(() => { try { return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]') } catch { return [] } });
   const [form, setForm] = useState({ name:'', desc:'', tags:[] });
@@ -218,14 +284,14 @@ function Private() {
       {created ? (
         <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Klubi luotu</p>
       ) : (
-        <button onClick={handleCreate} disabled={!form.name.trim()||form.tags.length===0} style={{ width:"100%", padding:16, background:form.name.trim()&&form.tags.length>0?BURGUNDY:"rgba(107,29,46,0.2)", border:"1.5px solid rgba(201,168,76,0.8)", borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()&&form.tags.length>0?1:0.35 }}>Create Club</button>
+        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:form.name.trim()&&form.tags.length>0?BURGUNDY:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}cc`, borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()&&form.tags.length>0?1:0.35 }}>Create Club</WaterButton>
       )}
     </div>
   );
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <button onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:20, background:"rgba(107,29,46,0.2)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create a Club</button>
+      <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:20, background:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create a Club</WaterButton>
       {clubs.length === 0 ? (
         <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", textAlign:"center", marginTop:40 }}>Ei klubeja vielä. Luo oma tai kutsu kaveri.</p>
       ) : (
@@ -513,7 +579,7 @@ function CapacityPicker({ value, onChange }) {
   );
 }
 
-function Events() {
+function Events({ auraColor = "#C9A84C" }) {
   const [view, setView] = useState('list');
   const [location, setLocation] = useState(() => localStorage.getItem('duvaan_location')||'Helsinki');
   const saveLocation = loc => { setLocation(loc); localStorage.setItem('duvaan_location', loc); };
@@ -602,14 +668,14 @@ function Events() {
       {created ? (
         <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Tapahtuma luotu</p>
       ) : (
-        <button onClick={handleCreate} disabled={!canCreate} style={{ width:"100%", padding:16, background:canCreate?BURGUNDY:"rgba(107,29,46,0.2)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:canCreate?"pointer":"default", opacity:canCreate?1:0.35 }}>Create Event</button>
+        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:canCreate?BURGUNDY:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}88`, borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:canCreate?"pointer":"default", opacity:canCreate?1:0.35 }}>Create Event</WaterButton>
       )}
     </div>
   );
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <button onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:14, background:"rgba(107,29,46,0.2)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create Event</button>
+      <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:14, background:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create Event</WaterButton>
       <LocationPicker location={location} setLocation={saveLocation} />
       <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
         {events.map(ev => {

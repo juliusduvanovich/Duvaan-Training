@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { AURAS } from "./SettingsView";
+import { AURAS, getUserTier, ELIEL_TIER_FILTERS, ELIEL_TIER_GLOW } from "./SettingsView";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -151,25 +151,36 @@ function useSpringTilt() {
   return {elRef,onInteract};
 }
 
-function ElielGlow({size=260, auraColor='#C9A84C'}){
+function ElielGlow({size=260, auraColor='#C9A84C', glowColor='#C9A84C'}){
   const canvasRef=useRef(null);
   useEffect(()=>{
     const canvas=canvasRef.current; if(!canvas)return;
     const ctx=canvas.getContext('2d'); canvas.width=size; canvas.height=size;
     let raf;
     // Use aura color as first and last in palette
-    const COLORS=[auraColor,'#ffffff',auraColor,'#ffffff',auraColor];
+    const COLORS=[auraColor,'#ffffff',auraColor];
     let ci=0,ct=0;
     function lc(c1,c2,t){const p=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];const[r1,g1,b1]=p(c1),[r2,g2,b2]=p(c2);return[Math.round(r1+(r2-r1)*t),Math.round(g1+(g2-g1)*t),Math.round(b1+(b2-b1)*t)];}
     const img=new Image();
     img.crossOrigin='anonymous';
     img.src='/ElielGold.png';
     const startGlow = (edgePath) => {
-      let sw=false,ss=null,ns=Date.now()+200;
+      let sw=false,ss=null,ns=Date.now()+500; // first run after 0.5s
       function draw(){
         ctx.clearRect(0,0,size,size);const now=Date.now();
-        if(!sw&&now>=ns){sw=true;ss=now;ci=(ci+1)%(COLORS.length-1);ct=0;}
-        if(sw){const prog=(now-ss)/2000;if(prog>=1){sw=false;ns=now+300;}else{ct+=0.008;if(ct>=1){ct=0;ci=(ci+1)%(COLORS.length-1);}const[r,g,b]=lc(COLORS[ci],COLORS[ci+1],ct);const hi=Math.floor(prog*edgePath.length);for(let i=0;i<55;i++){const idx=hi-i;if(idx<0)continue;const p=edgePath[idx];if(!p)continue;const e=(1-i/55)**2;ctx.beginPath();ctx.arc(p.x,p.y,1.2+e*0.8,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${e*0.7})`;ctx.fill();}const head=edgePath[hi];if(head){const prev=edgePath[Math.max(0,hi-3)];if(prev){const g2=ctx.createLinearGradient(prev.x,prev.y,head.x,head.y);g2.addColorStop(0,`rgba(${r},${g},${b},0)`);g2.addColorStop(1,'rgba(255,255,255,0.95)');ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(head.x,head.y);ctx.strokeStyle=g2;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();}ctx.beginPath();ctx.arc(head.x,head.y,1.5,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.98)';ctx.fill();}}}
+        if(!sw&&now>=ns){sw=true;ss=now;ci=0;ct=0;}
+        if(sw){
+          const prog=Math.min((now-ss)/1000,1);
+          if(prog>=1){sw=false;ns=now+6000;}
+          else{
+            ct+=0.006;if(ct>=1){ct=0;ci=(ci+1)%(COLORS.length-1);}
+            const[r,g,b]=lc(COLORS[ci],COLORS[Math.min(ci+1,COLORS.length-1)],ct);
+            const hi=Math.floor(prog*edgePath.length);
+            for(let i=0;i<55;i++){const idx=hi-i;if(idx<0)continue;const p=edgePath[idx];if(!p)continue;const e=(1-i/55)**2;ctx.beginPath();ctx.arc(p.x,p.y,1.2+e*0.8,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${e*0.7})`;ctx.fill();}
+            const head=edgePath[hi];
+            if(head){const prev=edgePath[Math.max(0,hi-3)];if(prev){const g2=ctx.createLinearGradient(prev.x,prev.y,head.x,head.y);g2.addColorStop(0,`rgba(${r},${g},${b},0)`);g2.addColorStop(1,'rgba(255,255,255,0.95)');ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(head.x,head.y);ctx.strokeStyle=g2;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();}ctx.beginPath();ctx.arc(head.x,head.y,1.5,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.98)';ctx.fill();}
+          }
+        }
         raf=requestAnimationFrame(draw);
       }
       draw();
@@ -201,6 +212,41 @@ function ElielGlow({size=260, auraColor='#C9A84C'}){
 export default function LobbyView({ onNavigate, settings }) {
   const aura = AURAS.find(a => a.id === settings?.aura) || AURAS[0]
   const defaultMode = settings?.elielMode || 'text'
+  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
+  const userTier = getUserTier(points)
+  const elielFilter = ELIEL_TIER_FILTERS[userTier]
+  const elielGlowColor = ELIEL_TIER_GLOW[userTier]
+
+  // Blink animation: open → half → closed → half → open
+  const [blinkFrame, setBlinkFrame] = useState(0) // 0=open, 1=half, 2=closed, 3=half
+  useEffect(() => {
+    const FRAMES = [
+      { frame: 0, duration: 3200 + Math.random() * 1800 }, // open, random 3.2-5s
+      { frame: 1, duration: 60  },  // half
+      { frame: 2, duration: 80  },  // closed
+      { frame: 3, duration: 60  },  // half
+    ]
+    let idx = 0
+    let timer
+    const next = () => {
+      idx = (idx + 1) % FRAMES.length
+      setBlinkFrame(FRAMES[idx].frame)
+      // Randomize open duration each cycle
+      const dur = idx === 0 ? 3200 + Math.random() * 1800 : FRAMES[idx].duration
+      timer = setTimeout(next, dur)
+    }
+    timer = setTimeout(next, FRAMES[0].duration)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Preload all blink frames so no flicker on first blink
+  useEffect(() => {
+    ['/ElielGold.png', '/ElielGoldHC.png', '/ElielGoldFC.png'].forEach(src => {
+      const img = new Image(); img.src = src;
+    });
+  }, []);
+
+  const BLINK_SRCS = ['/ElielGold.png', '/ElielGoldHC.png', '/ElielGoldFC.png', '/ElielGoldHC.png']
   const [chatOpen, setChatOpen] = useState(false);
   const [inputMode, setInputMode] = useState(defaultMode); // 'text' | 'voice'
   const [listening, setListening] = useState(false);
@@ -337,13 +383,27 @@ export default function LobbyView({ onNavigate, settings }) {
             marginBottom: chatOpen ? 16 : 24,
           }}
         >
-          <img
-            src="/ElielGold.png"
-            className="eliel-img"
-            alt="Eliel"
-            style={{ filter:`drop-shadow(0 0 18px rgba(201,168,76,0.5))` }}
-          />
-          <ElielGlow size={260} auraColor={aura.color} />
+          {/* Blink frames + glow in same container */}
+          <div style={{ position:'relative', width:260, height:260 }}>
+            {['/ElielGold.png', '/ElielGoldHC.png', '/ElielGoldFC.png', '/ElielGoldHC.png'].map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                style={{
+                  position:'absolute', top:0, left:0,
+                  width:260, height:260,
+                  objectFit:'contain',
+                  filter: elielFilter,
+                  opacity: blinkFrame === i ? 1 : 0,
+                  pointerEvents:'none',
+                  userSelect:'none',
+                  animation: i === 0 ? 'elielFloat 7s ease-in-out infinite' : 'none',
+                }}
+              />
+            ))}
+            <ElielGlow size={260} auraColor={aura.color} glowColor={elielGlowColor} />
+          </div>
         </div>
 
         {/* ETHER SPACE — rotaatioteksti tai kirjoitus/vastaus samassa tilassa */}

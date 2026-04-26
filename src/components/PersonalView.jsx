@@ -1,6 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ScrollPicker from "./ScrollPicker";
 import NotesView from "./NotesView";
+import { ELIEL_TIER_FILTERS } from "./SettingsView";
+
+const TIER_ELIEL_FILTER = {
+  member:        ELIEL_TIER_FILTERS.member,
+  builder:       ELIEL_TIER_FILTERS.builder,
+  masterbuilder: ELIEL_TIER_FILTERS.masterbuilder,
+}
+// Map FREQ_LEVELS tier names to filter keys
+const TIER_NAME_MAP = {
+  'Member':        'member',
+  'Builder':       'builder',
+  'MasterBuilder': 'masterbuilder',
+}
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -178,7 +191,19 @@ function ShopSection(){
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
             <div>
               {tier.master&&<p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:7,letterSpacing:'0.24em',textTransform:'uppercase',margin:'0 0 3px',opacity:0.7}}>Duvaan</p>}
-              <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,letterSpacing:'0.06em'}}>{tier.icon} {tier.name}</span>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,letterSpacing:'0.06em'}}>{tier.icon} {tier.name}</span>
+                <img
+                  src="/ElielGold.png"
+                  alt=""
+                  style={{
+                    width:32, height:32,
+                    objectFit:'contain',
+                    filter: TIER_ELIEL_FILTER[TIER_NAME_MAP[tier.name]] || TIER_ELIEL_FILTER.member,
+                    flexShrink:0,
+                  }}
+                />
+              </div>
             </div>
             {tier.price
               ?<div style={{textAlign:'right'}}><span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700}}>{tier.price.split('/')[0]}</span><span style={{color:'rgba(201,168,76,0.6)',fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic'}}>/kk</span></div>
@@ -258,7 +283,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:0}}>
         <div className="personal-subnav" style={{marginBottom:0,flex:1}}>
           {tabs.map(t=>(
-            <button key={t.id} className="personal-subnav-btn" onClick={()=>setSection(t.id)} style={{color:section===t.id?GOLD:'rgba(201,168,76,0.5)',borderBottom:section===t.id?`1px solid ${GOLD}`:'1px solid transparent'}}>{t.label}</button>
+            <button key={t.id} className="personal-subnav-btn" onClick={()=>setSection(t.id)} style={{color:section===t.id?auraColor:'rgba(201,168,76,0.45)',borderBottom:section===t.id?`1px solid ${auraColor}`:'1px solid transparent',textShadow:section===t.id?`0 0 10px ${auraColor}55`:'none',transition:'all 0.25s'}}>{t.label}</button>
           ))}
         </div>
         <button onClick={onOpenSettings} style={{background:'none',border:'none',cursor:'pointer',color:auraColor,fontSize:20,padding:'0 0 8px 12px',lineHeight:1,opacity:0.7,transition:'opacity 0.2s'}} title="Asetukset">⚙</button>
