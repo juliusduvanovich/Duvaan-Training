@@ -114,14 +114,23 @@ const css=`
 `
 
 const FREQ_LEVELS = [
-  { name:'Member',      icon:'◈', color:'#C9A84C',  min:0,    max:999,  price:'4€/kk',  master:false,
-    features:[['Eliel Basic','Henkilökohtainen AI-opas — vastaa, ohjaa, sparraa'],['Training Builder','Rakenna oma treeniohjelma ja seuraa suorituksia'],['Eventit','Liity julkisiin tapahtumiin — et vielä luo omia'],['Frequency','Kerrytä pisteitä kohti Builder-tasoa']],
+  { name:'Member',  icon:'◈', color:'#A0B4DC', borderColor:'#A0B4DC',
+    boxBg:'linear-gradient(135deg,rgba(40,50,80,0.55) 0%,rgba(8,6,14,0.95) 60%,rgba(120,40,40,0.25) 100%)',
+    innerGlow:'rgba(160,180,220,0.12)',
+    min:0,    max:999,  price:'4€/kk',  master:false, btnGold:false,
+    features:[['Eliel Basic','Henkilökohtainen AI-opas — vastaa, ohjaa, sparraa'],['Training Builder','Rakenna oma treeniohjelma ja seuraa suorituksia'],['Eventit','Liity julkisiin tapahtumiin — et vielä luo omia'],['Klubit','1 yksityinen klubi · max 10 jäsentä'],['Frequency','Kerrytä pisteitä kohti Builder-tasoa']],
     btn:'Aktivoi Member' },
-  { name:'Builder',     icon:'✦', color:'#e8d5a3',  min:1000, max:4999, price:'9€/kk',  master:false,
-    features:[['Eliel Enhanced','Muistaa historian, tekee proaktiivisia ehdotuksia'],['Health Dashboard','Uni, makrot, HRV — kaikki yhdessä näkymässä'],['Luo eventtejä','Rakenna tapahtumia, kasvata yhteisöä'],['Builder-klubit','Pääsy suljettuihin klubeihin — vaatii Builder-tason'],['Edistymisdata','Syvempi analyysi treeneistä ja kehityksestä']],
+  { name:'Builder', icon:'✦', color:'#C9A84C', borderColor:'#C9A84C',
+    boxBg:'linear-gradient(135deg,rgba(60,40,10,0.6) 0%,rgba(8,4,6,0.95) 60%,rgba(40,60,100,0.2) 100%)',
+    innerGlow:'rgba(201,168,76,0.1)',
+    min:1000, max:4999, price:'9€/kk',  master:false, btnGold:false,
+    features:[['Eliel Enhanced','Muistaa historian, tekee proaktiivisia ehdotuksia'],['Health Dashboard','Uni, makrot, HRV — kaikki yhdessä näkymässä'],['Luo eventtejä','Rakenna tapahtumia, kasvata yhteisöä'],['Builder-klubit','3 klubia · max 50 jäsentä per klubi'],['Edistymisdata','Syvempi analyysi treeneistä ja kehityksestä']],
     btn:'Aktivoi Builder' },
-  { name:'Creator',icon:'✸',color:'#C9A84C',  min:5000, max:null, price:'16€/kk', master:true,
-    features:[['Eliel Master','Viikoittaiset yhteenvedot, patternien tunnistus, täysi muisti'],['Creator-klubit','Eksklusiivisimmat tilat — vain Creator-tasolle'],['Early Access','Uudet Duvaan-julkaisut ennen kaikkia muita'],['Suora yhteys tiimiin','Palautekanava — sinun äänesi rakentaa tuotetta'],['Duvaan Wrapped','Vuosittainen personoitu tarina kasvustasi'],['Sovereign Events','Eksklusiiviset tapahtumat — digitaaliset ja fyysiset']],
+  { name:'Creator', icon:'✸', color:'#DCF0FF', borderColor:'#C8B8FF',
+    boxBg:'linear-gradient(135deg,rgba(80,40,140,0.5) 0%,rgba(40,10,80,0.9) 40%,rgba(100,60,160,0.4) 70%,rgba(60,40,120,0.6) 100%)',
+    innerGlow:'rgba(153,51,204,0.18)',
+    min:5000, max:null, price:'16€/kk', master:true,  btnGold:true,
+    features:[['Eliel Master','Viikoittaiset yhteenvedot, patternien tunnistus, täysi muisti'],['Creator-klubit','10 klubia · max 1500 jäsentä per klubi'],['Early Access','Uudet Duvaan-julkaisut ennen kaikkia muita'],['Suora yhteys tiimiin','Palautekanava — sinun äänesi rakentaa tuotetta'],['Duvaan Wrapped','Vuosittainen personoitu tarina kasvustasi'],['Sovereign Events','Eksklusiiviset tapahtumat — digitaaliset ja fyysiset']],
     btn:'Aktivoi Creator' },
 ]
 function getLevel(pts){ return FREQ_LEVELS.find(l=>pts>=l.min&&(l.max===null||pts<=l.max))||FREQ_LEVELS[0] }
@@ -187,8 +196,18 @@ function ShopSection(){
     <div style={{paddingBottom:20}}>
       <p style={{color:'#C9A84C',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',margin:'0 0 16px'}}>Jäsenyystasot</p>
       {FREQ_LEVELS.map(tier=>(
-        <div key={tier.name} style={{background:tier.master?'linear-gradient(135deg,rgba(107,29,46,0.55) 0%,rgba(14,10,4,0.95) 50%,rgba(80,60,10,0.35) 100%)':'rgba(255,255,255,0.02)',border:`1px solid ${tier.color}`,borderRadius:18,padding:'18px 18px 16px',marginBottom:12,position:'relative',overflow:'hidden',animation:tier.master?'masterGlow 4s ease-in-out infinite':undefined}}>
-          {tier.master&&<div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.color},transparent)`}}/>}
+        <div key={tier.name} style={{
+          background: tier.boxBg,
+          border: `1.5px solid ${tier.borderColor}`,
+          boxShadow: `0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,
+          borderRadius:18, padding:'18px 18px 16px', marginBottom:12,
+          position:'relative', overflow:'hidden',
+          animation: tier.master ? 'masterGlow 4s ease-in-out infinite' : undefined,
+        }}>
+          {/* Top shimmer line */}
+          <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
+          {/* Creator rainbow fade overlay */}
+          {tier.master && <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(255,51,51,0.35) 0%, rgba(255,140,0,0.28) 14%, rgba(201,168,76,0.22) 28%, rgba(68,204,119,0.2) 42%, rgba(85,204,255,0.22) 56%, rgba(68,85,204,0.2) 68%, rgba(153,51,204,0.3) 80%, rgba(220,200,255,0.25) 92%, rgba(255,248,220,0.3) 100%)',pointerEvents:'none'}}/>}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
             <div>
               {tier.master&&<p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:7,letterSpacing:'0.24em',textTransform:'uppercase',margin:'0 0 3px',opacity:0.7}}>Duvaan</p>}
