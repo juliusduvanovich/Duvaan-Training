@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import ScrollPicker from "./ScrollPicker";
 import NotesView from "./NotesView";
 import { ELIEL_TIER_FILTERS } from "./SettingsView";
+import ToolboxView, { ChestButton } from "./ToolboxView";
 
 const TIER_ELIEL_FILTER = {
   member:        ELIEL_TIER_FILTERS.member,
@@ -274,7 +275,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
     setEditing(false)
   }
 
-  const tabs=[{id:'profile',label:'Profiili'},{id:'training',label:'Training'},{id:'notes',label:'Notes'},{id:'shop',label:'Shop'}]
+  const tabs=[{id:'profile',label:'Profiili'},{id:'training',label:'Gym'},{id:'shop',label:'Shop'}]
   const displayName=profile?.name||''
   const displayPhoto=profile?.photo||null
 
@@ -417,7 +418,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
 
 
 export default function PersonalView({ onOpenSettings, settings }){
-  const AURA_COLORS = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
+  const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
   const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C"
   const saved=(()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))}catch{return null}})()
   const[mode,setMode]=useState(saved?'program':'onboarding')
@@ -428,6 +429,15 @@ export default function PersonalView({ onOpenSettings, settings }){
   const[expanded,setExpanded]=useState(null)
   const[completed,setCompleted]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_completed')||'{}')}catch{return{}}})
   const[personalSection,setPersonalSection]=useState('profile')
+  const[showToolbox,setShowToolbox]=useState(false)
+  const[activeTools,setActiveTools]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_active_tools')||'["gym"]')}catch{return['gym']}})
+  const[homeNotes,setHomeNotes]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_home_notes')||'[]')}catch{return[]}})
+
+  const addTool=(id)=>{
+    const updated=activeTools.includes(id)?activeTools.filter(t=>t!==id):[...activeTools,id]
+    setActiveTools(updated)
+    localStorage.setItem('duvaan_active_tools',JSON.stringify(updated))
+  }
 
   useEffect(()=>{
     const sync=()=>{try{setCompleted(JSON.parse(localStorage.getItem('duvaan_completed')||'{}'))}catch{}}
@@ -469,6 +479,7 @@ export default function PersonalView({ onOpenSettings, settings }){
             <h2 style={{color:GOLD,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",animation:'todayText 8s ease-in-out infinite'}}>Personal</h2>
           </div>
           <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings} auraColor={auraColor}/>
+
           {personalSection==='training'&&(
             <div style={{display:'flex',flexDirection:'column',gap:'10px',animation:'fadeInUp 0.8s ease both'}}>
               <div style={{display:'flex',justifyContent:'flex-end',marginBottom:4}}>
@@ -530,6 +541,19 @@ export default function PersonalView({ onOpenSettings, settings }){
                 )
               })}
             </div>
+          )}
+          {/* Toolbox chest button — bottom center */}
+          <div style={{display:'flex',justifyContent:'center',paddingTop:24,paddingBottom:8}}>
+            <ChestButton onOpen={()=>setShowToolbox(true)}/>
+          </div>
+
+          {showToolbox&&(
+            <ToolboxView
+              onClose={()=>setShowToolbox(false)}
+              onAddTool={addTool}
+              activeTools={activeTools}
+              onAddHomeNote={notes=>{ setHomeNotes(notes); localStorage.setItem('duvaan_home_notes',JSON.stringify(notes)); }}
+            />
           )}
         </div>
       </>

@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import SplashScreen from './components/SplashScreen'
 import LobbyView from './components/LobbyView'
 import PersonalView from './components/PersonalView'
@@ -14,18 +15,23 @@ Never say "Great question!" You are Eliel. Always. Not an AI assistant.`
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
+  @keyframes elielFloat {
+    0%,100% { transform:translateY(0px) rotate(0deg); }
+    25%     { transform:translateY(-8px) rotate(0.5deg); }
+    75%     { transform:translateY(4px) rotate(-0.5deg); }
+  }
   @keyframes zoomIn {
     0%   { transform:scale(1);    opacity:1;   filter:brightness(1); }
-    70%  { transform:scale(4);    opacity:0.5; filter:brightness(1.8); }
-    100% { transform:scale(12);   opacity:0;   filter:brightness(2.5); }
+    70%  { transform:scale(3);    opacity:0.3; filter:brightness(1.5); }
+    100% { transform:scale(8);    opacity:0;   filter:brightness(2); }
   }
   @keyframes zoomOut {
-    0%   { transform:scale(0.08); opacity:0;   filter:brightness(2.5); }
-    30%  { transform:scale(0.3);  opacity:0.5; filter:brightness(1.5); }
+    0%   { transform:scale(0.15); opacity:0;   filter:brightness(2); }
+    30%  { transform:scale(0.4);  opacity:0.5; filter:brightness(1.3); }
     100% { transform:scale(1);    opacity:1;   filter:brightness(1); }
   }
-  .zoom-exit { animation:zoomIn  0.5s ease-in  forwards; transform-origin:50% 42%; pointer-events:none; }
-  .zoom-enter{ animation:zoomOut 0.5s ease-out forwards; transform-origin:50% 42%; }
+  .zoom-exit { animation:zoomIn  0.22s ease-in  forwards; transform-origin:50% 42%; pointer-events:none; }
+  .zoom-enter{ animation:zoomOut 0.22s ease-out forwards; transform-origin:50% 42%; }
 
   @keyframes floatBob    { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-3px)} }
   @keyframes panelIn     { from{opacity:0;transform:scale(0.12) translateY(30px)} to{opacity:1;transform:scale(1) translateY(0)} }
@@ -43,21 +49,6 @@ const css = `
   .tdot:nth-child(3){ animation-delay:0.36s,1.2s; }
   .fmsg { animation:msgIn 0.3s ease both; }
 `
-
-function ClockWidget() {
-  const [time, setTime] = useState(() => new Date())
-  useEffect(() => { const iv = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(iv) }, [])
-  const days   = ['Su','Ma','Ti','Ke','To','Pe','La']
-  const months = ['tammikuuta','helmikuuta','maaliskuuta','huhtikuuta','toukokuuta','kesäkuuta','heinäkuuta','elokuuta','syyskuuta','lokakuuta','marraskuuta','joulukuuta']
-  const hh = String(time.getHours()).padStart(2,'0')
-  const mm = String(time.getMinutes()).padStart(2,'0')
-  return (
-    <div style={{ position:'absolute', top:12, left:16, zIndex:200, pointerEvents:'none', display:'flex', flexDirection:'column', gap:2 }}>
-      <span style={{fontFamily:"'Cinzel',serif",fontSize:17,fontWeight:700,color:'#C9A84C',letterSpacing:'0.05em',lineHeight:1,textShadow:'0 0 16px rgba(201,168,76,0.45)'}}>{hh}:{mm}</span>
-      <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:10,color:'rgba(201,168,76,0.65)',letterSpacing:'0.1em',fontStyle:'italic'}}>{days[time.getDay()]} {time.getDate()}. {months[time.getMonth()]}</span>
-    </div>
-  )
-}
 
 function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
   const tabs   = ['personal','eliel','community']
@@ -77,9 +68,24 @@ function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
   )
 }
 
+function PortalOverlay({ children }) {
+  return createPortal(
+    <div style={{
+      position:'fixed', top:0, left:'50%',
+      transform:'translateX(-50%)',
+      width:'100%', maxWidth:480,
+      pointerEvents:'none',
+      zIndex:200,
+    }}>
+      {children}
+    </div>,
+    document.body
+  )
+}
+
 function FloatingEliel({ messages, setMessages, settings }) {
-  const AURA_COLORS = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
-  const AURA_SHADOWS = { gold:"rgba(201,168,76,0.7)", ember:"rgba(255,107,53,0.7)", arctic:"rgba(110,180,255,0.7)", jade:"rgba(110,255,160,0.7)", amethyst:"rgba(192,110,255,0.7)", crimson:"rgba(255,64,96,0.7)" }
+  const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
+  const AURA_SHADOWS = { red:"rgba(255,51,51,0.7)", orange:"rgba(255,140,0,0.7)", gold:"rgba(201,168,76,0.7)", green:"rgba(68,204,119,0.7)", lightblue:"rgba(85,204,255,0.7)", indigo:"rgba(68,85,204,0.7)", purple:"rgba(153,51,204,0.7)", white:"rgba(220,220,255,0.8)" }
   const auraColor  = AURA_COLORS[settings?.aura] || "#C9A84C"
   const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
   const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
@@ -117,22 +123,39 @@ function FloatingEliel({ messages, setMessages, settings }) {
     setLoading(false)
   }
 
+  const GREETINGS = [
+    "Mitä sinulla on mielessä?",
+    "Mitäs funtsit?",
+    "Täzä mä oon — mitä kaipaat?",
+    "Kerro mulle jotain.",
+    "Miten menee oikeasti?",
+    "Ollaan hereillä. Puhu.",
+    "Mitä tänään tapahtui?",
+    "Oon kuulolla.",
+  ]
+  const [greetingIdx, setGreetingIdx] = useState(0)
+  useEffect(() => {
+    if (!open) return
+    const iv = setInterval(() => setGreetingIdx(i => (i+1) % GREETINGS.length), 4000)
+    return () => clearInterval(iv)
+  }, [open])
+
   return (
     <>
       {!open && (
         <button onClick={() => setOpen(true)} className="float-icon"
-          style={{ position:'absolute', top:10, right:16, zIndex:300, background:'none', border:'none', cursor:'pointer', padding:0, width:36, height:36 }}>
+          style={{ position:'fixed', top:10, right:'max(16px, calc(50vw - 224px))', zIndex:300, background:'none', border:'none', cursor:'pointer', padding:0, width:36, height:36 }}>
           <img src="/ElielGold.png" style={{ width:36, height:36, objectFit:'contain', display:'block', filter:elielFilter }} alt="Eliel" />
         </button>
       )}
       {open && (
-        <div style={{ position:'absolute', inset:0, zIndex:400, background:'rgba(8,2,6,0.93)', backdropFilter:'blur(18px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px 100px' }}>
+        <div style={{ position:'fixed', top:0, bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:480, zIndex:400, background:'rgba(8,2,6,0.93)', backdropFilter:'blur(18px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px 100px' }}>
           <button onClick={close} style={{ position:'absolute', top:18, right:20, background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.28)', fontSize:26, lineHeight:1 }}>×</button>
           <div className={closing ? 'panel-out' : 'panel-in'} style={{ display:'flex', flexDirection:'column', alignItems:'center', width:'100%', maxWidth:320 }}>
-            <img src="/ElielGold.png" style={{ width:150, height:150, objectFit:'contain', marginBottom:28, filter:elielFilter }} alt="Eliel" />
+            <img src="/ElielGold.png" style={{ width:150, height:150, objectFit:'contain', marginBottom:28, filter:elielFilter, animation:'elielFloat 7s ease-in-out infinite' }} alt="Eliel" />
             <div style={{ width:'100%', maxHeight:'32vh', overflowY:'auto', marginBottom:20, textAlign:'center' }}>
               {messages.length===0 && !loading && (
-                <p style={{ color:'rgba(201,168,76,0.38)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:'italic', letterSpacing:'0.05em', margin:0, lineHeight:1.7 }}>Mitä sinulla on mielessä?</p>
+                <p style={{ color:'rgba(201,168,76,0.75)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:'italic', letterSpacing:'0.05em', margin:0, lineHeight:1.7, transition:'opacity 0.6s ease', textShadow:'0 0 20px rgba(201,168,76,0.4)' }}>{GREETINGS[greetingIdx]}</p>
               )}
               {messages.slice(-4).map((m,i) => (
                 <p key={i} className="fmsg" style={{ margin:i===0?0:'12px 0 0', fontFamily:"'Cormorant Garamond',serif", fontSize:m.role==='user'?13:15, fontStyle:m.role==='assistant'?'italic':'normal', color:m.role==='user'?'rgba(201,168,76,0.32)':'rgba(255,255,255,0.82)', letterSpacing:m.role==='assistant'?'0.02em':'0.07em', lineHeight:1.8 }}>{m.content}</p>
@@ -196,9 +219,9 @@ export default function App() {
       setExitClass('')
       requestAnimationFrame(() => requestAnimationFrame(() => {
         setEnterClass('zoom-enter')
-        setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 520)
+        setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 240)
       }))
-    }, 420)
+    }, 200)
   }
 
   const saveSettings = (s) => {
@@ -206,7 +229,7 @@ export default function App() {
     localStorage.setItem('duvaan_settings', JSON.stringify(s))
   }
 
-  const bgImage = useMemo(() => settings.bgImage, [settings.bgImage])
+  const bgImage = settings.bgImage
   const AURA_COLORS  = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
   const AURA_SHADOWS = { red:"rgba(255,51,51,0.7)", orange:"rgba(255,140,0,0.7)", gold:"rgba(201,168,76,0.7)", green:"rgba(68,204,119,0.7)", lightblue:"rgba(85,204,255,0.7)", indigo:"rgba(68,85,204,0.7)", purple:"rgba(153,51,204,0.7)", white:"rgba(220,220,255,0.8)" }
   const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
@@ -234,26 +257,22 @@ export default function App() {
         alt=""
       />
     )}
-    <div style={{ background: settings.bgImage ? '#1a0810' : '#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1 }}>
-
+    <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1 }}>
+      <style>{css}</style>
       <div style={{ position:'relative', zIndex:1, minHeight:'calc(100vh - 120px)' }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView    onNavigate={switchTab} settings={settings} />}
         {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} settings={settings} />}
         {tab === 'community' && <CommunityView onNavigate={switchTab} settings={settings} />}
       </div>
-
-      {settings.showClock !== false && <ClockWidget />}
       <OrnamentNav tab={tab} switchTab={switchTab} auraColor={auraColor} auraShadow={auraShadow} />
-      {tab !== 'eliel' && <FloatingEliel messages={elielMessages} setMessages={setElielMessages} settings={settings} />}
-
-      {showSettings && (
-        <SettingsView
-          settings={settings}
-          onSave={saveSettings}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
     </div>
+
+    {/* Fixed overlays via portal — immune to transform stacking context */}
+    {tab !== 'eliel' && createPortal(
+      <FloatingEliel messages={elielMessages} setMessages={setElielMessages} settings={settings} />,
+      document.body
+    )}
+    {showSettings && createPortal(<SettingsView settings={settings} onSave={saveSettings} onClose={() => setShowSettings(false)} />, document.body)}
     </>
   )
 }

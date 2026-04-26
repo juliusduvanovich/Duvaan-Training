@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import ScrollPicker, { TimePicker } from "./ScrollPicker";
+import ClubView, { TIER_LIMITS } from "./ClubView";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -201,7 +202,7 @@ const MOCK_PUBLIC_CLUBS = [
 const SECTIONS = ['Private', 'Clubs', 'Events'];
 
 export default function CommunityView({ onNavigate, settings }) {
-  const AURA_COLORS = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
+  const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
   const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C"
   const [section, setSection] = useState(1);
   return (
@@ -243,69 +244,163 @@ export default function CommunityView({ onNavigate, settings }) {
 
 // ─── PRIVATE ────────────────────────────────────────────────────────────────
 function Private({ auraColor = "#C9A84C" }) {
-  const [view, setView] = useState('list');
+  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
+  const userTier = points>=5000?'masterbuilder':points>=1000?'builder':'member'
+  const limits = TIER_LIMITS[userTier]
+
   const [clubs, setClubs] = useState(() => { try { return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]') } catch { return [] } });
-  const [form, setForm] = useState({ name:'', desc:'', tags:[] });
+  const [view, setView] = useState('list'); // list | create
+  const [openClub, setOpenClub] = useState(null);
+  const [form, setForm] = useState({ name:'', desc:'', location:'', isPublic:false, tags:[], maxMembers:limits.maxMembers });
   const [created, setCreated] = useState(false);
+  const photoRef = useRef(null);
 
-  const toggleTag = tag => setForm(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t=>t!==tag) : [...f.tags, tag] }));
+  const canCreate = clubs.length < limits.maxClubs;
+  const toggleTag = tag => setForm(f => ({ ...f, tags: f.tags.includes(tag)?f.tags.filter(t=>t!==tag):[...f.tags,tag] }));
 
-  const handleCreate = () => {
-    if (!form.name.trim() || form.tags.length === 0) return;
-    const newClub = { id:Date.now(), name:form.name.trim(), desc:form.desc.trim(), tags:form.tags, members:1, active:false, createdAt:new Date().toLocaleDateString('fi-FI') };
-    const updated = [...clubs, newClub];
-    setClubs(updated);
-    localStorage.setItem('duvaan_my_clubs', JSON.stringify(updated));
-    setCreated(true);
-    setTimeout(() => { setView('list'); setCreated(false); setForm({ name:'', desc:'', tags:[] }); }, 1500);
+  const handlePhoto = e => {
+    const file = e.target.files?.[0]; if(!file) return;
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const max=400; const ratio=Math.min(max/img.width,max/img.height,1);
+      canvas.width=Math.round(img.width*ratio); canvas.height=Math.round(img.height*ratio);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      setForm(f=>({...f,photo:canvas.toDataURL('image/jpeg',0.75)}));
+    }; img.src=url;
   };
 
-  const deleteClub = id => { const u = clubs.filter(c=>c.id!==id); setClubs(u); localStorage.setItem('duvaan_my_clubs', JSON.stringify(u)); };
+  const handleCreate = () => {
+    if (!form.name.trim()) return;
+    const newClub = { id:Date.now(), ...form, members:[{id:'julius',name:'Julius',role:'admin',perms:{invite:true,events:true,chat:true,settings:true}}], createdAt:new Date().toLocaleDateString('fi-FI') };
+    const updated = [...clubs, newClub];
+    setClubs(updated); localStorage.setItem('duvaan_my_clubs', JSON.stringify(updated));
+    setCreated(true);
+    setTimeout(() => { setView('list'); setCreated(false); setForm({name:'',desc:'',location:'',isPublic:false,tags:[],maxMembers:limits.maxMembers}); }, 1200);
+  };
+
+  const updateClub = (updated) => {
+    const all = clubs.map(c => c.id===updated.id ? updated : c);
+    setClubs(all); localStorage.setItem('duvaan_my_clubs', JSON.stringify(all));
+    setOpenClub(updated);
+  };
+
+  const deleteClub = (id) => {
+    const all = clubs.filter(c => c.id!==id);
+    setClubs(all); localStorage.setItem('duvaan_my_clubs', JSON.stringify(all));
+    setOpenClub(null);
+  };
+
+  // Open club view
+  if (openClub) return (
+    <ClubView
+      club={openClub}
+      userTier={userTier}
+      onClose={() => setOpenClub(null)}
+      onUpdateClub={updateClub}
+      onDeleteClub={() => deleteClub(openClub.id)}
+    />
+  );
 
   if (view === 'create') return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.8)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
-      <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Create a Club</h3>
-      <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 24px" }}>Yksityinen tila sinulle ja kavereillesi — vain kutsulla.</p>
-      <div style={{ marginBottom:14 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Nimi</p>
-        <input className="text-field" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Club name..." />
-      </div>
-      <div style={{ marginBottom:20 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Kuvaus</p>
-        <textarea className="text-field" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} placeholder="Mistä klubissa on kyse..." rows={2} style={{ resize:"none" }} />
-      </div>
-      <div style={{ marginBottom:28 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>Aiheet</p>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-          {ALL_TAGS.map(tag => <button key={tag} className={`tag-btn ${form.tags.includes(tag)?'selected':''}`} onClick={()=>toggleTag(tag)}>{tag}</button>)}
+      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
+      <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Luo klubi</h3>
+      <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 20px" }}>
+        {userTier==='member'?'Member: 1 klubi, max 10 jäsentä':userTier==='builder'?'Builder: 3 klubia, max 50 jäsentä':'MasterBuilder: 10 klubia, max 1500 jäsentä'}
+      </p>
+
+      {/* Photo */}
+      <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
+        <div onClick={() => photoRef.current?.click()} style={{ width:56, height:56, borderRadius:'50%', border:'1.5px dashed rgba(201,168,76,0.3)', overflow:'hidden', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+          {form.photo ? <img src={form.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'rgba(201,168,76,0.3)', fontSize:22 }}>+</span>}
+        </div>
+        <input ref={photoRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display:'none' }}/>
+        <div>
+          <p style={{ color:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 4px' }}>Profiilikuva</p>
+          <button onClick={() => photoRef.current?.click()} style={{ background:'none', border:'1px solid rgba(201,168,76,0.25)', borderRadius:7, padding:'4px 12px', color:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', cursor:'pointer' }}>{form.photo?'Vaihda':'Lisää kuva'}</button>
         </div>
       </div>
+
+      {[['Nimi *','name','Klubin nimi...'],['Bio','desc','Mistä klubissa on kyse...'],['Sijainti','location','Helsinki, Suomi']].map(([label,field,ph]) => (
+        <div key={field} style={{ marginBottom:12 }}>
+          <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>{label}</p>
+          <input value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}
+            style={{ width:"100%", boxSizing:"border-box", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.18)", borderRadius:9, padding:"9px 12px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none" }}/>
+        </div>
+      ))}
+
+      {/* Public/Private — only builder+ */}
+      {limits.canPublic && (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+          <div>
+            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, margin:'0 0 2px' }}>Julkinen klubi</p>
+            <p style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>Kaikki voivat löytää ja liittyä</p>
+          </div>
+          <div onClick={() => setForm(f=>({...f,isPublic:!f.isPublic}))} style={{ width:38, height:20, borderRadius:10, background:form.isPublic?'rgba(201,168,76,0.2)':'rgba(255,255,255,0.04)', border:`1px solid ${form.isPublic?GOLD:'rgba(201,168,76,0.2)'}`, position:'relative', cursor:'pointer', transition:'all 0.2s' }}>
+            <div style={{ width:14, height:14, borderRadius:'50%', background:form.isPublic?GOLD:'rgba(201,168,76,0.25)', position:'absolute', top:2, left:form.isPublic?21:3, transition:'left 0.2s' }}/>
+          </div>
+        </div>
+      )}
+
+      {/* Tags */}
+      <div style={{ marginBottom:20 }}>
+        <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 10px" }}>Tagit</p>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+          {['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion'].map(tag => {
+            const sel=form.tags.includes(tag);
+            return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.15)':'rgba(255,255,255,0.02)', border:`1px solid ${sel?GOLD:'rgba(201,168,76,0.15)'}`, borderRadius:20, padding:'5px 12px', cursor:'pointer', color:sel?GOLD:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em', transition:'all 0.15s' }}>{tag}</button>;
+          })}
+        </div>
+      </div>
+
       {created ? (
         <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Klubi luotu</p>
       ) : (
-        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:form.name.trim()&&form.tags.length>0?BURGUNDY:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}cc`, borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()&&form.tags.length>0?1:0.35 }}>Create Club</WaterButton>
+        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:14, background:form.name.trim()?BURGUNDY:"rgba(107,29,46,0.15)", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()?1:0.4 }}>
+          Luo klubi
+        </WaterButton>
       )}
     </div>
   );
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:20, background:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create a Club</WaterButton>
+      {/* Tier info */}
+      <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.1)', borderRadius:10, padding:'10px 14px', marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <span style={{ color:'rgba(201,168,76,0.5)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic' }}>{clubs.length}/{limits.maxClubs} klubia luotu</span>
+        {!canCreate && <span style={{ color:'rgba(255,140,0,0.7)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em' }}>Päivitä tasoa</span>}
+      </div>
+
+      {canCreate && (
+        <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"13px 0", marginBottom:20, background:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}66`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>
+          + Luo klubi
+        </WaterButton>
+      )}
+
       {clubs.length === 0 ? (
-        <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", textAlign:"center", marginTop:40 }}>Ei klubeja vielä. Luo oma tai kutsu kaveri.</p>
+        <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", textAlign:"center", marginTop:32 }}>Ei klubeja vielä.</p>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {clubs.map(club => (
-            <div key={club.id} className="club-card">
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-                <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em" }}>{club.name}</span>
-                <button onClick={() => deleteClub(club.id)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.5)", fontSize:14, padding:"0 0 0 8px" }}>×</button>
+            <div key={club.id} onClick={() => setOpenClub(club)} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"14px 16px", cursor:'pointer', transition:'border-color 0.2s' }}>
+              <div style={{ display:"flex", alignItems:'center', gap:12, marginBottom:6 }}>
+                <div style={{ width:40, height:40, borderRadius:'50%', background:`linear-gradient(135deg,${BURGUNDY},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', border:'1px solid rgba(201,168,76,0.3)' }}>
+                  {club.photo ? <img src={club.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'#fff', fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700 }}>{club.name[0]}</span>}
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em", margin:'0 0 2px' }}>{club.name}</p>
+                  <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>{club.members?.length||1} jäsentä · {club.isPublic?'Julkinen':'Yksityinen'}</p>
+                </div>
+                <span style={{ color:'rgba(201,168,76,0.3)', fontSize:16 }}>›</span>
               </div>
-              {club.desc && <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 10px" }}>{club.desc}</p>}
-              <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                {club.tags.map(t => <span key={t} style={{ background:"rgba(201,168,76,0.12)", border:"0.5px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>)}
-              </div>
+              {club.desc && <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 8px" }}>{club.desc}</p>}
+              {club.tags?.length>0 && (
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                  {club.tags.slice(0,4).map(t => <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.2)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8 }}>{t}</span>)}
+                </div>
+              )}
             </div>
           ))}
         </div>

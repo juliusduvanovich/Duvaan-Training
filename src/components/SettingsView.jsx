@@ -153,7 +153,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
           position:"relative",
         }}>
           {/* Header */}
-          <div style={{ position:"sticky", top:0, background:"rgba(13,4,6,0.97)", backdropFilter:"blur(12px)", zIndex:10, padding:"14px 20px 12px", borderBottom:"0.5px solid rgba(201,168,76,0.1)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div style={{ position:"sticky", top:0, background:"rgba(13,4,6,0.97)", backdropFilter:"blur(12px)", zIndex:10, padding:"52px 20px 12px", borderBottom:"0.5px solid rgba(201,168,76,0.1)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <h2 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:0 }}>Asetukset</h2>
             <div style={{ display:"flex", gap:10, alignItems:"center" }}>
               <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.35)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.16em", textTransform:"uppercase" }}>Peruuta</button>

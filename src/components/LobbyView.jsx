@@ -314,16 +314,16 @@ export default function LobbyView({ onNavigate, settings }) {
 
   const renderBubbleText = () => {
     if (!highlight) return (
-      <span style={{color:"rgba(201,168,76,0.72)",fontStyle:"italic"}}>{fullText}</span>
+      <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText}</span>
     );
     const idx = fullText.indexOf(highlight);
     if (idx === -1) return (
-      <span style={{color:"rgba(201,168,76,0.72)",fontStyle:"italic"}}>{fullText}</span>
+      <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText}</span>
     );
     return (<>
-      <span style={{color:"rgba(201,168,76,0.72)",fontStyle:"italic"}}>{fullText.slice(0,idx)}</span>
-      <span style={{color:GOLD,fontStyle:"normal"}}>{highlight}</span>
-      <span style={{color:"rgba(201,168,76,0.72)",fontStyle:"italic"}}>{fullText.slice(idx+highlight.length)}</span>
+      <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText.slice(0,idx)}</span>
+      <span style={{color:GOLD,fontStyle:"normal",textShadow:"0 0 18px rgba(201,168,76,0.6)"}}>{highlight}</span>
+      <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText.slice(idx+highlight.length)}</span>
     </>);
   };
 
