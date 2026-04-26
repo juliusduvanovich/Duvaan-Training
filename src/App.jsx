@@ -212,13 +212,19 @@ export default function App() {
 
   return (
     <>
-    <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', overflow:'hidden' }}>
-      <style>{css}</style>
-
-      {/* Background image overlay */}
-      {settings.bgImage && (
-        <div style={{ position:'absolute', inset:0, zIndex:0, backgroundImage:`url(${settings.bgImage})`, backgroundSize:'cover', backgroundPosition:'center', opacity:0.18, pointerEvents:'none' }}/>
-      )}
+    {/* Fixed background — outside app container so it never re-renders on tab switch */}
+    {settings.bgImage && (
+      <div style={{
+        position:'fixed', inset:0, zIndex:0,
+        backgroundImage:`url(${settings.bgImage})`,
+        backgroundSize:'cover',
+        backgroundPosition:'center',
+        backgroundAttachment:'fixed',
+        opacity:0.18,
+        pointerEvents:'none',
+      }}/>
+    )}
+    <div style={{ background: settings.bgImage ? 'transparent' : '#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1 }}>
 
       <div style={{ position:'relative', zIndex:1, minHeight:'calc(100vh - 120px)' }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView    onNavigate={switchTab} settings={settings} />}

@@ -200,7 +200,59 @@ export default function SettingsView({ onClose, settings, onSave }) {
               ))}
             </div>
 
-            {/* ── ILMOITUKSET ── */}
+            {/* ── ELIEL ASETUKSET ── */}
+            <div className="s-section">
+              <SecTitle>Eliel — Asetukset</SecTitle>
+
+              {/* Communication mode */}
+              <div style={{ marginBottom:16 }}>
+                <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.07em", margin:"0 0 10px" }}>Kommunikoinnin oletus</p>
+                <div style={{ display:"flex", gap:8 }}>
+                  {[['text','✍ Kirjoitus'],['voice','🎙 Puhe']].map(([val,label]) => (
+                    <button key={val} onClick={() => set("elielMode", val)} style={{
+                      flex:1, padding:"11px 8px",
+                      background: local.elielMode===val ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.02)",
+                      border: local.elielMode===val ? `1.5px solid ${GOLD}` : "1px solid rgba(201,168,76,0.18)",
+                      borderRadius:10, cursor:"pointer",
+                      color: local.elielMode===val ? GOLD : "rgba(201,168,76,0.45)",
+                      fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.08em",
+                      transition:"all 0.2s",
+                    }}>{label}</button>
+                  ))}
+                </div>
+                <p style={{ color:"rgba(201,168,76,0.35)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"8px 0 0", lineHeight:1.5 }}>
+                  Voit aina vaihtaa tapaa hetkellisesti Eliel-sivulla.
+                </p>
+              </div>
+
+              {/* Mic permission */}
+              <div className="s-row">
+                <RowLabel title="Salli mikrofonin käyttö" sub="Tarvitaan puheella kommunikointiin" />
+                <Toggle value={local.allowMic||false} onChange={async v => {
+                  if(v) {
+                    try {
+                      await navigator.mediaDevices.getUserMedia({audio:true});
+                      set("allowMic", true);
+                    } catch { set("allowMic", false); }
+                  } else { set("allowMic", false); }
+                }}/>
+              </div>
+
+              {/* Camera permission */}
+              <div className="s-row" style={{ borderBottom:"none" }}>
+                <RowLabel title="Salli kameran käyttö" sub="Profiilikuva, klubikuvat, kuvat Elielille" />
+                <Toggle value={local.allowCamera||false} onChange={async v => {
+                  if(v) {
+                    try {
+                      await navigator.mediaDevices.getUserMedia({video:true});
+                      set("allowCamera", true);
+                    } catch { set("allowCamera", false); }
+                  } else { set("allowCamera", false); }
+                }}/>
+              </div>
+            </div>
+
+
             <div className="s-section">
               <SecTitle>Ilmoitukset</SecTitle>
 

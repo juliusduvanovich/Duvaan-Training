@@ -59,6 +59,10 @@ const css = `
     0%,100% { opacity:0.45; transform:scale(1); }
     50%     { opacity:0.85; transform:scale(1.04); }
   }
+  @keyframes voiceBar {
+    0%,100% { transform:scaleY(0.4); opacity:0.5; }
+    50%     { transform:scaleY(1.4); opacity:1; }
+  }
   @keyframes chatSlideUp {
     from { opacity:0; transform:translateY(18px); }
     to   { opacity:1; transform:translateY(0); }
@@ -196,7 +200,11 @@ function ElielGlow({size=260, auraColor='#C9A84C'}){
 
 export default function LobbyView({ onNavigate, settings }) {
   const aura = AURAS.find(a => a.id === settings?.aura) || AURAS[0]
+  const defaultMode = settings?.elielMode || 'text'
   const [chatOpen, setChatOpen] = useState(false);
+  const [inputMode, setInputMode] = useState(defaultMode); // 'text' | 'voice'
+  const [listening, setListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -204,7 +212,39 @@ export default function LobbyView({ onNavigate, settings }) {
   const [msgKey, setMsgKey] = useState(0);
   const inputRef = useRef(null);
   const msgsEndRef = useRef(null);
+  const recognitionRef = useRef(null);
   const { elRef, onInteract } = useSpringTilt();
+
+  // Sync inputMode when settings change
+  useEffect(() => { setInputMode(settings?.elielMode || 'text') }, [settings?.elielMode]);
+
+  const startVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { setInputMode('text'); return; }
+    const rec = new SpeechRecognition();
+    rec.lang = 'fi-FI';
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.onstart = () => setListening(true);
+    rec.onresult = e => {
+      const t = Array.from(e.results).map(r => r[0].transcript).join('');
+      setTranscript(t);
+      if (e.results[e.results.length-1].isFinal) {
+        setTranscript('');
+        setListening(false);
+        if (t.trim()) handleSendText(t.trim());
+      }
+    };
+    rec.onerror = () => { setListening(false); setTranscript(''); };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    rec.start();
+  };
+
+  const stopVoice = () => {
+    recognitionRef.current?.stop();
+    setListening(false);
+  };
 
   const allMsgs = [getInitialMessage(), ...MESSAGES];
 
@@ -241,9 +281,9 @@ export default function LobbyView({ onNavigate, settings }) {
     </>);
   };
 
-  const handleSend = async () => {
-    if (!message.trim() || loading) return;
-    const userMsg = message.trim();
+  const handleSendText = async (text) => {
+    const userMsg = (text || message).trim();
+    if (!userMsg || loading) return;
     setMessage("");
     const newMessages = [...messages, {role:"user", content:userMsg}];
     setMessages(newMessages);
@@ -373,62 +413,115 @@ export default function LobbyView({ onNavigate, settings }) {
           )}
         </div>
 
-        {/* INPUT — näkymätön pohja, aktivoituu tap to talkista */}
+        {/* TAP TO TALK / WRITE */}
         {!chatOpen && (
-          <button
-            className="tap-pulse"
-            onClick={() => { setChatOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
-            style={{
-              background:"none", border:"none", outline:"none",
-              boxShadow:"none", WebkitAppearance:"none",
-              padding:"8px 28px", cursor:"pointer",
-              fontFamily:"'Cinzel',serif", fontSize:10,
-              fontWeight:600, letterSpacing:"0.22em",
-              textTransform:"uppercase",
-              color:"rgba(201,168,76,0.45)",
-            }}
-          >
-            Tap to Talk
-          </button>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <button
+              className="tap-pulse"
+              onClick={() => {
+                setChatOpen(true);
+                if (inputMode === 'voice') setTimeout(() => startVoice(), 200);
+                else setTimeout(() => inputRef.current?.focus(), 100);
+              }}
+              style={{
+                background:"none", border:"none", outline:"none",
+                boxShadow:"none", WebkitAppearance:"none",
+                padding:"8px 28px", cursor:"pointer",
+                fontFamily:"'Cinzel',serif", fontSize:10,
+                fontWeight:600, letterSpacing:"0.22em",
+                textTransform:"uppercase",
+                color:"rgba(201,168,76,0.45)",
+              }}
+            >
+              {inputMode === 'voice' ? 'Tap to Talk' : 'Tap to Write'}
+            </button>
+            {/* Mode toggle icon */}
+            <button
+              onClick={() => setInputMode(m => m === 'text' ? 'voice' : 'text')}
+              style={{
+                background:"none", border:"none", cursor:"pointer",
+                color:"rgba(201,168,76,0.28)", fontSize:16, lineHeight:1,
+                padding:4,
+              }}
+              title={inputMode === 'text' ? 'Vaihda puheeseen' : 'Vaihda kirjoitukseen'}
+            >
+              {inputMode === 'text' ? '🎙' : '✍️'}
+            </button>
+          </div>
         )}
 
         {chatOpen && (
-          <div style={{
-            width:"100%", maxWidth:320,
-            display:"flex", flexDirection:"column", alignItems:"center",
-          }}>
-            <textarea
-              ref={inputRef}
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              placeholder=""
-              rows={2}
-              onKeyDown={e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
-              style={{
-                width:"100%", boxSizing:"border-box",
-                background:"transparent", border:"none",
-                borderBottom:"0.5px solid rgba(201,168,76,0.15)",
-                color:"rgba(201,168,76,0.9)",
-                fontFamily:"'Cormorant Garamond',serif",
-                fontSize:18, fontStyle:"italic", fontWeight:500,
-                letterSpacing:"0.04em", lineHeight:1.7,
-                textAlign:"center",
-                outline:"none", resize:"none",
-                padding:"8px 0",
-              }}
-            />
-            <button
-              onClick={() => { setChatOpen(false); setMessages([]); setMessage(""); }}
-              style={{
-                background:"none", border:"none", cursor:"pointer",
-                color:"rgba(201,168,76,0.18)",
-                fontFamily:"'Cinzel',serif", fontSize:9,
-                letterSpacing:"0.18em", textTransform:"uppercase",
-                marginTop:12, padding:"4px 0",
-              }}
-            >
-              ×
-            </button>
+          <div style={{ width:"100%", maxWidth:320, display:"flex", flexDirection:"column", alignItems:"center" }}>
+
+            {/* Voice mode */}
+            {inputMode === 'voice' && (
+              <div style={{ width:"100%", textAlign:"center" }}>
+                {listening ? (
+                  <>
+                    <div style={{ display:"flex", justifyContent:"center", alignItems:"flex-end", gap:4, marginBottom:12, height:28 }}>
+                      {[0,1,2,3,4].map(i => (
+                        <div key={i} style={{
+                          width:3, borderRadius:2,
+                          background: aura.color,
+                          boxShadow:`0 0 6px ${aura.shadow}`,
+                          animation:`voiceBar 0.7s ease-in-out infinite`,
+                          animationDelay:`${i*0.1}s`,
+                          height:`${12+i*4}px`,
+                        }}/>
+                      ))}
+                    </div>
+                    {transcript && (
+                      <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", margin:"0 0 12px", lineHeight:1.6 }}>
+                        {transcript}
+                      </p>
+                    )}
+                    <button onClick={stopVoice} style={{ background:"none", border:`1px solid rgba(201,168,76,0.2)`, borderRadius:20, padding:"6px 20px", cursor:"pointer", color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.16em", textTransform:"uppercase" }}>
+                      Lopeta
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={startVoice} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.2em", textTransform:"uppercase" }}>
+                    🎙 Puhu
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Text mode */}
+            {inputMode === 'text' && (
+              <textarea
+                ref={inputRef}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                placeholder=""
+                rows={2}
+                onKeyDown={e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSendText();} }}
+                style={{
+                  width:"100%", boxSizing:"border-box",
+                  background:"transparent", border:"none",
+                  borderBottom:"0.5px solid rgba(201,168,76,0.15)",
+                  color:"rgba(201,168,76,0.9)",
+                  fontFamily:"'Cormorant Garamond',serif",
+                  fontSize:18, fontStyle:"italic", fontWeight:500,
+                  letterSpacing:"0.04em", lineHeight:1.7,
+                  textAlign:"center", outline:"none", resize:"none", padding:"8px 0",
+                }}
+              />
+            )}
+
+            {/* Mode switch + close */}
+            <div style={{ display:"flex", gap:20, marginTop:12, alignItems:"center" }}>
+              <button
+                onClick={() => { const next = inputMode==='text'?'voice':'text'; setInputMode(next); if(next==='voice') startVoice(); else stopVoice(); }}
+                style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.25)", fontSize:15, lineHeight:1, padding:0 }}
+              >
+                {inputMode === 'text' ? '🎙' : '✍️'}
+              </button>
+              <button
+                onClick={() => { setChatOpen(false); setMessages([]); setMessage(""); stopVoice(); }}
+                style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.18)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", padding:0 }}
+              >×</button>
+            </div>
           </div>
         )}
 
