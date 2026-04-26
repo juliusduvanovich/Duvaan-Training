@@ -7,13 +7,13 @@ import ToolboxView, { ChestButton } from "./ToolboxView";
 const TIER_ELIEL_FILTER = {
   member:        ELIEL_TIER_FILTERS.member,
   builder:       ELIEL_TIER_FILTERS.builder,
-  masterbuilder: ELIEL_TIER_FILTERS.masterbuilder,
+  creator: ELIEL_TIER_FILTERS.creator,
 }
 // Map FREQ_LEVELS tier names to filter keys
 const TIER_NAME_MAP = {
   'Member':        'member',
   'Builder':       'builder',
-  'MasterBuilder': 'masterbuilder',
+  'Creator': 'creator',
 }
 
 const GOLD = "#C9A84C";
@@ -120,9 +120,9 @@ const FREQ_LEVELS = [
   { name:'Builder',     icon:'✦', color:'#e8d5a3',  min:1000, max:4999, price:'9€/kk',  master:false,
     features:[['Eliel Enhanced','Muistaa historian, tekee proaktiivisia ehdotuksia'],['Health Dashboard','Uni, makrot, HRV — kaikki yhdessä näkymässä'],['Luo eventtejä','Rakenna tapahtumia, kasvata yhteisöä'],['Builder-klubit','Pääsy suljettuihin klubeihin — vaatii Builder-tason'],['Edistymisdata','Syvempi analyysi treeneistä ja kehityksestä']],
     btn:'Aktivoi Builder' },
-  { name:'MasterBuilder',icon:'✸',color:'#C9A84C',  min:5000, max:null, price:'16€/kk', master:true,
-    features:[['Eliel Master','Viikoittaiset yhteenvedot, patternien tunnistus, täysi muisti'],['MasterBuilder-klubit','Eksklusiivisimmat tilat — vain MasterBuilder-tasolle'],['Early Access','Uudet Duvaan-julkaisut ennen kaikkia muita'],['Suora yhteys tiimiin','Palautekanava — sinun äänesi rakentaa tuotetta'],['Duvaan Wrapped','Vuosittainen personoitu tarina kasvustasi'],['Sovereign Events','Eksklusiiviset tapahtumat — digitaaliset ja fyysiset']],
-    btn:'Aktivoi MasterBuilder' },
+  { name:'Creator',icon:'✸',color:'#C9A84C',  min:5000, max:null, price:'16€/kk', master:true,
+    features:[['Eliel Master','Viikoittaiset yhteenvedot, patternien tunnistus, täysi muisti'],['Creator-klubit','Eksklusiivisimmat tilat — vain Creator-tasolle'],['Early Access','Uudet Duvaan-julkaisut ennen kaikkia muita'],['Suora yhteys tiimiin','Palautekanava — sinun äänesi rakentaa tuotetta'],['Duvaan Wrapped','Vuosittainen personoitu tarina kasvustasi'],['Sovereign Events','Eksklusiiviset tapahtumat — digitaaliset ja fyysiset']],
+    btn:'Aktivoi Creator' },
 ]
 function getLevel(pts){ return FREQ_LEVELS.find(l=>pts>=l.min&&(l.max===null||pts<=l.max))||FREQ_LEVELS[0] }
 
@@ -153,7 +153,7 @@ function FrequencyCard(){
   const levelIdx=FREQ_LEVELS.indexOf(level)
   const nextLevel=FREQ_LEVELS[levelIdx+1]
   const progress=nextLevel?((points-level.min)/(nextLevel.min-level.min))*100:100
-  const isMaster=level.name==='MasterBuilder'
+  const isMaster=level.name==='Creator'
   return(
     <div style={{background:isMaster?'linear-gradient(135deg,rgba(107,29,46,0.5) 0%,rgba(20,14,6,0.95) 50%,rgba(80,60,10,0.4) 100%)':'rgba(255,255,255,0.02)',border:`1px solid ${level.color}`,borderRadius:16,padding:'18px 20px',marginBottom:16,animation:isMaster?'masterGlow 4s ease-in-out infinite':'breatheBtn 6s ease-in-out infinite',position:'relative',overflow:'hidden'}}>
       {isMaster&&<div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${level.color},transparent)`}}/>}
@@ -234,7 +234,7 @@ function ShopSection(){
         </div>
         {cardOrdered
           ?<p style={{color:'#6effa0',fontFamily:"'Cinzel',serif",fontSize:12,letterSpacing:'0.1em',margin:0,textAlign:'center'}}>✓ Kortti tilattu</p>
-          :<button onClick={()=>{localStorage.setItem('duvaan_card_ordered','true');setCardOrdered(true)}} style={{width:'100%',padding:'13px 0',background:'rgba(107,29,46,0.5)',border:'1.5px solid #C9A84C',borderRadius:14,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:600,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer'}}>Tilaa kortti — MasterBuilder-jäsenille</button>
+          :<button onClick={()=>{localStorage.setItem('duvaan_card_ordered','true');setCardOrdered(true)}} style={{width:'100%',padding:'13px 0',background:'rgba(107,29,46,0.5)',border:'1.5px solid #C9A84C',borderRadius:14,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:600,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer'}}>Tilaa kortti — Creator-jäsenille</button>
         }
       </div>
     </div>

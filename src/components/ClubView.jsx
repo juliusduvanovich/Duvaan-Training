@@ -6,7 +6,7 @@ const BURGUNDY = "#6B1D2E";
 export const TIER_LIMITS = {
   member:        { maxClubs:1,  maxMembers:10,   canPublic:false },
   builder:       { maxClubs:3,  maxMembers:50,   canPublic:true  },
-  masterbuilder: { maxClubs:10, maxMembers:1500, canPublic:true  },
+  creator: { maxClubs:10, maxMembers:1500, canPublic:true  },
 };
 
 const ALL_TAGS = ['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion'];

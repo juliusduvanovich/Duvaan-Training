@@ -245,7 +245,7 @@ export default function CommunityView({ onNavigate, settings }) {
 // ─── PRIVATE ────────────────────────────────────────────────────────────────
 function Private({ auraColor = "#C9A84C" }) {
   const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
-  const userTier = points>=5000?'masterbuilder':points>=1000?'builder':'member'
+  const userTier = points>=5000?'creator':points>=1000?'builder':'member'
   const limits = TIER_LIMITS[userTier]
 
   const [clubs, setClubs] = useState(() => { try { return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]') } catch { return [] } });
@@ -308,7 +308,7 @@ function Private({ auraColor = "#C9A84C" }) {
       <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
       <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Luo klubi</h3>
       <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 20px" }}>
-        {userTier==='member'?'Member: 1 klubi, max 10 jäsentä':userTier==='builder'?'Builder: 3 klubia, max 50 jäsentä':'MasterBuilder: 10 klubia, max 1500 jäsentä'}
+        {userTier==='member'?'Member: 1 klubi, max 10 jäsentä':userTier==='builder'?'Builder: 3 klubia, max 50 jäsentä':'Creator: 10 klubia, max 1500 jäsentä'}
       </p>
 
       {/* Photo */}

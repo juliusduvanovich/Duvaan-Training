@@ -4,10 +4,10 @@ const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
 
 // Tier points (must match PersonalView FREQ_LEVELS)
-export const TIER_THRESHOLDS = { member:0, builder:1000, masterbuilder:5000 }
+export const TIER_THRESHOLDS = { member:0, builder:1000, creator:5000 }
 
 export function getUserTier(points) {
-  if (points >= 5000) return 'masterbuilder'
+  if (points >= 5000) return 'creator'
   if (points >= 1000) return 'builder'
   return 'member'
 }
@@ -16,13 +16,13 @@ export function getUserTier(points) {
 export const ELIEL_TIER_FILTERS = {
   member:        'sepia(0.8) saturate(0.4) brightness(1.1) hue-rotate(180deg) drop-shadow(0 0 18px rgba(160,180,220,0.6))',
   builder:       'drop-shadow(0 0 18px rgba(201,168,76,0.55))',
-  masterbuilder: 'sepia(0.05) saturate(0.6) brightness(1.4) contrast(1.1) drop-shadow(0 0 24px rgba(220,240,255,0.9))',
+  creator: 'sepia(0.05) saturate(0.6) brightness(1.4) contrast(1.1) drop-shadow(0 0 24px rgba(220,240,255,0.9))',
 }
 
 export const ELIEL_TIER_GLOW = {
   member:        '#A0B4DC',
   builder:       '#C9A84C',
-  masterbuilder: '#DCF0FF',
+  creator: '#DCF0FF',
 }
 
 // Aura unlock requirements
@@ -34,13 +34,13 @@ export const AURAS = [
   // Builder tier — heart + throat
   { id:"green",    name:"Green",    color:"#44CC77", shadow:"rgba(68,204,119,0.8)",  desc:"Kasvu · Tasapaino",     unlockedAt:'builder' },
   { id:"lightblue",name:"Sky",      color:"#55CCFF", shadow:"rgba(85,204,255,0.8)",  desc:"Ilmaisu · Selkeys",     unlockedAt:'builder' },
-  // MasterBuilder tier — upper chakras
-  { id:"indigo",   name:"Indigo",   color:"#4455CC", shadow:"rgba(68,85,204,0.8)",   desc:"Intuitio · Näkemys",    unlockedAt:'masterbuilder' },
-  { id:"purple",   name:"Purple",   color:"#9933CC", shadow:"rgba(153,51,204,0.8)",  desc:"Mystiikka · Tietoisuus",unlockedAt:'masterbuilder' },
-  { id:"white",    name:"White",    color:"#E8E8FF", shadow:"rgba(220,220,255,0.9)", desc:"Puhtaus · Universaali", unlockedAt:'masterbuilder' },
+  // Creator tier — upper chakras
+  { id:"indigo",   name:"Indigo",   color:"#4455CC", shadow:"rgba(68,85,204,0.8)",   desc:"Intuitio · Näkemys",    unlockedAt:'creator' },
+  { id:"purple",   name:"Purple",   color:"#9933CC", shadow:"rgba(153,51,204,0.8)",  desc:"Mystiikka · Tietoisuus",unlockedAt:'creator' },
+  { id:"white",    name:"White",    color:"#E8E8FF", shadow:"rgba(220,220,255,0.9)", desc:"Puhtaus · Universaali", unlockedAt:'creator' },
 ];
 
-const TIER_LABELS = { member:'Member', builder:'Builder', masterbuilder:'MasterBuilder' }
+const TIER_LABELS = { member:'Member', builder:'Builder', creator:'Creator' }
 
 const NOTIF_ITEMS = [
   { key:"notifFrequency",  label:"Frequency-muistutus",        sub:"Muistuttaa jos treenistreak on vaarassa" },
@@ -113,7 +113,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
   // Get current user tier
   const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
   const userTier = getUserTier(points)
-  const tierOrder = ['member','builder','masterbuilder']
+  const tierOrder = ['member','builder','creator']
   const isUnlocked = (requiredTier) => tierOrder.indexOf(userTier) >= tierOrder.indexOf(requiredTier)
 
   const handleBgPhoto = e => {
@@ -207,14 +207,14 @@ export default function SettingsView({ onClose, settings, onSave }) {
 
               {/* Current Eliel tier label */}
               <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", textAlign:"center", margin:"0 0 16px" }}>
-                {userTier === 'member' ? '◈ Hopea — Member' : userTier === 'builder' ? '✦ Kulta — Builder' : '✸ Timantti — MasterBuilder'}
+                {userTier === 'member' ? '◈ Hopea — Member' : userTier === 'builder' ? '✦ Kulta — Builder' : '✸ Timantti — Creator'}
               </p>
 
               {/* Auras — bottom to top, grouped by tier */}
-              {['masterbuilder','builder','member'].map(tierKey => {
+              {['creator','builder','member'].map(tierKey => {
                 const tierAuras = [...AURAS].reverse().filter(a => a.unlockedAt === tierKey)
-                const tierLabel = { member:'Member', builder:'Builder', masterbuilder:'MasterBuilder' }[tierKey]
-                const tierColor = { member:'rgba(201,168,76,0.35)', builder:'rgba(68,204,119,0.35)', masterbuilder:'rgba(153,51,204,0.35)' }[tierKey]
+                const tierLabel = { member:'Member', builder:'Builder', creator:'Creator' }[tierKey]
+                const tierColor = { member:'rgba(201,168,76,0.35)', builder:'rgba(68,204,119,0.35)', creator:'rgba(153,51,204,0.35)' }[tierKey]
                 return (
                   <div key={tierKey} style={{ marginBottom:12 }}>
                     <p style={{ color:tierColor, fontFamily:"'Cinzel',serif", fontSize:7, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 8px", paddingLeft:4 }}>{tierLabel}</p>
