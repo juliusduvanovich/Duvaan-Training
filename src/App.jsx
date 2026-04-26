@@ -58,17 +58,17 @@ function ClockWidget() {
   )
 }
 
-function OrnamentNav({ tab, switchTab }) {
+function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
   const tabs   = ['personal','eliel','community']
   const labels = ['Personal','Eliel','Community']
   return (
-    <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:'480px', background:'linear-gradient(to bottom,rgba(60,8,16,0.97),rgba(30,4,8,0.99))', backdropFilter:'blur(12px)', borderTop:'1px solid rgba(201,168,76,0.3)', zIndex:100, display:'flex', justifyContent:'space-around', alignItems:'center', padding:'12px 16px 32px' }}>
+    <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:'480px', background:'linear-gradient(to bottom,rgba(60,8,16,0.97),rgba(30,4,8,0.99))', backdropFilter:'blur(12px)', borderTop:`2px solid ${auraColor}`, boxShadow:`0 -2px 16px ${auraShadow}, 0 -6px 32px ${auraShadow.replace('0.7','0.2')}`, zIndex:100, display:'flex', justifyContent:'space-around', alignItems:'center', padding:'12px 16px 32px', transition:'border-color 0.4s, box-shadow 0.4s' }}>
       {tabs.map((t,i) => {
         const active = tab === t
         return (
           <button key={t} onClick={() => switchTab(t)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:6, flex:1, transform:active?'scale(1.12)':'scale(1)', transition:'transform 0.25s ease' }}>
-            <div style={{ width:active?5:3, height:active?5:3, borderRadius:'50%', background:active?'#C9A84C':'rgba(201,168,76,0.45)', boxShadow:active?'0 0 8px rgba(201,168,76,0.8)':'none', transition:'all 0.25s' }}/>
-            <span style={{ fontFamily:"'Cinzel',serif", fontSize:active?12:10, fontWeight:active?700:400, letterSpacing:'0.16em', textTransform:'uppercase', color:active?'#C9A84C':'rgba(201,168,76,0.5)', transition:'all 0.25s' }}>{labels[i]}</span>
+            <div style={{ width:active?6:3, height:active?6:3, borderRadius:'50%', background:active?auraColor:'rgba(201,168,76,0.35)', boxShadow:active?`0 0 10px ${auraShadow}`:'none', transition:'all 0.25s' }}/>
+            <span style={{ fontFamily:"'Cinzel',serif", fontSize:active?14:11, fontWeight:active?700:400, letterSpacing:'0.16em', textTransform:'uppercase', color:active?auraColor:'rgba(201,168,76,0.45)', textShadow:active?`0 0 12px ${auraShadow}`:'none', transition:'all 0.3s' }}>{labels[i]}</span>
           </button>
         )
       })}
@@ -119,14 +119,14 @@ function FloatingEliel({ messages, setMessages, settings }) {
       {!open && (
         <button onClick={() => setOpen(true)} className="float-icon"
           style={{ position:'absolute', top:10, right:16, zIndex:300, background:'none', border:'none', cursor:'pointer', padding:0, width:36, height:36 }}>
-          <img src="/ElielTransparentt.png" style={{ width:36, height:36, objectFit:'contain', display:'block', filter:`drop-shadow(0 0 8px ${auraColor})` }} alt="Eliel" />
+          <img src="/ElielGold.png" style={{ width:36, height:36, objectFit:'contain', display:'block', filter:`drop-shadow(0 0 8px ${auraColor})` }} alt="Eliel" />
         </button>
       )}
       {open && (
         <div style={{ position:'absolute', inset:0, zIndex:400, background:'rgba(8,2,6,0.93)', backdropFilter:'blur(18px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px 100px' }}>
           <button onClick={close} style={{ position:'absolute', top:18, right:20, background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.28)', fontSize:26, lineHeight:1 }}>×</button>
           <div className={closing ? 'panel-out' : 'panel-in'} style={{ display:'flex', flexDirection:'column', alignItems:'center', width:'100%', maxWidth:320 }}>
-            <img src="/ElielTransparentt.png" style={{ width:150, height:150, objectFit:'contain', marginBottom:28, filter:`drop-shadow(0 0 30px ${auraColor})`, boxShadow:`0 0 60px ${auraShadow}` }} alt="Eliel" />
+            <img src="/ElielGold.png" style={{ width:150, height:150, objectFit:'contain', marginBottom:28, filter:`drop-shadow(0 0 18px rgba(201,168,76,0.5))` }} alt="Eliel" />
             <div style={{ width:'100%', maxHeight:'32vh', overflowY:'auto', marginBottom:20, textAlign:'center' }}>
               {messages.length===0 && !loading && (
                 <p style={{ color:'rgba(201,168,76,0.38)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:'italic', letterSpacing:'0.05em', margin:0, lineHeight:1.7 }}>Mitä sinulla on mielessä?</p>
@@ -203,6 +203,11 @@ export default function App() {
     localStorage.setItem('duvaan_settings', JSON.stringify(s))
   }
 
+  const AURA_COLORS  = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
+  const AURA_SHADOWS = { gold:"rgba(201,168,76,0.7)", ember:"rgba(255,107,53,0.7)", arctic:"rgba(110,180,255,0.7)", jade:"rgba(110,255,160,0.7)", amethyst:"rgba(192,110,255,0.7)", crimson:"rgba(255,64,96,0.7)" }
+  const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
+  const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
+
   if (splash) return <SplashScreen onComplete={() => setSplash(false)} />
 
   return (
@@ -217,12 +222,12 @@ export default function App() {
 
       <div style={{ position:'relative', zIndex:1, minHeight:'calc(100vh - 120px)' }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView    onNavigate={switchTab} settings={settings} />}
-        {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} />}
+        {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} settings={settings} />}
         {tab === 'community' && <CommunityView onNavigate={switchTab} />}
       </div>
 
       {settings.showClock !== false && <ClockWidget />}
-      <OrnamentNav tab={tab} switchTab={switchTab} />
+      <OrnamentNav tab={tab} switchTab={switchTab} auraColor={auraColor} auraShadow={auraShadow} />
       {tab !== 'eliel' && <FloatingEliel messages={elielMessages} setMessages={setElielMessages} settings={settings} />}
 
       {showSettings && (

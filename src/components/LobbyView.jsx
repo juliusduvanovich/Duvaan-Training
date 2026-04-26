@@ -154,31 +154,44 @@ function ElielGlow({size=260, auraColor='#C9A84C'}){
     const ctx=canvas.getContext('2d'); canvas.width=size; canvas.height=size;
     let raf;
     // Use aura color as first and last in palette
-    const COLORS=[auraColor,'#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e',auraColor];
+    const COLORS=[auraColor,'#ffffff',auraColor,'#ffffff',auraColor];
     let ci=0,ct=0;
     function lc(c1,c2,t){const p=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];const[r1,g1,b1]=p(c1),[r2,g2,b2]=p(c2);return[Math.round(r1+(r2-r1)*t),Math.round(g1+(g2-g1)*t),Math.round(b1+(b2-b1)*t)];}
-    const img=new Image(); img.src='/ElielTransparentt.png';
-    img.onload=()=>{
-      const off=document.createElement('canvas');off.width=size;off.height=size;
-      const oc=off.getContext('2d');oc.drawImage(img,0,0,size,size);
-      const d=oc.getImageData(0,0,size,size).data;
-      const edge=[];
-      for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const i=(y*size+x)*4;if(d[i+3]<20)continue;if([d[((y-1)*size+x)*4+3],d[((y+1)*size+x)*4+3],d[(y*size+x-1)*4+3],d[(y*size+x+1)*4+3]].some(n=>n<20))edge.push({x,y});}
-      if(!edge.length)return;
-      const path=[edge[0]];const used=new Set([0]);
-      for(let i=1;i<edge.length;i++){const last=path[path.length-1];let md=Infinity,mi=-1;for(let j=0;j<edge.length;j++){if(used.has(j))continue;const dx=edge[j].x-last.x,dy=edge[j].y-last.y,dd=dx*dx+dy*dy;if(dd<md){md=dd;mi=j;}}if(mi===-1||md>300)break;path.push(edge[mi]);used.add(mi);}
-      let sw=false,ss=null,ns=Date.now()+6000;
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.src='/ElielGold.png';
+    const startGlow = (edgePath) => {
+      let sw=false,ss=null,ns=Date.now()+200;
       function draw(){
         ctx.clearRect(0,0,size,size);const now=Date.now();
         if(!sw&&now>=ns){sw=true;ss=now;ci=(ci+1)%(COLORS.length-1);ct=0;}
-        if(sw){const prog=(now-ss)/1000;if(prog>=1){sw=false;ns=now+6000;}else{ct+=0.008;if(ct>=1){ct=0;ci=(ci+1)%(COLORS.length-1);}const[r,g,b]=lc(COLORS[ci],COLORS[ci+1],ct);const hi=Math.floor(prog*path.length);for(let i=0;i<55;i++){const idx=hi-i;if(idx<0)continue;const p=path[idx];if(!p)continue;const e=(1-i/55)**2;ctx.beginPath();ctx.arc(p.x,p.y,1.2+e*0.8,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${e*0.7})`;ctx.fill();}const head=path[hi];if(head){const prev=path[Math.max(0,hi-3)];if(prev){const g2=ctx.createLinearGradient(prev.x,prev.y,head.x,head.y);g2.addColorStop(0,`rgba(${r},${g},${b},0)`);g2.addColorStop(1,'rgba(255,255,255,0.95)');ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(head.x,head.y);ctx.strokeStyle=g2;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();}ctx.beginPath();ctx.arc(head.x,head.y,1.5,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.98)';ctx.fill();}}}
+        if(sw){const prog=(now-ss)/2000;if(prog>=1){sw=false;ns=now+300;}else{ct+=0.008;if(ct>=1){ct=0;ci=(ci+1)%(COLORS.length-1);}const[r,g,b]=lc(COLORS[ci],COLORS[ci+1],ct);const hi=Math.floor(prog*edgePath.length);for(let i=0;i<55;i++){const idx=hi-i;if(idx<0)continue;const p=edgePath[idx];if(!p)continue;const e=(1-i/55)**2;ctx.beginPath();ctx.arc(p.x,p.y,1.2+e*0.8,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${e*0.7})`;ctx.fill();}const head=edgePath[hi];if(head){const prev=edgePath[Math.max(0,hi-3)];if(prev){const g2=ctx.createLinearGradient(prev.x,prev.y,head.x,head.y);g2.addColorStop(0,`rgba(${r},${g},${b},0)`);g2.addColorStop(1,'rgba(255,255,255,0.95)');ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(head.x,head.y);ctx.strokeStyle=g2;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();}ctx.beginPath();ctx.arc(head.x,head.y,1.5,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.98)';ctx.fill();}}}
         raf=requestAnimationFrame(draw);
       }
       draw();
     };
+    // Fallback: circular path if image fails
+    const makeFallbackPath = () => {
+      const pts=[];const cx=size/2,cy=size/2,r=size*0.44;
+      for(let a=0;a<Math.PI*2;a+=0.015) pts.push({x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r});
+      return pts;
+    };
+    img.onerror = () => startGlow(makeFallbackPath());
+    img.onload=()=>{
+      try {
+        const off=document.createElement('canvas');off.width=size;off.height=size;
+        const oc=off.getContext('2d');oc.drawImage(img,0,0,size,size);
+        const d=oc.getImageData(0,0,size,size).data;
+        const edge=[];
+        for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const i=(y*size+x)*4;if(d[i+3]<20)continue;if([d[((y-1)*size+x)*4+3],d[((y+1)*size+x)*4+3],d[(y*size+x-1)*4+3],d[(y*size+x+1)*4+3]].some(n=>n<20))edge.push({x,y});}
+        if(!edge.length){ startGlow(makeFallbackPath()); return; }
+        const path=[edge[0]];const used=new Set([0]);
+        for(let i=1;i<edge.length;i++){const last=path[path.length-1];let md=Infinity,mi=-1;for(let j=0;j<edge.length;j++){if(used.has(j))continue;const dx=edge[j].x-last.x,dy=edge[j].y-last.y,dd=dx*dx+dy*dy;if(dd<md){md=dd;mi=j;}}if(mi===-1||md>300)break;path.push(edge[mi]);used.add(mi);}
+        startGlow(path);
+      } catch(e) { startGlow(makeFallbackPath()); }
+    };
     return()=>cancelAnimationFrame(raf);
-  },[size]);
-  return <canvas ref={canvasRef} style={{position:'absolute',top:0,left:0,width:size+'px',height:size+'px',pointerEvents:'none',zIndex:10}}/>;
+  },[size, auraColor]);  return <canvas ref={canvasRef} style={{position:'absolute',top:0,left:0,width:size+'px',height:size+'px',pointerEvents:'none',zIndex:10}}/>;
 }
 
 export default function LobbyView({ onNavigate, settings }) {
@@ -282,16 +295,13 @@ export default function LobbyView({ onNavigate, settings }) {
             transformStyle:"preserve-3d",
             position:"relative",
             marginBottom: chatOpen ? 16 : 24,
-            borderRadius:"50%",
-            boxShadow:`0 0 40px ${aura.shadow}, 0 0 80px ${aura.shadow.replace("0.8","0.2")}`,
-            transition:"box-shadow 0.6s ease",
           }}
         >
           <img
-            src="/ElielTransparentt.png"
+            src="/ElielGold.png"
             className="eliel-img"
             alt="Eliel"
-            style={{ filter:`drop-shadow(0 0 24px ${aura.color})` }}
+            style={{ filter:`drop-shadow(0 0 18px rgba(201,168,76,0.5))` }}
           />
           <ElielGlow size={260} auraColor={aura.color} />
         </div>

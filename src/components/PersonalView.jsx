@@ -215,7 +215,7 @@ function ShopSection(){
   )
 }
 
-function ProfileSection({section,setSection,onOpenSettings}){
+function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   const[editing,setEditing]=useState(false)
   const[profile,setProfile]=useState(()=>{
     try{
@@ -261,7 +261,7 @@ function ProfileSection({section,setSection,onOpenSettings}){
             <button key={t.id} className="personal-subnav-btn" onClick={()=>setSection(t.id)} style={{color:section===t.id?GOLD:'rgba(201,168,76,0.5)',borderBottom:section===t.id?`1px solid ${GOLD}`:'1px solid transparent'}}>{t.label}</button>
           ))}
         </div>
-        <button onClick={onOpenSettings} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(201,168,76,0.35)',fontSize:16,padding:'0 0 8px 12px',lineHeight:1}} title="Asetukset">⚙</button>
+        <button onClick={onOpenSettings} style={{background:'none',border:'none',cursor:'pointer',color:auraColor,fontSize:20,padding:'0 0 8px 12px',lineHeight:1,opacity:0.7,transition:'opacity 0.2s'}} title="Asetukset">⚙</button>
       </div>
       {section==='notes'&&<NotesView isClub={false}/>}
       {section==='shop'&&<ShopSection/>}
@@ -391,7 +391,9 @@ function ProfileSection({section,setSection,onOpenSettings}){
 }
 
 
-export default function PersonalView({ onOpenSettings }){
+export default function PersonalView({ onOpenSettings, settings }){
+  const AURA_COLORS = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
+  const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C"
   const saved=(()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY))}catch{return null}})()
   const[mode,setMode]=useState(saved?'program':'onboarding')
   const[program,setProgram]=useState(()=>loadProgram()||PROGRAM)
@@ -441,7 +443,7 @@ export default function PersonalView({ onOpenSettings }){
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px',animation:'fadeInUp 0.6s ease both'}}>
             <h2 style={{color:GOLD,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",animation:'todayText 8s ease-in-out infinite'}}>Personal</h2>
           </div>
-          <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings}/>
+          <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings} auraColor={auraColor}/>
           {personalSection==='training'&&(
             <div style={{display:'flex',flexDirection:'column',gap:'10px',animation:'fadeInUp 0.8s ease both'}}>
               <div style={{display:'flex',justifyContent:'flex-end',marginBottom:4}}>
