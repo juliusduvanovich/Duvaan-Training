@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
+import { AURAS } from "./SettingsView";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -72,7 +73,6 @@ const css = `
     object-fit: contain;
     display: block; pointer-events: none; user-select: none;
     animation: elielFloat 7s ease-in-out infinite;
-    filter: drop-shadow(0 0 28px rgba(201,168,76,0.5));
   }
   .lobby-msg {
     animation: msgFade 5s ease-in-out both;
@@ -86,9 +86,24 @@ const css = `
   .chat-msg {
     animation: chatMsg 0.3s ease both;
   }
-  .typing-dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:#C9A84C; margin:0 2px; animation:typingDot 1.2s ease-in-out infinite; }
-  .typing-dot:nth-child(2){animation-delay:0.2s;}
-  .typing-dot:nth-child(3){animation-delay:0.4s;}
+  @keyframes typingWave {
+    0%,60%,100% { opacity:0.15; transform:translateY(0) scale(0.8); background:#C9A84C; }
+    30%          { opacity:1;    transform:translateY(-6px) scale(1.1); }
+  }
+  @keyframes dotColor {
+    0%   { background:#C9A84C; }
+    25%  { background:#e8d5a3; }
+    50%  { background:#ff9a6e; }
+    75%  { background:#6eb4ff; }
+    100% { background:#C9A84C; }
+  }
+  .typing-dot {
+    display:inline-block; width:6px; height:6px; border-radius:50%;
+    background:#C9A84C; margin:0 3px;
+    animation: typingWave 1.4s ease-in-out infinite, dotColor 3s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2){ animation-delay:0.18s, 0.6s; }
+  .typing-dot:nth-child(3){ animation-delay:0.36s, 1.2s; }
 
   .chat-input {
     width:100%; box-sizing:border-box; background:transparent; border:none;
@@ -132,13 +147,14 @@ function useSpringTilt() {
   return {elRef,onInteract};
 }
 
-function ElielGlow({size=260}){
+function ElielGlow({size=260, auraColor='#C9A84C'}){
   const canvasRef=useRef(null);
   useEffect(()=>{
     const canvas=canvasRef.current; if(!canvas)return;
     const ctx=canvas.getContext('2d'); canvas.width=size; canvas.height=size;
     let raf;
-    const COLORS=['#C9A84C','#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e','#C9A84C'];
+    // Use aura color as first and last in palette
+    const COLORS=[auraColor,'#e8d5a3','#ff6eb4','#6eb4ff','#6effa0','#ff9a6e',auraColor];
     let ci=0,ct=0;
     function lc(c1,c2,t){const p=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];const[r1,g1,b1]=p(c1),[r2,g2,b2]=p(c2);return[Math.round(r1+(r2-r1)*t),Math.round(g1+(g2-g1)*t),Math.round(b1+(b2-b1)*t)];}
     const img=new Image(); img.src='/ElielTransparentt.png';
@@ -165,7 +181,8 @@ function ElielGlow({size=260}){
   return <canvas ref={canvasRef} style={{position:'absolute',top:0,left:0,width:size+'px',height:size+'px',pointerEvents:'none',zIndex:10}}/>;
 }
 
-export default function LobbyView({ onNavigate }) {
+export default function LobbyView({ onNavigate, settings }) {
+  const aura = AURAS.find(a => a.id === settings?.aura) || AURAS[0]
   const [chatOpen, setChatOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -221,7 +238,10 @@ export default function LobbyView({ onNavigate }) {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{
+          "Content-Type":"application/json",
+          "anthropic-dangerous-direct-browser-access":"true",
+        },
         body: JSON.stringify({
           model:"claude-sonnet-4-20250514",
           max_tokens:1000,
@@ -262,167 +282,146 @@ export default function LobbyView({ onNavigate }) {
             transformStyle:"preserve-3d",
             position:"relative",
             marginBottom: chatOpen ? 16 : 24,
+            borderRadius:"50%",
+            boxShadow:`0 0 40px ${aura.shadow}, 0 0 80px ${aura.shadow.replace("0.8","0.2")}`,
+            transition:"box-shadow 0.6s ease",
           }}
         >
           <img
             src="/ElielTransparentt.png"
             className="eliel-img"
             alt="Eliel"
+            style={{ filter:`drop-shadow(0 0 24px ${aura.color})` }}
           />
-          <ElielGlow size={260} />
+          <ElielGlow size={260} auraColor={aura.color} />
         </div>
 
-        {/* MESSAGE TEXT — below symbol, rotates */}
-        {!chatOpen && (
-          <div
-            key={msgKey}
-            className="lobby-msg"
-            style={{
-              textAlign:"center",
+        {/* ETHER SPACE — rotaatioteksti tai kirjoitus/vastaus samassa tilassa */}
+        <div style={{
+          textAlign:"center",
+          minHeight:80,
+          display:"flex",
+          flexDirection:"column",
+          alignItems:"center",
+          justifyContent:"center",
+          marginBottom:28,
+          padding:"0 8px",
+          width:"100%",
+          maxWidth:320,
+        }}>
+          {!chatOpen && (
+            <div key={msgKey} className="lobby-msg" style={{
               fontFamily:"'Cinzel',serif",
               fontSize:13,
               fontWeight:400,
               letterSpacing:"0.1em",
               lineHeight:1.7,
-              marginBottom:28,
-              minHeight:24,
-              padding:"0 8px",
-            }}
-          >
-            {renderBubbleText()}
-          </div>
-        )}
+            }}>
+              {renderBubbleText()}
+            </div>
+          )}
 
-        {/* TAP TO TALK — shown when chat closed */}
+          {chatOpen && messages.length === 0 && !loading && (
+            <p style={{
+              fontFamily:"'Cormorant Garamond',serif",
+              fontSize:15,
+              fontStyle:"italic",
+              color:"rgba(201,168,76,0.45)",
+              letterSpacing:"0.06em",
+              lineHeight:1.8,
+              margin:0,
+              animation:"chatFadeIn 0.5s ease both",
+            }}>
+              ...
+            </p>
+          )}
+
+          {chatOpen && loading && (
+            <div style={{display:"flex",justifyContent:"center",gap:4}}>
+              <span className="typing-dot"/><span className="typing-dot"/><span className="typing-dot"/>
+            </div>
+          )}
+
+          {chatOpen && messages.length > 0 && !loading && (
+            <div style={{width:"100%"}}>
+              {/* show only last exchange */}
+              {messages.slice(-2).map((m,i) => (
+                <p key={i} className="chat-msg" style={{
+                  margin: i===0 ? 0 : "10px 0 0",
+                  fontFamily:"'Cormorant Garamond',serif",
+                  fontSize: m.role==="user" ? 13 : 15,
+                  fontStyle: m.role==="assistant" ? "italic" : "normal",
+                  color: m.role==="user" ? "rgba(201,168,76,0.35)" : "rgba(255,255,255,0.75)",
+                  textAlign: "center",
+                  lineHeight:1.75,
+                  letterSpacing: m.role==="assistant" ? "0.02em" : "0.06em",
+                }}>
+                  {m.content}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* INPUT — näkymätön pohja, aktivoituu tap to talkista */}
         {!chatOpen && (
           <button
             className="tap-pulse"
-            onClick={() => setChatOpen(true)}
+            onClick={() => { setChatOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
             style={{
-              background:"none",
-              border:"none",
-              outline:"none",
-              boxShadow:"none",
-              WebkitAppearance:"none",
-              borderRadius:0,
-              padding:"8px 28px",
-              cursor:"pointer",
-              fontFamily:"'Cinzel',serif",
-              fontSize:10,
-              fontWeight:600,
-              letterSpacing:"0.22em",
+              background:"none", border:"none", outline:"none",
+              boxShadow:"none", WebkitAppearance:"none",
+              padding:"8px 28px", cursor:"pointer",
+              fontFamily:"'Cinzel',serif", fontSize:10,
+              fontWeight:600, letterSpacing:"0.22em",
               textTransform:"uppercase",
-              color:"rgba(201,168,76,0.55)",
+              color:"rgba(201,168,76,0.45)",
             }}
           >
             Tap to Talk
           </button>
         )}
 
-        {/* CHAT PANEL — slides in when open */}
         {chatOpen && (
-          <div
-            className="chat-panel"
-            style={{
-              width:"100%",
-              maxWidth:360,
-              background:"rgba(107,29,46,0.13)",
-              border:"0.5px solid rgba(201,168,76,0.18)",
-              borderRadius:18,
-              padding:"16px 18px 14px",
-              backdropFilter:"blur(16px)",
-            }}
-          >
-            {/* Messages */}
-            <div style={{maxHeight:200, overflowY:"auto", marginBottom:4}}>
-              {messages.length === 0 && (
-                <p style={{
-                  margin:0,
-                  fontFamily:"'Cormorant Garamond',serif",
-                  fontSize:14,
-                  fontStyle:"italic",
-                  color:"rgba(201,168,76,0.6)",
-                  textAlign:"center",
-                  letterSpacing:"0.04em",
-                  lineHeight:1.7,
-                }}>
-                  Mitä sinulla on mielessä?
-                </p>
-              )}
-              {messages.map((m,i) => (
-                <p
-                  key={i}
-                  className="chat-msg"
-                  style={{
-                    margin:"6px 0 0",
-                    fontFamily:"'Cormorant Garamond',serif",
-                    fontSize: m.role==="user" ? 13 : 14,
-                    fontStyle: m.role==="assistant" ? "italic" : "normal",
-                    color: m.role==="user" ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.72)",
-                    textAlign: m.role==="user" ? "right" : "left",
-                    lineHeight:1.7,
-                    letterSpacing:"0.03em",
-                  }}
-                >
-                  {m.content}
-                </p>
-              ))}
-              {loading && (
-                <div style={{marginTop:10,display:"flex",justifyContent:"flex-start"}}>
-                  <span className="typing-dot"/><span className="typing-dot"/><span className="typing-dot"/>
-                </div>
-              )}
-              <div ref={msgsEndRef}/>
-            </div>
-
-            {/* Input row */}
-            <div style={{display:"flex",alignItems:"flex-end",gap:10}}>
-              <textarea
-                ref={inputRef}
-                className="chat-input"
-                value={message}
-                onChange={e=>setMessage(e.target.value)}
-                placeholder="Kirjoita Elielille..."
-                rows={2}
-                style={{flex:1}}
-                onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();}}}
-              />
-              <button
-                onClick={handleSend}
-                style={{
-                  width:32, height:32, flexShrink:0,
-                  background: loading ? "rgba(42,42,42,0.5)" : BURGUNDY,
-                  border:"none", borderRadius:"50%",
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  cursor: loading?"default":"pointer",
-                  marginBottom:4,
-                  transition:"background 0.2s",
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 14 14">
-                  <path d="M2 12L12 7L2 2V5.8L8 7L2 8.2V12Z" fill="#C9A84C"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Close link */}
-            <div style={{textAlign:"center",marginTop:10}}>
-              <button
-                onClick={()=>{setChatOpen(false);setMessages([]);}}
-                style={{
-                  background:"none",border:"none",
-                  fontFamily:"'Cinzel',serif",fontSize:9,
-                  letterSpacing:"0.18em",
-                  color:"rgba(201,168,76,0.25)",
-                  cursor:"pointer",
-                  textTransform:"uppercase",
-                }}
-              >
-                Sulje
-              </button>
-            </div>
+          <div style={{
+            width:"100%", maxWidth:320,
+            display:"flex", flexDirection:"column", alignItems:"center",
+          }}>
+            <textarea
+              ref={inputRef}
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              placeholder=""
+              rows={2}
+              onKeyDown={e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
+              style={{
+                width:"100%", boxSizing:"border-box",
+                background:"transparent", border:"none",
+                borderBottom:"0.5px solid rgba(201,168,76,0.15)",
+                color:"rgba(201,168,76,0.9)",
+                fontFamily:"'Cormorant Garamond',serif",
+                fontSize:18, fontStyle:"italic", fontWeight:500,
+                letterSpacing:"0.04em", lineHeight:1.7,
+                textAlign:"center",
+                outline:"none", resize:"none",
+                padding:"8px 0",
+              }}
+            />
+            <button
+              onClick={() => { setChatOpen(false); setMessages([]); setMessage(""); }}
+              style={{
+                background:"none", border:"none", cursor:"pointer",
+                color:"rgba(201,168,76,0.18)",
+                fontFamily:"'Cinzel',serif", fontSize:9,
+                letterSpacing:"0.18em", textTransform:"uppercase",
+                marginTop:12, padding:"4px 0",
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
+
       </div>
     </>
   );
