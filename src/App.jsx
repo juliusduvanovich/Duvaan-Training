@@ -207,8 +207,8 @@ export default function App() {
   }
 
   const bgImage = useMemo(() => settings.bgImage, [settings.bgImage])
-  const AURA_COLORS  = { gold:"#C9A84C", ember:"#FF6B35", arctic:"#6EB4FF", jade:"#6EFFA0", amethyst:"#C06EFF", crimson:"#FF4060" }
-  const AURA_SHADOWS = { gold:"rgba(201,168,76,0.7)", ember:"rgba(255,107,53,0.7)", arctic:"rgba(110,180,255,0.7)", jade:"rgba(110,255,160,0.7)", amethyst:"rgba(192,110,255,0.7)", crimson:"rgba(255,64,96,0.7)" }
+  const AURA_COLORS  = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
+  const AURA_SHADOWS = { red:"rgba(255,51,51,0.7)", orange:"rgba(255,140,0,0.7)", gold:"rgba(201,168,76,0.7)", green:"rgba(68,204,119,0.7)", lightblue:"rgba(85,204,255,0.7)", indigo:"rgba(68,85,204,0.7)", purple:"rgba(153,51,204,0.7)", white:"rgba(220,220,255,0.8)" }
   const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
   const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
 

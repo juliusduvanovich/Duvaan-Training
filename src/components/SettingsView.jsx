@@ -27,12 +27,17 @@ export const ELIEL_TIER_GLOW = {
 
 // Aura unlock requirements
 export const AURAS = [
-  { id:"gold",     name:"Gold",     color:"#C9A84C", shadow:"rgba(201,168,76,0.8)",  desc:"Viisaus · Luottamus",   unlockedAt:'member'        },
-  { id:"arctic",   name:"Arctic",   color:"#6EB4FF", shadow:"rgba(110,180,255,0.8)", desc:"Rauha · Selkeys",       unlockedAt:'member'        },
-  { id:"ember",    name:"Ember",    color:"#FF6B35", shadow:"rgba(255,107,53,0.8)",  desc:"Energia · Intohimo",    unlockedAt:'member'        },
-  { id:"jade",     name:"Jade",     color:"#6EFFA0", shadow:"rgba(110,255,160,0.8)", desc:"Kasvu · Tasapaino",     unlockedAt:'builder'       },
-  { id:"amethyst", name:"Amethyst", color:"#C06EFF", shadow:"rgba(192,110,255,0.8)", desc:"Mystiikka · Luovuus",   unlockedAt:'builder'       },
-  { id:"crimson",  name:"Crimson",  color:"#FF4060", shadow:"rgba(255,64,96,0.8)",   desc:"Voima · Intensiteetti", unlockedAt:'masterbuilder' },
+  // Member tier — lower chakras
+  { id:"red",      name:"Red",      color:"#FF3333", shadow:"rgba(255,51,51,0.8)",   desc:"Voima · Elämänvoima",   unlockedAt:'member'  },
+  { id:"orange",   name:"Orange",   color:"#FF8C00", shadow:"rgba(255,140,0,0.8)",   desc:"Energia · Luovuus",     unlockedAt:'member'  },
+  { id:"gold",     name:"Gold",     color:"#C9A84C", shadow:"rgba(201,168,76,0.8)",  desc:"Viisaus · Luottamus",   unlockedAt:'member'  },
+  // Builder tier — heart + throat
+  { id:"green",    name:"Green",    color:"#44CC77", shadow:"rgba(68,204,119,0.8)",  desc:"Kasvu · Tasapaino",     unlockedAt:'builder' },
+  { id:"lightblue",name:"Sky",      color:"#55CCFF", shadow:"rgba(85,204,255,0.8)",  desc:"Ilmaisu · Selkeys",     unlockedAt:'builder' },
+  // MasterBuilder tier — upper chakras
+  { id:"indigo",   name:"Indigo",   color:"#4455CC", shadow:"rgba(68,85,204,0.8)",   desc:"Intuitio · Näkemys",    unlockedAt:'masterbuilder' },
+  { id:"purple",   name:"Purple",   color:"#9933CC", shadow:"rgba(153,51,204,0.8)",  desc:"Mystiikka · Tietoisuus",unlockedAt:'masterbuilder' },
+  { id:"white",    name:"White",    color:"#E8E8FF", shadow:"rgba(220,220,255,0.9)", desc:"Puhtaus · Universaali", unlockedAt:'masterbuilder' },
 ];
 
 const TIER_LABELS = { member:'Member', builder:'Builder', masterbuilder:'MasterBuilder' }
@@ -205,31 +210,40 @@ export default function SettingsView({ onClose, settings, onSave }) {
                 {userTier === 'member' ? '◈ Hopea — Member' : userTier === 'builder' ? '✦ Kulta — Builder' : '✸ Timantti — MasterBuilder'}
               </p>
 
-              <div style={{ display:"flex", gap:5 }}>
-                {AURAS.map(a => {
-                  const locked = !isUnlocked(a.unlockedAt)
-                  return (
-                    <button key={a.id}
-                      className={`aura-btn ${local.aura===a.id?"selected":""}`}
-                      onClick={() => !locked && set("aura", a.id)}
-                      style={{
-                        border: local.aura===a.id ? `1.5px solid ${a.color}` : "1.5px solid rgba(201,168,76,0.08)",
-                        opacity: locked ? 0.35 : 1,
-                        cursor: locked ? "default" : "pointer",
-                        position:"relative",
-                      }}
-                    >
-                      <div className="aura-orb" style={{ background:`radial-gradient(circle at 35% 35%, ${a.color}, ${a.color}55)`, boxShadow:local.aura===a.id?`0 0 12px ${a.shadow}`:"none", filter:locked?"grayscale(1)":"none" }}/>
-                      <span style={{ color:local.aura===a.id?a.color:"rgba(201,168,76,0.45)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{a.name}</span>
-                      {locked && (
-                        <span style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:7, letterSpacing:"0.08em", textAlign:"center", lineHeight:1.2 }}>
-                          🔒 {TIER_LABELS[a.unlockedAt]}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
+              {/* Auras — bottom to top, grouped by tier */}
+              {['masterbuilder','builder','member'].map(tierKey => {
+                const tierAuras = [...AURAS].reverse().filter(a => a.unlockedAt === tierKey)
+                const tierLabel = { member:'Member', builder:'Builder', masterbuilder:'MasterBuilder' }[tierKey]
+                const tierColor = { member:'rgba(201,168,76,0.35)', builder:'rgba(68,204,119,0.35)', masterbuilder:'rgba(153,51,204,0.35)' }[tierKey]
+                return (
+                  <div key={tierKey} style={{ marginBottom:12 }}>
+                    <p style={{ color:tierColor, fontFamily:"'Cinzel',serif", fontSize:7, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 8px", paddingLeft:4 }}>{tierLabel}</p>
+                    <div style={{ display:"flex", gap:6 }}>
+                      {tierAuras.map(a => {
+                        const locked = !isUnlocked(a.unlockedAt)
+                        return (
+                          <button key={a.id}
+                            className={`aura-btn ${local.aura===a.id?"selected":""}`}
+                            onClick={() => !locked && set("aura", a.id)}
+                            style={{
+                              border: local.aura===a.id ? `1.5px solid ${a.color}` : "1.5px solid rgba(201,168,76,0.08)",
+                              opacity: locked ? 0.3 : 1,
+                              cursor: locked ? "default" : "pointer",
+                            }}
+                          >
+                            <div className="aura-orb" style={{ background:`radial-gradient(circle at 35% 35%, ${a.color}, ${a.color}44)`, boxShadow:local.aura===a.id?`0 0 14px ${a.shadow}`:"none", filter:locked?"grayscale(1)":"none" }}/>
+                            <span style={{ color:local.aura===a.id?a.color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.08em" }}>{a.name}</span>
+                            {locked
+                              ? <span style={{ color:"rgba(201,168,76,0.3)", fontSize:8 }}>🔒</span>
+                              : <span style={{ color:"rgba(201,168,76,0.3)", fontFamily:"'Cormorant Garamond',serif", fontSize:10, fontStyle:"italic", textAlign:"center", lineHeight:1.3 }}>{a.desc.split('·')[0].trim()}</span>
+                            }
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
             {/* ── PIKAKOMENOT ── */}
