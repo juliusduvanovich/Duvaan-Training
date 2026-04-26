@@ -242,7 +242,11 @@ function ShopSection(){
             ))}
           </div>
           {tier.btn&&(
-            <button style={{width:'100%',padding:'13px 0',background:tier.btnGold?GOLD:'rgba(107,29,46,0.5)',border:tier.btnGold?'none':`1.5px solid ${tier.color}`,borderRadius:13,color:tier.btnGold?'#080808':tier.color,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer'}}>{tier.btn}</button>
+            <button onClick={() => {
+              const pts = { 'Aktivoi Member': 0, 'Aktivoi Builder': 1000, 'Aktivoi Creator': 5000 }
+              localStorage.setItem('duvaan_frequency', String(pts[tier.btn] ?? 0))
+              window.location.reload()
+            }} style={{width:'100%',padding:'13px 0',background:tier.btnGold?GOLD:'rgba(107,29,46,0.5)',border:tier.btnGold?'none':`1.5px solid ${tier.color}`,borderRadius:13,color:tier.btnGold?'#080808':tier.color,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer'}}>{tier.btn}</button>
           )}
         </div>
       ))}
@@ -277,7 +281,8 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   const[myClubs,setMyClubs]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]')}catch{return[]}})
   const photoInputRef=useRef(null)
 
-  const toggleTag=tag=>setForm(f=>({...f,tags:f.tags.includes(tag)?f.tags.filter(t=>t!==tag):[...f.tags,tag]}))
+  // DEV: temp creator button - remove later
+  const setCreator = () => { localStorage.setItem('duvaan_frequency','5000'); window.location.reload(); }
 
   const handlePhoto=e=>{
     const file=e.target.files?.[0]
