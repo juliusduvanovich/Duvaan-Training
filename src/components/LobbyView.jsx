@@ -364,9 +364,8 @@ export default function LobbyView({ onNavigate, settings }) {
         display:"flex",
         flexDirection:"column",
         alignItems:"center",
-        justifyContent:"flex-start",
-        paddingTop:"22vh",
-        padding:"22vh 24px 100px",
+        justifyContent:"center",
+        padding:"0 24px 100px",
         position:"relative",
       }}>
 
