@@ -5,6 +5,7 @@ import LobbyView from './components/LobbyView'
 import PersonalView from './components/PersonalView'
 import CommunityView from './components/CommunityView'
 import SettingsView from './components/SettingsView'
+import SacredGeometry from './components/SacredGeometry'
 import { getUserTier, ELIEL_TIER_FILTERS } from './components/SettingsView'
 
 const ELIEL_SYSTEM = `You are Eliel — the resident guide of the Duvaan world.
@@ -53,17 +54,86 @@ const css = `
 function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
   const tabs   = ['personal','eliel','community']
   const labels = ['Personal','Eliel','Community']
+  const activeIdx = tabs.indexOf(tab)
+  const hotspotPct = 50
+
   return (
-    <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:'480px', background:'linear-gradient(to bottom,rgba(60,8,16,0.97),rgba(30,4,8,0.99))', backdropFilter:'blur(12px)', borderTop:`2px solid ${auraColor}`, boxShadow:`0 -2px 16px ${auraShadow}, 0 -6px 32px ${auraShadow.replace('0.7','0.2')}`, zIndex:100, display:'flex', justifyContent:'space-around', alignItems:'center', padding:'12px 16px 32px', transition:'border-color 0.4s, box-shadow 0.4s' }}>
-      {tabs.map((t,i) => {
-        const active = tab === t
-        return (
-          <button key={t} onClick={() => switchTab(t)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:6, flex:1, transform:active?'scale(1.12)':'scale(1)', transition:'transform 0.25s ease' }}>
-            <div style={{ width:active?6:3, height:active?6:3, borderRadius:'50%', background:active?auraColor:'rgba(201,168,76,0.35)', boxShadow:active?`0 0 10px ${auraShadow}`:'none', transition:'all 0.25s' }}/>
-            <span style={{ fontFamily:"'Cinzel',serif", fontSize:active?14:11, fontWeight:active?700:400, letterSpacing:'0.16em', textTransform:'uppercase', color:active?auraColor:'rgba(201,168,76,0.45)', textShadow:active?`0 0 12px ${auraShadow}`:'none', transition:'all 0.3s' }}>{labels[i]}</span>
-          </button>
-        )
-      })}
+    <div style={{
+      position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)',
+      width:'100%', maxWidth:'480px',
+      background:'linear-gradient(to bottom, rgba(20,4,10,0.0) 0%, rgba(20,4,10,0.85) 18%, rgba(15,3,8,0.97) 50%)',
+      backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
+      zIndex:100, display:'flex', flexDirection:'column',
+    }}>
+      <svg style={{ display:'block', width:'100%', height:10, overflow:'visible', flexShrink:0 }} viewBox="0 0 100 10" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="dockBaseGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stopColor="#C9A84C" stopOpacity="0"/>
+            <stop offset="12%"  stopColor="#C9A84C" stopOpacity="0.45"/>
+            <stop offset="50%"  stopColor="#C9A84C" stopOpacity="0.6"/>
+            <stop offset="88%"  stopColor="#C9A84C" stopOpacity="0.45"/>
+            <stop offset="100%" stopColor="#C9A84C" stopOpacity="0"/>
+          </linearGradient>
+          <radialGradient id="dockHotspot" cx="50%" cy="100%" r="25%" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stopColor={auraColor} stopOpacity="1"/>
+            <stop offset="60%"  stopColor={auraColor} stopOpacity="0.4"/>
+            <stop offset="100%" stopColor={auraColor} stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+        <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockBaseGrad)" strokeWidth="1.5" strokeLinecap="butt"/>
+        <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockHotspot)" strokeWidth="3"
+          style={{ filter:`drop-shadow(0 0 6px ${auraColor})` }}
+          strokeLinecap="butt"/>
+      </svg>
+
+      <div style={{ position:'relative', height:60, overflow:'hidden' }}>
+        {tabs.map((t, i) => {
+          // offset relative to active: -1, 0, +1
+          // use modulo so it wraps: e.g. if active=community(2), personal(0) gets offset +1 (right)
+          let offset = i - activeIdx
+          // Wrap to -1, 0, +1 range
+          if (offset > 1)  offset -= 3
+          if (offset < -1) offset += 3
+
+          const active = offset === 0
+          // center=50%, left=16.67%, right=83.33%
+          const xPct = 50 + offset * 33.33
+
+          return (
+            <button
+              key={t}
+              onClick={() => switchTab(t)}
+              style={{
+                position:'absolute',
+                left:`${xPct}%`,
+                top:6,
+                transform:'translateX(-50%)',
+                transition:'left 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease',
+                background:'none', border:'none', cursor:'pointer',
+                display:'flex', flexDirection:'column', alignItems:'center', gap:6,
+                opacity: active ? 1 : 0.45,
+                whiteSpace:'nowrap',
+                paddingBottom:32,
+              }}
+            >
+              <div style={{
+                width:active?6:3, height:active?6:3, borderRadius:'50%',
+                background:active?auraColor:'rgba(201,168,76,0.35)',
+                boxShadow:active?`0 0 10px ${auraShadow}`:'none',
+                transition:'all 0.3s',
+              }}/>
+              <span style={{
+                fontFamily:"'Cinzel',serif",
+                fontSize:active?14:11, fontWeight:active?700:400,
+                letterSpacing:'0.16em', textTransform:'uppercase',
+                color:active?auraColor:'rgba(201,168,76,0.45)',
+                textShadow:active?`0 0 12px ${auraShadow}`:'none',
+                transition:'all 0.3s',
+              }}>{labels[i]}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -84,9 +154,9 @@ function PortalOverlay({ children }) {
 }
 
 function FloatingEliel({ messages, setMessages, settings }) {
-  const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
+  const AURA_COLORS  = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
   const AURA_SHADOWS = { red:"rgba(255,51,51,0.7)", orange:"rgba(255,140,0,0.7)", gold:"rgba(201,168,76,0.7)", green:"rgba(68,204,119,0.7)", lightblue:"rgba(85,204,255,0.7)", indigo:"rgba(68,85,204,0.7)", purple:"rgba(153,51,204,0.7)", white:"rgba(220,220,255,0.8)" }
-  const auraColor  = AURA_COLORS[settings?.aura] || "#C9A84C"
+  const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
   const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
   const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
   const elielFilter = ELIEL_TIER_FILTERS[getUserTier(points)]
@@ -229,7 +299,9 @@ export default function App() {
     localStorage.setItem('duvaan_settings', JSON.stringify(s))
   }
 
-  const bgImage = settings.bgImage
+  // Read bgImage from its own key
+  const bgImage = (() => { try { return localStorage.getItem('duvaan_bg_image') || settings.bgImage || null } catch { return null } })()
+
   const AURA_COLORS  = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
   const AURA_SHADOWS = { red:"rgba(255,51,51,0.7)", orange:"rgba(255,140,0,0.7)", gold:"rgba(201,168,76,0.7)", green:"rgba(68,204,119,0.7)", lightblue:"rgba(85,204,255,0.7)", indigo:"rgba(68,85,204,0.7)", purple:"rgba(153,51,204,0.7)", white:"rgba(220,220,255,0.8)" }
   const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
@@ -243,23 +315,19 @@ export default function App() {
       <img
         src={bgImage}
         style={{
-          position:'fixed',
-          top:0, left:0,
+          position:'fixed', top:0, left:0,
           width:'100%', height:'100%',
-          objectFit:'cover',
-          objectPosition:'center',
-          opacity:0.18,
-          pointerEvents:'none',
-          zIndex:0,
-          willChange:'auto',
-          transform:'translateZ(0)',
+          objectFit:'cover', objectPosition:'center',
+          opacity:0.18, pointerEvents:'none',
+          zIndex:0, willChange:'auto', transform:'translateZ(0)',
         }}
         alt=""
       />
     )}
     <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1 }}>
       <style>{css}</style>
-      <div style={{ position:'relative', zIndex:1, minHeight:'calc(100vh - 120px)' }} className={exitClass || enterClass}>
+      <SacredGeometry auraColor={auraColor} />
+      <div style={{ position:'relative', zIndex:2, minHeight:'calc(100vh - 120px)', paddingBottom:'110px' }} className={exitClass || enterClass}>
         {tab === 'eliel'     && <LobbyView    onNavigate={switchTab} settings={settings} />}
         {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} settings={settings} />}
         {tab === 'community' && <CommunityView onNavigate={switchTab} settings={settings} />}
@@ -267,7 +335,6 @@ export default function App() {
       <OrnamentNav tab={tab} switchTab={switchTab} auraColor={auraColor} auraShadow={auraShadow} />
     </div>
 
-    {/* Fixed overlays via portal — immune to transform stacking context */}
     {tab !== 'eliel' && createPortal(
       <FloatingEliel messages={elielMessages} setMessages={setElielMessages} settings={settings} />,
       document.body
