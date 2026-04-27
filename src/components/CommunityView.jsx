@@ -1,23 +1,21 @@
 import { useState, useRef } from "react";
 import ScrollPicker, { TimePicker } from "./ScrollPicker";
 import ClubView, { TIER_LIMITS } from "./ClubView";
+import SliderNav from "./SliderNav";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
 
 // ─── WATER BUTTON ────────────────────────────────────────────────────────────
 function WaterButton({ children, onClick, style, auraColor = "#C9A84C" }) {
-  const [phase, setPhase] = useState('idle'); // idle | down | up
+  const [phase, setPhase] = useState('idle');
   const [showRipple, setShowRipple] = useState(false);
 
   const handlePress = () => {
     if (phase !== 'idle') return;
-    // Sink down
     setPhase('down');
     setShowRipple(true);
-    // Rise back up
     setTimeout(() => setPhase('up'), 200);
-    // Return to idle + navigate
     setTimeout(() => {
       setPhase('idle');
       setShowRipple(false);
@@ -43,8 +41,6 @@ function WaterButton({ children, onClick, style, auraColor = "#C9A84C" }) {
       >
         {children}
       </button>
-
-      {/* Ripple — expands from button border outward */}
       {showRipple && (
         <span style={{
           position: 'absolute',
@@ -72,6 +68,10 @@ const css = `
     0% { color:#C9A84C; } 25% { color:#e8d5a3; }
     50% { color:#ff6eb4; } 75% { color:#6eb4ff; } 100% { color:#C9A84C; }
   }
+  @keyframes titleGlow {
+    0%,100% { opacity:1; filter:brightness(1); }
+    50%     { opacity:0.85; filter:brightness(1.35); }
+  }
   @keyframes breatheBtn {
     0%,100% { transform:translateY(0) scale(1); }
     50%     { transform:translateY(-3px) scale(1.012); }
@@ -85,19 +85,6 @@ const css = `
     to   { opacity:1; transform:translateY(0); }
   }
 
-  .community-tab {
-    background: none; border: none; cursor: pointer;
-    padding: 8px 0; flex: 1; text-align: center;
-    font-family: 'Cinzel', serif; font-size: 9px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: rgba(201,168,76,0.55);
-    border-bottom: 1px solid transparent;
-    transition: all 0.3s;
-  }
-  .community-tab.active {
-    color: #C9A84C;
-    border-bottom: 1px solid #C9A84C;
-  }
   .post-card {
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(201,168,76,0.45);
@@ -186,25 +173,57 @@ const MOCK_SERVICES = {
   14: [ { id:10, name:"Bisnes-mentoring", desc:"1h strateginen sparrailu kokeneen yrittäjän kanssa", duration:"60 min", price:120, spots:1, spotsLeft:1, category:"Business" } ],
 };
 
-// Duvaan on aina ensimmäinen, vakio
-const DUVAAN_CLUB = { id:1, name:'Duvaan', desc:'Yhteisö, musiikki, gastronomia — sisäpiiri.', tags:['Music','Art','Philosophy'], members:1840, active:true, duvaan:true };
+const DUVAAN_CLUB = { id:1, name:'Duvaan', desc:'Yhteisö, musiikki, gastronomia — sisäpiiri.', tags:['Music','Art','Philosophy'], members:1840, active:true, duvaan:true, tier:'member' };
 
 const MOCK_PUBLIC_CLUBS = [
   DUVAAN_CLUB,
-  { id:10, name:'Helsinki Runners', desc:'Kaupunkilenkit ja juoksuhaasteet', tags:['Running','Sports','Wellness'], members:142, active:true },
-  { id:11, name:'Sound & Soul', desc:'Musiikki, luovuus ja yhteistyö', tags:['Music','Art','Philosophy'], members:89, active:false },
-  { id:12, name:'Good Food Club', desc:'Gastronomia, reseptit ja pop-upit', tags:['Gastronomy','Travel','Business'], members:214, active:true },
-  { id:13, name:'Mind & Body', desc:'Mindfulness, meditaatio ja hyvinvointi', tags:['Mindfulness','Wellness','Nutrition'], members:67, active:false },
-  { id:14, name:'Builders', desc:'Yrittäjät, rakentajat ja unelmoijat', tags:['Business','Technology','Finance'], members:301, active:true },
-  { id:15, name:'Visual Art Collective', desc:'Taide, valokuvaus ja estetiikka', tags:['Art','Fashion','Film'], members:55, active:false },
+  { id:10, name:'Helsinki Runners', desc:'Kaupunkilenkit ja juoksuhaasteet', tags:['Running','Sports','Wellness'], members:142, active:true, tier:'member' },
+  { id:11, name:'Sound & Soul', desc:'Musiikki, luovuus ja yhteistyö', tags:['Music','Art','Philosophy'], members:89, active:false, tier:'member' },
+  { id:12, name:'Good Food Club', desc:'Gastronomia, reseptit ja pop-upit', tags:['Gastronomy','Travel','Business'], members:214, active:true, tier:'builder' },
+  { id:13, name:'Mind & Body', desc:'Mindfulness, meditaatio ja hyvinvointi', tags:['Mindfulness','Wellness','Nutrition'], members:67, active:false, tier:'member' },
+  { id:14, name:'Builders', desc:'Yrittäjät, rakentajat ja unelmoijat', tags:['Business','Technology','Finance'], members:301, active:true, tier:'builder' },
+  { id:15, name:'Visual Art Collective', desc:'Taide, valokuvaus ja estetiikka', tags:['Art','Fashion','Film'], members:55, active:false, tier:'member' },
+  { id:16, name:'Finance Club', desc:'Sijoittaminen, vapaus, varallisuuden rakentaminen — vain Creator-jäsenille.', tags:['Finance','Business','Technology'], members:38, active:true, tier:'creator' },
 ];
 
-const SECTIONS = ['Private', 'Clubs', 'Events'];
+const CLUB_TIER_STYLES = {
+  member: {
+    boxBg: 'linear-gradient(135deg,rgba(40,50,80,0.55) 0%,rgba(8,6,14,0.95) 60%,rgba(120,40,40,0.25) 100%)',
+    borderColor: '#A0B4DC',
+    innerGlow: 'rgba(160,180,220,0.12)',
+    color: '#A0B4DC',
+    icon: '◈',
+    master: false,
+  },
+  builder: {
+    boxBg: 'linear-gradient(135deg,rgba(60,40,10,0.6) 0%,rgba(8,4,6,0.95) 60%,rgba(40,60,100,0.2) 100%)',
+    borderColor: '#C9A84C',
+    innerGlow: 'rgba(201,168,76,0.1)',
+    color: '#C9A84C',
+    icon: '✦',
+    master: false,
+  },
+  creator: {
+    boxBg: 'linear-gradient(135deg,rgba(45,15,85,0.92) 0%,rgba(28,8,65,0.95) 40%,rgba(55,18,95,0.88) 70%,rgba(35,10,70,0.93) 100%)',
+    borderColor: '#AA88DF',
+    innerGlow: 'rgba(120,70,200,0.35)',
+    color: '#C4A8E8',
+    icon: '✸',
+    master: true,
+  },
+};
+
+const SECTION_TABS = [
+  { id: 0, label: 'Private' },
+  { id: 1, label: 'Clubs' },
+  { id: 2, label: 'Events' },
+];
 
 export default function CommunityView({ onNavigate, settings }) {
   const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
   const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C"
   const [section, setSection] = useState(1);
+
   return (
     <>
       <style>{css}</style>
@@ -212,27 +231,23 @@ export default function CommunityView({ onNavigate, settings }) {
         <div style={{ padding:"48px 24px 0", animation:"fadeInUp 0.6s ease both" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"24px" }}>
             <div>
-              <h2 style={{ color:GOLD, fontSize:"22px", fontWeight:700, letterSpacing:"0.1em", margin:0, animation:"todayText 8s ease-in-out infinite" }}>Community</h2>
+              <h2 style={{ color:auraColor, fontSize:"22px", fontWeight:700, letterSpacing:"0.1em", margin:0, fontFamily:"'Cinzel',serif", textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`, animation:"titleGlow 4s ease-in-out infinite" }}>Community</h2>
               <p style={{ color:"#C9A84C", fontSize:"10px", letterSpacing:"0.14em", margin:"4px 0 0", textTransform:"uppercase" }}>
                 {new Date().toLocaleDateString('fi-FI', { weekday:'long', day:'numeric', month:'long' })}
               </p>
             </div>
           </div>
-          <div style={{ display:"flex", borderBottom:`0.5px solid ${auraColor}22` }}>
-            {SECTIONS.map((s,i) => (
-              <button key={i}
-                className="community-tab"
-                onClick={() => setSection(i)}
-                style={{
-                  color: section===i ? auraColor : 'rgba(201,168,76,0.45)',
-                  borderBottom: section===i ? `1px solid ${auraColor}` : '1px solid transparent',
-                  textShadow: section===i ? `0 0 10px ${auraColor}55` : 'none',
-                  transition:'all 0.25s',
-                }}
-              >{s}</button>
-            ))}
-          </div>
+
+          {/* ── SLIDER NAV replaces community-tab buttons ── */}
+          <SliderNav
+            tabs={SECTION_TABS}
+            active={section}
+            onChange={setSection}
+            auraColor={auraColor}
+          />
         </div>
+
+        <div style={{ height: 4 }} />
 
         {section === 0 && <Private auraColor={auraColor} />}
         {section === 1 && <PublicClubs auraColor={auraColor} />}
@@ -249,7 +264,7 @@ function Private({ auraColor = "#C9A84C" }) {
   const limits = TIER_LIMITS[userTier]
 
   const [clubs, setClubs] = useState(() => { try { return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]') } catch { return [] } });
-  const [view, setView] = useState('list'); // list | create
+  const [view, setView] = useState('list');
   const [openClub, setOpenClub] = useState(null);
   const [form, setForm] = useState({ name:'', desc:'', location:'', isPublic:false, tags:[], maxMembers:limits.maxMembers });
   const [created, setCreated] = useState(false);
@@ -292,7 +307,6 @@ function Private({ auraColor = "#C9A84C" }) {
     setOpenClub(null);
   };
 
-  // Open club view
   if (openClub) return (
     <ClubView
       club={openClub}
@@ -311,7 +325,6 @@ function Private({ auraColor = "#C9A84C" }) {
         {userTier==='member'?'Member: 1 klubi, max 10 jäsentä':userTier==='builder'?'Builder: 3 klubia, max 50 jäsentä':'Creator: 10 klubia, max 1500 jäsentä'}
       </p>
 
-      {/* Photo */}
       <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
         <div onClick={() => photoRef.current?.click()} style={{ width:56, height:56, borderRadius:'50%', border:'1.5px dashed rgba(201,168,76,0.3)', overflow:'hidden', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
           {form.photo ? <img src={form.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'rgba(201,168,76,0.3)', fontSize:22 }}>+</span>}
@@ -331,7 +344,6 @@ function Private({ auraColor = "#C9A84C" }) {
         </div>
       ))}
 
-      {/* Public/Private — only builder+ */}
       {limits.canPublic && (
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
           <div>
@@ -344,11 +356,10 @@ function Private({ auraColor = "#C9A84C" }) {
         </div>
       )}
 
-      {/* Tags */}
       <div style={{ marginBottom:20 }}>
         <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 10px" }}>Tagit</p>
         <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-          {['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion'].map(tag => {
+          {ALL_TAGS.map(tag => {
             const sel=form.tags.includes(tag);
             return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.15)':'rgba(255,255,255,0.02)', border:`1px solid ${sel?GOLD:'rgba(201,168,76,0.15)'}`, borderRadius:20, padding:'5px 12px', cursor:'pointer', color:sel?GOLD:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em', transition:'all 0.15s' }}>{tag}</button>;
           })}
@@ -367,7 +378,6 @@ function Private({ auraColor = "#C9A84C" }) {
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      {/* Tier info */}
       <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.1)', borderRadius:10, padding:'10px 14px', marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <span style={{ color:'rgba(201,168,76,0.5)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic' }}>{clubs.length}/{limits.maxClubs} klubia luotu</span>
         {!canCreate && <span style={{ color:'rgba(255,140,0,0.7)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em' }}>Päivitä tasoa</span>}
@@ -391,11 +401,11 @@ function Private({ auraColor = "#C9A84C" }) {
                 </div>
                 <div style={{ flex:1 }}>
                   <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em", margin:'0 0 2px' }}>{club.name}</p>
-                  <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>{club.members?.length||1} jäsentä · {club.isPublic?'Julkinen':'Yksityinen'}</p>
+                  <p style={{ color:'rgba(201,168,76,0.65)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:0 }}>{club.members?.length||1} jäsentä · {club.isPublic?'Julkinen':'Yksityinen'}</p>
                 </div>
                 <span style={{ color:'rgba(201,168,76,0.3)', fontSize:16 }}>›</span>
               </div>
-              {club.desc && <p style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 8px" }}>{club.desc}</p>}
+              {club.desc && <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:"0 0 8px" }}>{club.desc}</p>}
               {club.tags?.length>0 && (
                 <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                   {club.tags.slice(0,4).map(t => <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.2)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8 }}>{t}</span>)}
@@ -466,13 +476,13 @@ function ClubServiceView({ club, services, onBack, onPurchase }) {
               <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em" }}>{service.name}</span>
               <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700 }}>{service.price}€</span>
             </div>
-            <p style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 10px" }}>{service.desc}</p>
+            <p style={{ color:"rgba(201,168,76,0.85)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:"0 0 10px" }}>{service.desc}</p>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div style={{ display:"flex", gap:8 }}>
-                <span style={{ color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:9, background:"rgba(201,168,76,0.08)", padding:"3px 10px", borderRadius:20 }}>{service.duration}</span>
-                <span style={{ color:service.spotsLeft<3?"#ff9a6e":"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:9, background:"rgba(201,168,76,0.08)", padding:"3px 10px", borderRadius:20 }}>{service.spotsLeft} paikkaa</span>
+                <span style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:11, background:"rgba(201,168,76,0.08)", padding:"4px 12px", borderRadius:20 }}>{service.duration}</span>
+                <span style={{ color:service.spotsLeft<3?"#ff9a6e":"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:11, background:"rgba(201,168,76,0.08)", padding:"4px 12px", borderRadius:20 }}>{service.spotsLeft} paikkaa</span>
               </div>
-              {selected?.id===service.id && <span style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:9 }}>✓ Valittu</span>}
+              {selected?.id===service.id && <span style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:11 }}>✓ Valittu</span>}
             </div>
           </div>
         ))}
@@ -507,7 +517,7 @@ function LocationPicker({ location, setLocation }) {
   );
 }
 
-function PublicClubs() {
+function PublicClubs({ auraColor = "#C9A84C" }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState(null);
@@ -533,7 +543,6 @@ function PublicClubs() {
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-
       {purchasedService && (
         <div style={{ background:"rgba(110,255,160,0.05)", border:"1px solid rgba(110,255,160,0.25)", borderRadius:14, padding:"12px 16px", marginBottom:14, display:"flex", gap:10, alignItems:"center" }}>
           <span style={{ fontSize:16 }}>✓</span>
@@ -544,7 +553,6 @@ function PublicClubs() {
         </div>
       )}
 
-      {/* Search toggle button */}
       <button
         onClick={() => setSearchOpen(o => !o)}
         style={{
@@ -562,7 +570,6 @@ function PublicClubs() {
         <span style={{ fontSize:12, opacity:0.6, transition:"transform 0.2s", transform: searchOpen ? "rotate(180deg)" : "none" }}>↓</span>
       </button>
 
-      {/* Search panel */}
       {searchOpen && (
         <div className="search-panel" style={{
           background:"rgba(255,255,255,0.02)",
@@ -597,36 +604,49 @@ function PublicClubs() {
         </div>
       )}
 
-      {/* Club list */}
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {filtered.map(club => (
-          <div key={club.id} className={`club-card ${club.duvaan?'duvaan':''}`}>
+        {filtered.map(club => {
+          const ts = CLUB_TIER_STYLES[club.tier] || CLUB_TIER_STYLES.member;
+          return (
+          <div key={club.id} style={{
+            background: ts.boxBg,
+            border: `1.5px solid ${ts.borderColor}`,
+            boxShadow: `0 0 24px ${ts.innerGlow}, inset 0 0 32px ${ts.innerGlow}`,
+            borderRadius: 18, padding: '16px 18px',
+            position: 'relative', overflow: 'hidden',
+            animation: ts.master ? 'breatheBtn 5s ease-in-out infinite' : 'breatheBtn 6s ease-in-out infinite',
+          }}>
+            {/* Top shimmer */}
+            <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${ts.borderColor},transparent)`, pointerEvents:'none' }}/>
+            {/* Creator rainbow overlay */}
+            {ts.master && <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)', pointerEvents:'none' }}/>}
+
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:club.duvaan?15:13, fontWeight:700, letterSpacing:"0.06em" }}>{club.name}</span>
-                {club.active && <span style={{ fontSize:8, color:"#6effa0" }}>● LIVE</span>}
-                {club.duvaan && <span style={{ fontSize:9, color:"#6eb4ff" }}>✦</span>}
+                <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:club.duvaan?17:15, fontWeight:700, letterSpacing:"0.06em" }}>{club.name}</span>
+                {club.active && <span style={{ fontSize:9, color:"#6effa0", fontWeight:600 }}>● LIVE</span>}
+                {club.duvaan && <span style={{ fontSize:10, color:"#6eb4ff" }}>✦</span>}
               </div>
-              <span style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cinzel',serif", fontSize:9 }}>{club.members.toLocaleString()} jäsentä</span>
+              <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, opacity:0.75 }}>{club.members.toLocaleString()} jäsentä</span>
             </div>
-            <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 10px", lineHeight:1.5 }}>{club.desc}</p>
+            <p style={{ color:"rgba(201,168,76,0.85)", fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5 }}>{club.desc}</p>
             <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
               {club.tags.map(t => (
-                <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.3)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
+                <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}55`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
               ))}
             </div>
             <div style={{ display:"flex", gap:8 }}>
-              <button style={{ background:"rgba(107,29,46,0.3)", border:"1px solid rgba(201,168,76,0.3)", borderRadius:20, padding:"7px 16px", cursor:"pointer", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
+              <button style={{ background:"rgba(107,29,46,0.3)", border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"7px 16px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
                 {club.duvaan ? 'Jäsenyydet' : 'Liity'}
               </button>
               {MOCK_SERVICES[club.id] && (
-                <button onClick={() => setSelectedClub(club)} style={{ background:"rgba(201,168,76,0.08)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:20, padding:"7px 18px", cursor:"pointer", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
+                <button onClick={() => setSelectedClub(club)} style={{ background:`${ts.borderColor}18`, border:`1.5px solid ${ts.borderColor}88`, borderRadius:20, padding:"7px 18px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
                   Palvelut →
                 </button>
               )}
             </div>
           </div>
-        ))}
+        )})}
         {filtered.length === 0 && (
           <p style={{ color:"rgba(201,168,76,0.45)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", textAlign:"center", marginTop:20 }}>Ei tuloksia — kokeile eri hakua.</p>
         )}
@@ -637,9 +657,11 @@ function PublicClubs() {
 
 // ─── EVENTS ─────────────────────────────────────────────────────────────────
 const MOCK_EVENTS = [
-  { id:1, name:'Duvaan Live — Helsinki', desc:'Eksklusiivinen keikka Duvaan-jäsenille.', date:'2025-05-15', time:'20:00', location:'Tavastia, Helsinki', capacity:300, attending:187, free:false, price:'15€', tags:['Music'], type:'public', dresscode:'Dark & elegant', deadline:'2025-05-10', host:'Duvaan', verified:true },
-  { id:2, name:'Helsinki Runners — 10km', desc:'Yhteinen kaupunkilenkki. Kaikki tasot tervetulleita.', date:'2025-05-08', time:'07:00', location:'Esplanadi, Helsinki', capacity:50, attending:23, free:true, price:null, tags:['Running','Sports'], type:'public', dresscode:null, deadline:'2025-05-07', host:'Helsinki Runners', verified:false },
-  { id:3, name:'Mind & Body — Jooga & Aamiainen', desc:'Aamu-jooga + terveellinen aamiainen yhteisön kanssa.', date:'2025-05-10', time:'08:30', location:'Studio Flow, Helsinki', capacity:20, attending:14, free:false, price:'22€', tags:['Mindfulness','Wellness'], type:'public', dresscode:null, deadline:'2025-05-09', host:'Mind & Body', verified:false },
+  { id:1, name:'Duvaan Live — Helsinki', desc:'Eksklusiivinen keikka Duvaan-jäsenille.', date:'2025-05-15', time:'20:00', location:'Tavastia, Helsinki', capacity:300, attending:187, free:false, price:'15€', tags:['Music'], type:'public', dresscode:'Dark & elegant', deadline:'2025-05-10', host:'Duvaan', verified:true, tier:'member' },
+  { id:2, name:'Helsinki Runners — 10km', desc:'Yhteinen kaupunkilenkki. Kaikki tasot tervetulleita.', date:'2025-05-08', time:'07:00', location:'Esplanadi, Helsinki', capacity:50, attending:23, free:true, price:null, tags:['Running','Sports'], type:'public', dresscode:null, deadline:'2025-05-07', host:'Helsinki Runners', verified:false, tier:'member' },
+  { id:3, name:'Mind & Body — Jooga & Aamiainen', desc:'Aamu-jooga + terveellinen aamiainen yhteisön kanssa.', date:'2025-05-10', time:'08:30', location:'Studio Flow, Helsinki', capacity:20, attending:14, free:false, price:'22€', tags:['Mindfulness','Wellness'], type:'public', dresscode:null, deadline:'2025-05-09', host:'Mind & Body', verified:false, tier:'member' },
+  { id:4, name:'Builder Meetup — Helsinki', desc:'Verkostoidu, sparraa, rakenna. Builder-tason tapaaminen.', date:'2025-05-22', time:'18:00', location:'Maria 01, Helsinki', capacity:40, attending:18, free:false, price:'9€', tags:['Business','Technology'], type:'public', dresscode:'Smart casual', deadline:'2025-05-20', host:'Builders', verified:true, tier:'builder' },
+  { id:5, name:'Finance Club — Private Dinner', desc:'Eksklusiivinen illallinen ja sijoituskeskustelu. Vain Creator-jäsenille.', date:'2025-05-28', time:'19:00', location:'Palace Restaurant, Helsinki', capacity:12, attending:7, free:false, price:'85€', tags:['Finance','Business'], type:'private', dresscode:'Black tie optional', deadline:'2025-05-25', host:'Finance Club', verified:true, tier:'creator' },
 ];
 
 function PricePicker({ value, onChange }) {
@@ -777,27 +799,39 @@ function Events({ auraColor = "#C9A84C" }) {
           const spotsLeft = ev.capacity ? ev.capacity - ev.attending : null;
           const full = spotsLeft !== null && spotsLeft <= 0;
           const dateStr = new Date(ev.date).toLocaleDateString('fi-FI', { weekday:'short', day:'numeric', month:'long' });
+          const ts = CLUB_TIER_STYLES[ev.tier] || CLUB_TIER_STYLES.member;
           return (
-            <div key={ev.id} className="club-card">
+            <div key={ev.id} style={{
+              background: ts.boxBg,
+              border: `1.5px solid ${ts.borderColor}`,
+              boxShadow: `0 0 24px ${ts.innerGlow}, inset 0 0 32px ${ts.innerGlow}`,
+              borderRadius: 18, padding: '16px 18px',
+              position: 'relative', overflow: 'hidden',
+            }}>
+              {/* Top shimmer */}
+              <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${ts.borderColor},transparent)`, pointerEvents:'none' }}/>
+              {/* Creator rainbow overlay */}
+              {ts.master && <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)', pointerEvents:'none' }}/>}
+
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                 <div>
-                  <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700, letterSpacing:"0.06em" }}>{ev.name}</span>
-                  {ev.verified && <span style={{ color:"#6eb4ff", fontSize:10, marginLeft:6 }}>✦</span>}
+                  <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:"0.06em" }}>{ev.name}</span>
+                  {ev.verified && <span style={{ color:"#6eb4ff", fontSize:11, marginLeft:6 }}>✦</span>}
                 </div>
-                <span style={{ color:ev.free?"#6effa0":GOLD, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600 }}>{ev.free?'Ilmainen':ev.price}</span>
+                <span style={{ color:ev.free?"#6effa0":ts.color, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700 }}>{ev.free?'Ilmainen':ev.price}</span>
               </div>
-              {ev.desc && <p style={{ color:"rgba(201,168,76,0.75)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 10px", lineHeight:1.5 }}>{ev.desc}</p>}
+              {ev.desc && <p style={{ color:"rgba(201,168,76,0.85)", fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5 }}>{ev.desc}</p>}
               <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:10 }}>
-                <span style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13 }}>📅 {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
-                <span style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:13 }}>📍 {ev.location}</span>
-                {ev.dresscode && <span style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic" }}>👔 {ev.dresscode}</span>}
+                <span style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500 }}>📅 {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
+                <span style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500 }}>📍 {ev.location}</span>
+                {ev.dresscode && <span style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic" }}>👔 {ev.dresscode}</span>}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
-                {ev.tags.map(t => <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.3)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>)}
+                {ev.tags.map(t => <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}55`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>)}
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                {spotsLeft!==null && <span style={{ color:full?"#ff6eb4":"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.1em" }}>{full?'Täynnä':`${spotsLeft} paikkaa jäljellä`}</span>}
-                <button disabled={full} style={{ background:full?"rgba(255,255,255,0.03)":BURGUNDY, border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"8px 20px", cursor:full?"default":"pointer", color:full?"rgba(201,168,76,0.35)":GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", opacity:full?0.5:1 }}>
+                {spotsLeft!==null && <span style={{ color:full?"#ff6eb4":ts.color, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.08em", fontWeight:600, opacity:0.8 }}>{full?'Täynnä':`${spotsLeft} paikkaa jäljellä`}</span>}
+                <button disabled={full} style={{ background:full?"rgba(255,255,255,0.03)":BURGUNDY, border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"8px 20px", cursor:full?"default":"pointer", color:full?"rgba(201,168,76,0.35)":ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", opacity:full?0.5:1 }}>
                   {full?'Täynnä':'Ilmoittaudu'}
                 </button>
               </div>

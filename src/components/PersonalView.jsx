@@ -3,13 +3,13 @@ import ScrollPicker from "./ScrollPicker";
 import NotesView from "./NotesView";
 import { ELIEL_TIER_FILTERS } from "./SettingsView";
 import ToolboxView, { ChestButton } from "./ToolboxView";
+import SliderNav from "./SliderNav";
 
 const TIER_ELIEL_FILTER = {
   member:        ELIEL_TIER_FILTERS.member,
   builder:       ELIEL_TIER_FILTERS.builder,
   creator: ELIEL_TIER_FILTERS.creator,
 }
-// Map FREQ_LEVELS tier names to filter keys
 const TIER_NAME_MAP = {
   'Member':        'member',
   'Builder':       'builder',
@@ -64,8 +64,6 @@ const PROGRAM = [
   {day:6,name:'Sunnuntai',focus:'Rest',exercises:[],rest:true},
 ]
 
-
-
 const PERSONAL_TAGS=['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion']
 const STEPS=[
   {eliel:"Kerrotko ensin hiukan itsestäsi?"},
@@ -89,6 +87,7 @@ const css=`
   @keyframes todayBg{0%{background:rgba(107,29,46,0.35)}25%{background:rgba(80,60,10,0.3)}50%{background:rgba(80,20,60,0.3)}75%{background:rgba(20,50,90,0.3)}100%{background:rgba(107,29,46,0.35)}}
   @keyframes todayText{0%{color:#C9A84C}25%{color:#e8d5a3}50%{color:#ff6eb4}75%{color:#6eb4ff}100%{color:#C9A84C}}
   @keyframes masterGlow{0%,100%{box-shadow:0 0 24px rgba(255,229,160,0.2)}50%{box-shadow:0 0 48px rgba(255,229,160,0.4)}}
+  @keyframes titleGlow{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:0.85;filter:brightness(1.3)}}
   .option-btn{background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:14px 16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-align:center;animation:breatheBtn 4s ease-in-out infinite;will-change:transform}
   .option-btn.selected{background:#C9A84C;border:2px solid rgba(201,168,76,0.95);box-shadow:0 0 20px #C9A84C;animation:btnLiquid 5s ease-in-out infinite}
   .day-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;color:#C9A84C;font-family:'Cinzel',serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;animation:breatheBtn 4s ease-in-out infinite;will-change:transform}
@@ -108,9 +107,6 @@ const css=`
   .day-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
   .exercise-row{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #C9A84C}
   .edit-input{background:rgba(255,255,255,0.03);border:1px solid #C9A84C;border-radius:8px;padding:6px 10px;color:#C9A84C;font-family:'Cormorant Garamond',serif;font-size:13px;outline:none}
-  .personal-subnav{display:flex;border-bottom:0.5px solid rgba(201,168,76,0.2);margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
-  .personal-subnav::-webkit-scrollbar{display:none}
-  .personal-subnav-btn{background:none;border:none;cursor:pointer;padding:6px 16px 10px 0;font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid transparent;transition:all 0.3s;flex-shrink:0}
 `
 
 const FREQ_LEVELS = [
@@ -126,9 +122,9 @@ const FREQ_LEVELS = [
     min:1000, max:4999, price:'9€/kk',  master:false, btnGold:false,
     features:[['Eliel Enhanced','Muistaa historian, tekee proaktiivisia ehdotuksia'],['Health Dashboard','Uni, makrot, HRV — kaikki yhdessä näkymässä'],['Luo eventtejä','Rakenna tapahtumia, kasvata yhteisöä'],['Builder-klubit','3 klubia · max 50 jäsentä per klubi'],['Edistymisdata','Syvempi analyysi treeneistä ja kehityksestä']],
     btn:'Aktivoi Builder' },
-  { name:'Creator', icon:'✸', color:'#DCF0FF', borderColor:'#C8B8FF',
-    boxBg:'linear-gradient(135deg,rgba(80,40,140,0.5) 0%,rgba(40,10,80,0.9) 40%,rgba(100,60,160,0.4) 70%,rgba(60,40,120,0.6) 100%)',
-    innerGlow:'rgba(153,51,204,0.18)',
+  { name:'Creator', icon:'✸', color:'#C4A8E8', borderColor:'#AA88DF',
+    boxBg:'linear-gradient(135deg,rgba(45,15,85,0.92) 0%,rgba(28,8,65,0.95) 40%,rgba(55,18,95,0.88) 70%,rgba(35,10,70,0.93) 100%)',
+    innerGlow:'rgba(120,70,200,0.35)',
     min:5000, max:null, price:'16€/kk', master:true,  btnGold:true,
     features:[['Eliel Master','Viikoittaiset yhteenvedot, patternien tunnistus, täysi muisti'],['Creator-klubit','10 klubia · max 1500 jäsentä per klubi'],['Early Access','Uudet Duvaan-julkaisut ennen kaikkia muita'],['Suora yhteys tiimiin','Palautekanava — sinun äänesi rakentaa tuotetta'],['Duvaan Wrapped','Vuosittainen personoitu tarina kasvustasi'],['Sovereign Events','Eksklusiiviset tapahtumat — digitaaliset ja fyysiset']],
     btn:'Aktivoi Creator' },
@@ -154,6 +150,66 @@ function useSpringTilt(){
 function SpringBtn({children,className,onClick,disabled,style}){
   const{ref,bounce}=useSpringScale()
   return <button ref={ref} className={className} disabled={disabled} style={{...style,transformOrigin:'center'}} onClick={(e)=>{if(!disabled){bounce();onClick?.(e)}}}>{children}</button>
+}
+
+function ClubPennant({ name, color = "#C9A84C" }) {
+  // Pennant: rectangle body with triangular notch cut from right side
+  const h = 28
+  const textPad = 12
+  // Measure text width roughly: ~7px per char at fontSize 9 + padding
+  const textW = Math.max(name.length * 6.5 + textPad * 2, 48)
+  const totalW = textW + 10 // extra for the pointed tail
+  const notchDepth = 9 // how deep the V-notch cuts in from right
+
+  // Shape: top-left → top-right → notch point → bottom-right → bottom-left
+  const points = [
+    [0, 0],
+    [totalW - notchDepth, 0],
+    [totalW, h / 2],
+    [totalW - notchDepth, h],
+    [0, h],
+  ].map(([x,y]) => `${x},${y}`).join(' ')
+
+  return (
+    <svg
+      width={totalW}
+      height={h}
+      viewBox={`0 0 ${totalW} ${h}`}
+      style={{ display:'block', filter:`drop-shadow(0 0 4px ${color}55)` }}
+    >
+      <defs>
+        <linearGradient id={`pennant-${name.replace(/\s/g,'')}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.18"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0.06"/>
+        </linearGradient>
+      </defs>
+      {/* Fill */}
+      <polygon
+        points={points}
+        fill={`url(#pennant-${name.replace(/\s/g,'')})`}
+        stroke={color}
+        strokeWidth="1"
+        strokeOpacity="0.55"
+      />
+      {/* Left anchor line */}
+      <line x1="0" y1="0" x2="0" y2={h} stroke={color} strokeWidth="1.5" strokeOpacity="0.8"/>
+      {/* Text */}
+      <text
+        x={textW / 2}
+        y={h / 2 + 1}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill={color}
+        fillOpacity="0.85"
+        fontFamily="'Cinzel', serif"
+        fontSize="8.5"
+        fontWeight="600"
+        letterSpacing="0.08em"
+      >
+        {name.toUpperCase()}
+      </text>
+    </svg>
+  )
 }
 
 function FrequencyCard(){
@@ -204,10 +260,8 @@ function ShopSection(){
           position:'relative', overflow:'hidden',
           animation: tier.master ? 'masterGlow 4s ease-in-out infinite' : undefined,
         }}>
-          {/* Top shimmer line */}
           <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
-          {/* Creator rainbow fade overlay */}
-          {tier.master && <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(255,51,51,0.35) 0%, rgba(255,140,0,0.28) 14%, rgba(201,168,76,0.22) 28%, rgba(68,204,119,0.2) 42%, rgba(85,204,255,0.22) 56%, rgba(68,85,204,0.2) 68%, rgba(153,51,204,0.3) 80%, rgba(220,200,255,0.25) 92%, rgba(255,248,220,0.3) 100%)',pointerEvents:'none'}}/>}
+          {tier.master && <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)',pointerEvents:'none'}}/>}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
             <div>
               {tier.master&&<p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:7,letterSpacing:'0.24em',textTransform:'uppercase',margin:'0 0 3px',opacity:0.7}}>Duvaan</p>}
@@ -268,7 +322,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   const[editing,setEditing]=useState(false)
   const[profile,setProfile]=useState(()=>{
     try{
-      // try both keys for backwards compat
       return JSON.parse(localStorage.getItem('duvaan_user_profile')||'null')
         || JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')
     }catch{return null}
@@ -280,9 +333,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   const progress=nextTier?Math.min(100,((points-tier.min)/(nextTier.min-tier.min))*100):100
   const[myClubs,setMyClubs]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]')}catch{return[]}})
   const photoInputRef=useRef(null)
-
-  // DEV: temp creator button - remove later
-  const setCreator = () => { localStorage.setItem('duvaan_frequency','5000'); window.location.reload(); }
 
   const handlePhoto=e=>{
     const file=e.target.files?.[0]
@@ -299,33 +349,57 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
     setEditing(false)
   }
 
-  const tabs=[{id:'profile',label:'Profiili'},{id:'training',label:'Gym'},{id:'shop',label:'Shop'}]
+  const toggleTag = tag => setForm(f => ({ ...f, tags: (f.tags||[]).includes(tag) ? (f.tags||[]).filter(t=>t!==tag) : [...(f.tags||[]),tag] }))
+
+  // ── Tab definitions
+  const tabs = [
+    { id: 'profile', label: 'Profiili' },
+    { id: 'training', label: 'Gym' },
+    { id: 'shop', label: 'Shop' },
+  ]
+
   const displayName=profile?.name||''
   const displayPhoto=profile?.photo||null
 
   return(
     <div style={{marginBottom:28,animation:'fadeInUp 0.5s ease both'}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:0}}>
-        <div className="personal-subnav" style={{marginBottom:0,flex:1}}>
-          {tabs.map(t=>(
-            <button key={t.id} className="personal-subnav-btn" onClick={()=>setSection(t.id)} style={{color:section===t.id?auraColor:'rgba(201,168,76,0.45)',borderBottom:section===t.id?`1px solid ${auraColor}`:'1px solid transparent',textShadow:section===t.id?`0 0 10px ${auraColor}55`:'none',transition:'all 0.25s'}}>{t.label}</button>
-          ))}
-        </div>
-        <button onClick={onOpenSettings} style={{background:'none',border:'none',cursor:'pointer',color:auraColor,fontSize:20,padding:'0 0 8px 12px',lineHeight:1,opacity:0.7,transition:'opacity 0.2s'}} title="Asetukset">⚙</button>
-      </div>
+      {/* ── SLIDER NAV replaces personal-subnav ── */}
+      <SliderNav
+        tabs={tabs}
+        active={section}
+        onChange={setSection}
+        auraColor={auraColor}
+        rightSlot={
+          <button
+            onClick={onOpenSettings}
+            style={{background:'none',border:'none',cursor:'pointer',color:auraColor,fontSize:20,lineHeight:1,opacity:0.7,transition:'opacity 0.2s'}}
+            title="Asetukset"
+          >⚙</button>
+        }
+      />
+
+      <div style={{height:20}}/>
+
       {section==='notes'&&<NotesView isClub={false}/>}
       {section==='shop'&&<ShopSection/>}
       {section==='profile'&&(
         <div>
-          {/* ── UNIFIED PROFILE CARD ── */}
           {!editing&&(
-            <div style={{background:tier.master?'linear-gradient(135deg,rgba(107,29,46,0.5) 0%,rgba(20,14,6,0.95) 50%,rgba(80,60,10,0.3) 100%)':'rgba(255,255,255,0.02)',border:`1px solid ${tier.color}`,borderRadius:18,padding:'20px 18px',marginBottom:16,position:'relative',overflow:'hidden'}}>
-              {tier.master&&<div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.color},transparent)`}}/>}
+            <div style={{
+              background: tier.boxBg,
+              border: `1.5px solid ${tier.borderColor}`,
+              boxShadow: `0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,
+              borderRadius:18, padding:'20px 18px', marginBottom:16,
+              position:'relative', overflow:'hidden',
+              animation: tier.master ? 'masterGlow 4s ease-in-out infinite' : undefined,
+            }}>
+              {/* Top shimmer line */}
+              <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
+              {/* Creator rainbow overlay */}
+              {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)',pointerEvents:'none'}}/>}
 
-              {/* Top row: avatar + name + edit */}
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
                 <div style={{display:'flex',alignItems:'center',gap:14}}>
-                  {/* Avatar */}
                   <div style={{width:54,height:54,borderRadius:'50%',border:`1.5px solid ${tier.color}`,flexShrink:0,overflow:'hidden',background:'linear-gradient(135deg,#6B1D2E,#C9A84C)',display:'flex',alignItems:'center',justifyContent:'center'}}>
                     {displayPhoto
                       ?<img src={displayPhoto} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
@@ -343,7 +417,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
                 <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'none',border:'1px solid rgba(201,168,76,0.25)',borderRadius:8,padding:'5px 12px',color:'rgba(201,168,76,0.5)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.1em',cursor:'pointer',flexShrink:0}}>Muokkaa</button>
               </div>
 
-              {/* Frequency */}
               <div style={{marginBottom:14}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}}>
                   <span style={{color:'rgba(201,168,76,0.4)',fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase'}}>Frequency</span>
@@ -361,20 +434,18 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
                 </div>
               </div>
 
-              {/* Clubs */}
               <div style={{borderTop:'0.5px solid rgba(201,168,76,0.1)',paddingTop:12}}>
-                <p style={{color:'rgba(201,168,76,0.35)',fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 8px'}}>Klubit</p>
+                <p style={{color:'rgba(201,168,76,0.35)',fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 10px'}}>Klubit</p>
                 {myClubs.length>0
-                  ?<div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                  ?<div style={{display:'flex',flexWrap:'wrap',gap:8}}>
                     {myClubs.map(c=>(
-                      <span key={c.id} style={{background:'rgba(201,168,76,0.07)',border:'0.5px solid rgba(201,168,76,0.2)',borderRadius:20,padding:'4px 12px',color:'rgba(201,168,76,0.65)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.08em'}}>{c.name}</span>
+                      <ClubPennant key={c.id} name={c.name} color={tier.color}/>
                     ))}
                   </div>
                   :<p style={{color:'rgba(201,168,76,0.3)',fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic',margin:0}}>Ei klubeja vielä — liity Community-osiossa.</p>
                 }
               </div>
 
-              {/* No profile prompt */}
               {!profile&&(
                 <div style={{borderTop:'0.5px solid rgba(201,168,76,0.1)',paddingTop:12,marginTop:12,textAlign:'center'}}>
                   <button onClick={()=>{setForm({name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:BURGUNDY,border:'1px solid rgba(201,168,76,0.4)',borderRadius:10,padding:'9px 20px',color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Luo profiili</button>
@@ -383,12 +454,9 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
             </div>
           )}
 
-          {/* ── EDIT FORM ── */}
           {editing&&(
             <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(201,168,76,0.4)',borderRadius:14,padding:'18px 16px',marginBottom:16}}>
               <div style={{display:'flex',flexDirection:'column',gap:14}}>
-
-                {/* Photo upload */}
                 <div style={{display:'flex',alignItems:'center',gap:14}}>
                   <div
                     onClick={()=>photoInputRef.current?.click()}
@@ -500,7 +568,7 @@ export default function PersonalView({ onOpenSettings, settings }){
         <style>{css}</style>
         <div style={{minHeight:'100vh',padding:'48px 24px 100px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px',animation:'fadeInUp 0.6s ease both'}}>
-            <h2 style={{color:GOLD,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",animation:'todayText 8s ease-in-out infinite'}}>Personal</h2>
+            <h2 style={{color:auraColor,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`,animation:'titleGlow 4s ease-in-out infinite'}}>Personal</h2>
           </div>
           <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings} auraColor={auraColor}/>
 
@@ -566,7 +634,6 @@ export default function PersonalView({ onOpenSettings, settings }){
               })}
             </div>
           )}
-          {/* Toolbox chest button — bottom center */}
           <div style={{display:'flex',justifyContent:'center',paddingTop:24,paddingBottom:8}}>
             <ChestButton onOpen={()=>setShowToolbox(true)}/>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -27,20 +27,22 @@ export const ELIEL_TIER_GLOW = {
 
 // Aura unlock requirements
 export const AURAS = [
-  // Member tier — lower chakras
   { id:"red",      name:"Red",      color:"#FF3333", shadow:"rgba(255,51,51,0.8)",   desc:"Voima · Elämänvoima",   unlockedAt:'member'  },
   { id:"orange",   name:"Orange",   color:"#FF8C00", shadow:"rgba(255,140,0,0.8)",   desc:"Energia · Luovuus",     unlockedAt:'member'  },
   { id:"gold",     name:"Gold",     color:"#C9A84C", shadow:"rgba(201,168,76,0.8)",  desc:"Viisaus · Luottamus",   unlockedAt:'member'  },
-  // Builder tier — heart + throat
   { id:"green",    name:"Green",    color:"#44CC77", shadow:"rgba(68,204,119,0.8)",  desc:"Kasvu · Tasapaino",     unlockedAt:'builder' },
   { id:"lightblue",name:"Sky",      color:"#55CCFF", shadow:"rgba(85,204,255,0.8)",  desc:"Ilmaisu · Selkeys",     unlockedAt:'builder' },
-  // Creator tier — upper chakras
   { id:"indigo",   name:"Indigo",   color:"#4455CC", shadow:"rgba(68,85,204,0.8)",   desc:"Intuitio · Näkemys",    unlockedAt:'creator' },
   { id:"purple",   name:"Purple",   color:"#9933CC", shadow:"rgba(153,51,204,0.8)",  desc:"Mystiikka · Tietoisuus",unlockedAt:'creator' },
   { id:"white",    name:"White",    color:"#E8E8FF", shadow:"rgba(220,220,255,0.9)", desc:"Puhtaus · Universaali", unlockedAt:'creator' },
 ];
 
-const TIER_LABELS = { member:'Member', builder:'Builder', creator:'Creator' }
+// Export tier filter keys for use in other components
+export const ELIEL_TIER_FILTER_KEYS = {
+  member: 'member',
+  builder: 'builder',
+  creator: 'creator',
+}
 
 const NOTIF_ITEMS = [
   { key:"notifFrequency",  label:"Frequency-muistutus",        sub:"Muistuttaa jos treenistreak on vaarassa" },
@@ -106,36 +108,70 @@ function RowLabel({ title, sub }) {
 }
 
 export default function SettingsView({ onClose, settings, onSave }) {
-  const [local, setLocal] = useState({ ...settings });
+  // Load bgImage from its own key on init
+  const initBgImage = (() => {
+    try { return localStorage.getItem('duvaan_bg_image') || settings?.bgImage || null } catch { return null }
+  })()
+
+  const [local, setLocal] = useState({ ...settings, bgImage: initBgImage });
   const bgRef = useRef(null);
   const set = (key, val) => setLocal(s => ({ ...s, [key]:val }));
 
-  // Get current user tier
   const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
   const userTier = getUserTier(points)
   const tierOrder = ['member','builder','creator']
   const isUnlocked = (requiredTier) => tierOrder.indexOf(userTier) >= tierOrder.indexOf(requiredTier)
 
-  const handleBgPhoto = e => {
-    const file = e.target.files?.[0]; if(!file) return;
-    // Compress to max 800px wide before saving as base64
+  const compressImage = (file, maxPx, quality, callback) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
-      const MAX = 800;
-      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
       canvas.width  = Math.round(img.width  * ratio);
       canvas.height = Math.round(img.height * ratio);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const compressed = canvas.toDataURL('image/jpeg', 0.7);
-      set("bgImage", compressed);
+      callback(canvas.toDataURL('image/jpeg', quality));
     };
     img.src = url;
   };
 
-  const handleSave = () => { onSave(local); onClose(); };
+  const handleBgPhoto = e => {
+    const file = e.target.files?.[0]; if(!file) return;
+
+    const tryStore = (dataUrl) => {
+      try {
+        localStorage.setItem('duvaan_bg_image', dataUrl);
+        set("bgImage", dataUrl);
+        return true;
+      } catch { return false; }
+    };
+
+    // Try 600px @ 0.6 first
+    compressImage(file, 600, 0.6, (data600) => {
+      if (tryStore(data600)) return;
+      // Too big — try 400px @ 0.5
+      compressImage(file, 400, 0.5, (data400) => {
+        if (tryStore(data400)) return;
+        alert('Kuva on liian suuri. Kokeile pienempää kuvaa.');
+      });
+    });
+  };
+
+  const handleClearBg = () => {
+    try { localStorage.removeItem('duvaan_bg_image'); } catch {}
+    set("bgImage", null);
+  };
+
+  const handleSave = () => {
+    // Save bgImage separately — don't include in settings JSON to avoid bloat
+    const settingsToSave = { ...local };
+    delete settingsToSave.bgImage; // stored in duvaan_bg_image key instead
+    onSave(settingsToSave);
+    onClose();
+  };
+
   const aura = AURAS.find(a => a.id === local.aura) || AURAS[0];
 
   return (
@@ -168,14 +204,14 @@ export default function SettingsView({ onClose, settings, onSave }) {
               <SecTitle>Ulkoasu</SecTitle>
 
               <div className="s-row">
-                <RowLabel title="Taustakuva" sub={local.bgImage ? "Kuva asetettu" : "Ei taustakuvaa"} />
+                <RowLabel title="Taustakuva" sub={local.bgImage ? "✓ Kuva asetettu" : "Ei taustakuvaa"} />
                 <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                   {local.bgImage && (
                     <>
-                      <div style={{ width:32, height:32, borderRadius:7, overflow:"hidden", border:"1px solid rgba(201,168,76,0.25)" }}>
+                      <div style={{ width:36, height:36, borderRadius:8, overflow:"hidden", border:"1px solid rgba(201,168,76,0.35)", flexShrink:0 }}>
                         <img src={local.bgImage} style={{ width:"100%", height:"100%", objectFit:"cover" }} alt="" />
                       </div>
-                      <button onClick={() => set("bgImage", null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.3)", fontSize:18, lineHeight:1 }}>×</button>
+                      <button onClick={handleClearBg} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.3)", fontSize:18, lineHeight:1 }}>×</button>
                     </>
                   )}
                   <button onClick={() => bgRef.current?.click()} style={{ background:"none", border:"1px solid rgba(201,168,76,0.25)", borderRadius:8, padding:"6px 12px", color:"rgba(201,168,76,0.55)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", cursor:"pointer" }}>
@@ -198,26 +234,22 @@ export default function SettingsView({ onClose, settings, onSave }) {
                 Eliel loistaa valitsemassasi sävyssä. Aura ei muuta hänen persoonaansa — vain sen miten hän näyttäytyy sinulle.
               </p>
 
-              {/* Preview */}
               <div style={{ display:"flex", justifyContent:"center", marginBottom:24 }}>
                 <div className="aura-preview-ring" style={{ "--ac":aura.shadow, "--ac2":aura.shadow.replace("0.8","0.3"), border:`1.5px solid ${aura.color}44`, boxShadow:`0 0 20px ${aura.shadow}, 0 0 40px ${aura.shadow.replace("0.8","0.3")}` }}>
                   <img src="/ElielGold.png" style={{ width:72, height:72, objectFit:"contain", filter:`${ELIEL_TIER_FILTERS[userTier]} drop-shadow(0 0 8px ${aura.color})` }} alt="Eliel" />
                 </div>
               </div>
 
-              {/* Current Eliel tier label */}
               <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", textAlign:"center", margin:"0 0 16px" }}>
                 {userTier === 'member' ? '◈ Hopea — Member' : userTier === 'builder' ? '✦ Kulta — Builder' : '✸ Timantti — Creator'}
               </p>
 
-              {/* Auras — bottom to top, grouped by tier */}
               {['creator','builder','member'].map(tierKey => {
                 const tierAuras = [...AURAS].reverse().filter(a => a.unlockedAt === tierKey)
-                const tierLabel = { member:'Member', builder:'Builder', creator:'Creator' }[tierKey]
                 const tierColor = { member:'rgba(201,168,76,0.35)', builder:'rgba(68,204,119,0.35)', creator:'rgba(153,51,204,0.35)' }[tierKey]
                 return (
                   <div key={tierKey} style={{ marginBottom:12 }}>
-                    <p style={{ color:tierColor, fontFamily:"'Cinzel',serif", fontSize:7, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 8px", paddingLeft:4 }}>{tierLabel}</p>
+                    <p style={{ color:tierColor, fontFamily:"'Cinzel',serif", fontSize:7, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 8px", paddingLeft:4 }}>{tierKey.charAt(0).toUpperCase()+tierKey.slice(1)}</p>
                     <div style={{ display:"flex", gap:6 }}>
                       {tierAuras.map(a => {
                         const locked = !isUnlocked(a.unlockedAt)
@@ -271,8 +303,6 @@ export default function SettingsView({ onClose, settings, onSave }) {
             {/* ── ELIEL ASETUKSET ── */}
             <div className="s-section">
               <SecTitle>Eliel — Asetukset</SecTitle>
-
-              {/* Communication mode */}
               <div style={{ marginBottom:16 }}>
                 <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.07em", margin:"0 0 10px" }}>Kommunikoinnin oletus</p>
                 <div style={{ display:"flex", gap:8 }}>
@@ -288,49 +318,30 @@ export default function SettingsView({ onClose, settings, onSave }) {
                     }}>{label}</button>
                   ))}
                 </div>
-                <p style={{ color:"rgba(201,168,76,0.35)", fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:"italic", margin:"8px 0 0", lineHeight:1.5 }}>
-                  Voit aina vaihtaa tapaa hetkellisesti Eliel-sivulla.
-                </p>
               </div>
-
-              {/* Mic permission */}
               <div className="s-row">
                 <RowLabel title="Salli mikrofonin käyttö" sub="Tarvitaan puheella kommunikointiin" />
                 <Toggle value={local.allowMic||false} onChange={async v => {
-                  if(v) {
-                    try {
-                      await navigator.mediaDevices.getUserMedia({audio:true});
-                      set("allowMic", true);
-                    } catch { set("allowMic", false); }
-                  } else { set("allowMic", false); }
+                  if(v) { try { await navigator.mediaDevices.getUserMedia({audio:true}); set("allowMic", true); } catch { set("allowMic", false); } }
+                  else { set("allowMic", false); }
                 }}/>
               </div>
-
-              {/* Camera permission */}
               <div className="s-row" style={{ borderBottom:"none" }}>
                 <RowLabel title="Salli kameran käyttö" sub="Profiilikuva, klubikuvat, kuvat Elielille" />
                 <Toggle value={local.allowCamera||false} onChange={async v => {
-                  if(v) {
-                    try {
-                      await navigator.mediaDevices.getUserMedia({video:true});
-                      set("allowCamera", true);
-                    } catch { set("allowCamera", false); }
-                  } else { set("allowCamera", false); }
+                  if(v) { try { await navigator.mediaDevices.getUserMedia({video:true}); set("allowCamera", true); } catch { set("allowCamera", false); } }
+                  else { set("allowCamera", false); }
                 }}/>
               </div>
             </div>
 
-
+            {/* ── ILMOITUKSET ── */}
             <div className="s-section">
               <SecTitle>Ilmoitukset</SecTitle>
-
-              {/* Master toggle */}
               <div className="s-row" style={{ marginBottom:4 }}>
                 <RowLabel title="Salli push-ilmoitukset" sub="Pääkytkin kaikille ilmoituksille" />
                 <Toggle value={local.pushNotifications||false} onChange={v => set("pushNotifications", v)} />
               </div>
-
-              {/* Sub-items — only visible when push is on */}
               {local.pushNotifications && (
                 <div className="notif-sub">
                   {NOTIF_ITEMS.map(item => (
