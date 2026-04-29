@@ -88,21 +88,21 @@ const css=`
   @keyframes todayText{0%{color:#C9A84C}25%{color:#e8d5a3}50%{color:#ff6eb4}75%{color:#6eb4ff}100%{color:#C9A84C}}
   @keyframes masterGlow{0%,100%{box-shadow:0 0 24px rgba(255,229,160,0.2)}50%{box-shadow:0 0 48px rgba(255,229,160,0.4)}}
   @keyframes titleGlow{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:0.85;filter:brightness(1.3)}}
-  .option-btn{background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:14px 16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-align:center;animation:breatheBtn 4s ease-in-out infinite;will-change:transform}
+  .option-btn{background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:14px 16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-align:center;}
   .option-btn.selected{background:#C9A84C;border:2px solid rgba(201,168,76,0.95);box-shadow:0 0 20px #C9A84C;animation:btnLiquid 5s ease-in-out infinite}
-  .day-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;color:#C9A84C;font-family:'Cinzel',serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;animation:breatheBtn 4s ease-in-out infinite;will-change:transform}
+  .day-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;color:#C9A84C;font-family:'Cinzel',serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;}
   .day-btn.selected{background:#C9A84C;border:2px solid rgba(201,168,76,0.95);box-shadow:0 0 16px #C9A84C;animation:btnLiquid 5s ease-in-out infinite}
   .nav-arrow{background:none;border:none;cursor:pointer;padding:8px 20px;display:flex;align-items:center;justify-content:center;animation:breatheArrow 3.5s ease-in-out infinite;will-change:transform}
   .nav-arrow:disabled{opacity:0;pointer-events:none}
   .arrow-svg{width:56px;height:34px}
-  .continue-btn{width:100%;padding:16px;background:rgba(107,29,46,0.8);border:2px solid #C9A84C;border-radius:16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;animation:breatheBtn 4s ease-in-out infinite}
+  .continue-btn{width:100%;padding:16px;background:rgba(107,29,46,0.8);border:2px solid #C9A84C;border-radius:16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;}
   .text-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:14px 16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:13px;outline:none;letter-spacing:0.04em}
   .text-input::placeholder{color:#C9A84C;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:14px}
   .num-input{width:100%;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:13px 8px;color:#C9A84C;font-family:'Cinzel',serif;font-size:14px;font-weight:700;outline:none;text-align:center;-moz-appearance:textfield;box-sizing:border-box}
   .num-input::placeholder{color:#C9A84C;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;font-weight:300}
   .num-input::-webkit-outer-spin-button,.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
-  .day-card{background:rgba(255,255,255,0.03);border:1.5px solid #C9A84C;border-radius:14px;overflow:hidden;animation:breatheBtn 5s ease-in-out infinite;will-change:transform}
-  .day-card.today{border:2px solid rgba(201,168,76,0.95);animation:breatheBtn 5s ease-in-out infinite,todayGlow 8s ease-in-out infinite,todayBg 8s ease-in-out infinite}
+  .day-card{background:rgba(255,255,255,0.03);border:1.5px solid #C9A84C;border-radius:14px;overflow:hidden;}
+  .day-card.today{border:2px solid rgba(201,168,76,0.95);}
   .today-name{animation:todayText 8s ease-in-out infinite}
   .day-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
   .exercise-row{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #C9A84C}
@@ -220,7 +220,7 @@ function FrequencyCard(){
   const progress=nextLevel?((points-level.min)/(nextLevel.min-level.min))*100:100
   const isMaster=level.name==='Creator'
   return(
-    <div style={{background:isMaster?'linear-gradient(135deg,rgba(107,29,46,0.5) 0%,rgba(20,14,6,0.95) 50%,rgba(80,60,10,0.4) 100%)':'rgba(255,255,255,0.02)',border:`1px solid ${level.color}`,borderRadius:16,padding:'18px 20px',marginBottom:16,animation:isMaster?'masterGlow 4s ease-in-out infinite':'breatheBtn 6s ease-in-out infinite',position:'relative',overflow:'hidden'}}>
+    <div style={{background:isMaster?'linear-gradient(135deg,rgba(20,10,30,0.95) 0%,rgba(14,8,20,0.98) 50%,rgba(30,20,10,0.9) 100%)':'rgba(255,255,255,0.02)',border:`1px solid ${level.color}`,borderRadius:16,padding:'18px 20px',marginBottom:16,position:'relative',overflow:'hidden'}}>
       {isMaster&&<div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${level.color},transparent)`}}/>}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
         <div>
@@ -258,7 +258,6 @@ function ShopSection(){
           boxShadow: `0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,
           borderRadius:18, padding:'18px 18px 16px', marginBottom:12,
           position:'relative', overflow:'hidden',
-          animation: tier.master ? 'masterGlow 4s ease-in-out infinite' : undefined,
         }}>
           <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
           {tier.master && <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)',pointerEvents:'none'}}/>}
@@ -421,7 +420,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
               boxShadow: `0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,
               borderRadius:18, padding:'20px 18px', marginBottom:16,
               position:'relative', overflow:'hidden',
-              animation: tier.master ? 'masterGlow 4s ease-in-out infinite' : undefined,
             }}>
               {/* Top shimmer line */}
               <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>

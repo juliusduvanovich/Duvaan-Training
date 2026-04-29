@@ -81,7 +81,7 @@ function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
         </defs>
         <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockBaseGrad)" strokeWidth="1.5" strokeLinecap="butt"/>
         <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockHotspot)" strokeWidth="3"
-          style={{ filter:`drop-shadow(0 0 6px ${auraColor})`, animation:'auraHotPulse 2.5s ease-in-out infinite', transition:'all 0.38s cubic-bezier(0.22,1,0.36,1)' }}
+          style={{ filter:`drop-shadow(0 0 4px ${auraColor})`, transition:'all 0.38s cubic-bezier(0.22,1,0.36,1)' }}
           strokeLinecap="butt"/>
       </svg>
 

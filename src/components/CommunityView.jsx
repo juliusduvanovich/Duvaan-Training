@@ -89,7 +89,7 @@ const css = `
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(201,168,76,0.45);
     border-radius: 16px; overflow: hidden;
-    animation: breatheBtn 6s ease-in-out infinite;
+    
   }
   .comment-input {
     flex: 1; background: transparent; border: none; outline: none;
@@ -134,7 +134,7 @@ const css = `
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(201,168,76,0.35);
     border-radius: 14px; padding: 14px 16px;
-    animation: breatheBtn 6s ease-in-out infinite;
+    
   }
   .club-card.duvaan {
     border-color: rgba(201,168,76,0.7);
