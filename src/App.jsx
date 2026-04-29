@@ -21,16 +21,12 @@ const css = `
     25%     { transform:translateY(-8px) rotate(0.5deg); }
     75%     { transform:translateY(4px) rotate(-0.5deg); }
   }
-  @keyframes zoomIn {
-    0%   { opacity:1; transform:translateY(0); }
-    100% { opacity:0; transform:translateY(-12px); }
+  @keyframes fadeInTab {
+    from { opacity:0; }
+    to   { opacity:1; }
   }
-  @keyframes zoomOut {
-    0%   { opacity:0; transform:translateY(12px); }
-    100% { opacity:1; transform:translateY(0); }
-  }
-  .zoom-exit { animation:zoomIn  0.18s ease-in  forwards; pointer-events:none; }
-  .zoom-enter{ animation:zoomOut 0.18s ease-out forwards; }
+  .zoom-exit { opacity:0; transition: opacity 0.15s ease; pointer-events:none; }
+  .zoom-enter{ animation: fadeInTab 0.15s ease forwards; }
 
   @keyframes floatBob    { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-3px)} }
   @keyframes panelIn     { from{opacity:0;transform:scale(0.12) translateY(30px)} to{opacity:1;transform:scale(1) translateY(0)} }
@@ -291,11 +287,9 @@ export default function App() {
     setTimeout(() => {
       setTab(id)
       setExitClass('')
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        setEnterClass('zoom-enter')
-        setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 180)
-      }))
-    }, 160)
+      setEnterClass('zoom-enter')
+      setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 150)
+    }, 120)
   }
 
   const saveSettings = (s) => {
