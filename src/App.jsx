@@ -22,17 +22,15 @@ const css = `
     75%     { transform:translateY(4px) rotate(-0.5deg); }
   }
   @keyframes zoomIn {
-    0%   { transform:scale(1);    opacity:1;   filter:brightness(1); }
-    70%  { transform:scale(3);    opacity:0.3; filter:brightness(1.5); }
-    100% { transform:scale(8);    opacity:0;   filter:brightness(2); }
+    0%   { opacity:1; transform:translateY(0); }
+    100% { opacity:0; transform:translateY(-12px); }
   }
   @keyframes zoomOut {
-    0%   { transform:scale(0.15); opacity:0;   filter:brightness(2); }
-    30%  { transform:scale(0.4);  opacity:0.5; filter:brightness(1.3); }
-    100% { transform:scale(1);    opacity:1;   filter:brightness(1); }
+    0%   { opacity:0; transform:translateY(12px); }
+    100% { opacity:1; transform:translateY(0); }
   }
-  .zoom-exit { animation:zoomIn  0.22s ease-in  forwards; transform-origin:50% 42%; pointer-events:none; }
-  .zoom-enter{ animation:zoomOut 0.22s ease-out forwards; transform-origin:50% 42%; }
+  .zoom-exit { animation:zoomIn  0.18s ease-in  forwards; pointer-events:none; }
+  .zoom-enter{ animation:zoomOut 0.18s ease-out forwards; }
 
   @keyframes floatBob    { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-3px)} }
   @keyframes panelIn     { from{opacity:0;transform:scale(0.12) translateY(30px)} to{opacity:1;transform:scale(1) translateY(0)} }
@@ -118,15 +116,15 @@ function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
             >
               <div style={{
                 width:active?6:3, height:active?6:3, borderRadius:'50%',
-                background:active?auraColor:'rgba(201,168,76,0.35)',
+                background:active?auraColor:'rgba(201,168,76,0.9)',
                 boxShadow:active?`0 0 10px ${auraShadow}`:'none',
                 transition:'all 0.3s',
               }}/>
               <span style={{
                 fontFamily:"'Cinzel',serif",
-                fontSize:active?14:11, fontWeight:active?700:400,
+                fontSize:13, fontWeight:active?700:600,
                 letterSpacing:'0.16em', textTransform:'uppercase',
-                color:active?auraColor:'rgba(201,168,76,0.45)',
+                color:active?auraColor:'rgba(201,168,76,1)',
                 textShadow:active?`0 0 12px ${auraShadow}`:'none',
                 transition:'all 0.3s',
               }}>{labels[i]}</span>
@@ -289,9 +287,9 @@ export default function App() {
       setExitClass('')
       requestAnimationFrame(() => requestAnimationFrame(() => {
         setEnterClass('zoom-enter')
-        setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 240)
+        setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 180)
       }))
-    }, 200)
+    }, 160)
   }
 
   const saveSettings = (s) => {

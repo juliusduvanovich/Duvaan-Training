@@ -556,18 +556,18 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
       <button
         onClick={() => setSearchOpen(o => !o)}
         style={{
-          width:"100%", padding:"11px 16px", marginBottom: searchOpen ? 0 : 16,
-          background: searchOpen ? "rgba(201,168,76,0.08)" : "rgba(255,255,255,0.02)",
-          border:"1px solid rgba(201,168,76,0.35)",
+          width:"100%", padding:"13px 16px", marginBottom: searchOpen ? 0 : 16,
+          background: searchOpen ? "rgba(201,168,76,0.1)" : "rgba(201,168,76,0.04)",
+          border:"1.5px solid rgba(201,168,76,0.7)",
           borderRadius: searchOpen ? "12px 12px 0 0" : 12,
-          color:"rgba(201,168,76,0.75)", fontFamily:"'Cinzel',serif",
-          fontSize:10, letterSpacing:"0.18em", textTransform:"uppercase",
+          color:"rgba(201,168,76,1)", fontFamily:"'Cinzel',serif",
+          fontSize:12, fontWeight:600, letterSpacing:"0.18em", textTransform:"uppercase",
           cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between",
           transition:"all 0.2s",
         }}
       >
         <span>Hae klubeja</span>
-        <span style={{ fontSize:12, opacity:0.6, transition:"transform 0.2s", transform: searchOpen ? "rotate(180deg)" : "none" }}>↓</span>
+        <span style={{ fontSize:13, opacity:0.9, transition:"transform 0.2s", transform: searchOpen ? "rotate(180deg)" : "none" }}>↓</span>
       </button>
 
       {searchOpen && (
