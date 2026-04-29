@@ -122,7 +122,7 @@ const FREQ_LEVELS = [
     min:1000, max:4999, price:'9€/kk',  master:false, btnGold:false,
     features:[['Eliel Enhanced','Muistaa historian, tekee proaktiivisia ehdotuksia'],['Health Dashboard','Uni, makrot, HRV — kaikki yhdessä näkymässä'],['Luo eventtejä','Rakenna tapahtumia, kasvata yhteisöä'],['Builder-klubit','3 klubia · max 50 jäsentä per klubi'],['Edistymisdata','Syvempi analyysi treeneistä ja kehityksestä']],
     btn:'Aktivoi Builder' },
-  { name:'Creator', icon:'✸', color:'#C4A8E8', borderColor:'#AA88DF',
+  { name:'Creator', icon:'✸', color:'#FFF5D0', borderColor:'#E8D48A',
     boxBg:'linear-gradient(135deg,rgba(45,15,85,0.92) 0%,rgba(28,8,65,0.95) 40%,rgba(55,18,95,0.88) 70%,rgba(35,10,70,0.93) 100%)',
     innerGlow:'rgba(120,70,200,0.35)',
     min:5000, max:null, price:'16€/kk', master:true,  btnGold:true,
@@ -598,9 +598,11 @@ export default function PersonalView({ onOpenSettings, settings }){
       <>
         <style>{css}</style>
         <div style={{minHeight:'100vh',padding:'48px 24px 100px'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px',animation:'fadeInUp 0.6s ease both'}}>
-            <h2 style={{color:auraColor,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`,animation:'titleGlow 4s ease-in-out infinite'}}>Personal</h2>
-            <p style={{color:'#C9A84C',fontSize:'10px',letterSpacing:'0.14em',margin:'4px 0 0',textTransform:'uppercase'}}>{new Date().toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'})}</p>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px',animation:'fadeInUp 0.6s ease both'}}>
+            <div>
+              <h2 style={{color:auraColor,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`,animation:'titleGlow 4s ease-in-out infinite'}}>Personal</h2>
+              <p style={{color:'#C9A84C',fontSize:'10px',letterSpacing:'0.14em',margin:'4px 0 0',textTransform:'uppercase'}}>{new Date().toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'})}</p>
+            </div>
           </div>
           <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings} auraColor={auraColor}/>
 

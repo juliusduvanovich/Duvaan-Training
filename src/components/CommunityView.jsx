@@ -205,9 +205,9 @@ const CLUB_TIER_STYLES = {
   },
   creator: {
     boxBg: 'linear-gradient(135deg,rgba(45,15,85,0.92) 0%,rgba(28,8,65,0.95) 40%,rgba(55,18,95,0.88) 70%,rgba(35,10,70,0.93) 100%)',
-    borderColor: '#AA88DF',
-    innerGlow: 'rgba(120,70,200,0.35)',
-    color: '#C4A8E8',
+    borderColor: '#E8D48A',
+    innerGlow: 'rgba(232,212,138,0.18)',
+    color: '#FFF5D0',
     icon: '✸',
     master: true,
   },
