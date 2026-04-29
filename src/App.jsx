@@ -283,13 +283,8 @@ export default function App() {
   const switchTab = (id) => {
     if (id === tab || transitioning) return
     setTransitioning(true)
-    setExitClass('zoom-exit')
-    setTimeout(() => {
-      setTab(id)
-      setExitClass('')
-      setEnterClass('zoom-enter')
-      setTimeout(() => { setEnterClass(''); setTransitioning(false) }, 150)
-    }, 120)
+    setTab(id)
+    setTimeout(() => setTransitioning(false), 50)
   }
 
   const saveSettings = (s) => {
