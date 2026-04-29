@@ -47,6 +47,11 @@ const css = `
   .tdot:nth-child(2){ animation-delay:0.18s,0.6s; }
   .tdot:nth-child(3){ animation-delay:0.36s,1.2s; }
   .fmsg { animation:msgIn 0.3s ease both; }
+  @keyframes auraHotPulse {
+    0%,100% { opacity:0.85; }
+    50%     { opacity:1; filter:brightness(1.4); }
+  }
+  html, body { overflow-x: hidden; overscroll-behavior: none; }
 `
 
 function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
@@ -80,7 +85,7 @@ function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
         </defs>
         <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockBaseGrad)" strokeWidth="1.5" strokeLinecap="butt"/>
         <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockHotspot)" strokeWidth="3"
-          style={{ filter:`drop-shadow(0 0 6px ${auraColor})` }}
+          style={{ filter:`drop-shadow(0 0 6px ${auraColor})`, animation:'auraHotPulse 2.5s ease-in-out infinite', transition:'all 0.38s cubic-bezier(0.22,1,0.36,1)' }}
           strokeLinecap="butt"/>
       </svg>
 
@@ -244,6 +249,9 @@ function FloatingEliel({ messages, setMessages, settings }) {
 
 export default function App() {
   const [splash, setSplash]               = useState(true)
+  const [authed, setAuthed]               = useState(false)
+  const [authError, setAuthError]         = useState('')
+  const [pin, setPin]                     = useState('')
   const [tab, setTab]                     = useState('eliel')
   const [elielMessages, setElielMessages] = useState([])
   const [showSettings, setShowSettings]   = useState(false)
@@ -305,7 +313,84 @@ export default function App() {
   const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
   const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
 
+  // Biometric / PIN auth
+  const STORED_PIN = '1234' // TODO: allow user to set PIN in settings
+  useEffect(() => {
+    if (!splash && !authed) tryBiometric()
+  }, [splash])
+
+  const tryBiometric = async () => {
+    if (!window.PublicKeyCredential) { return } // not supported
+    try {
+      // WebAuthn biometric (Face ID / Touch ID)
+      const challenge = new Uint8Array(32)
+      window.crypto.getRandomValues(challenge)
+      await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          timeout: 60000,
+          userVerification: 'required',
+          rpId: window.location.hostname,
+        }
+      })
+      setAuthed(true)
+    } catch {
+      // Biometric failed or not registered — show PIN
+    }
+  }
+
+  const handlePin = (digit) => {
+    const next = pin + digit
+    setPin(next)
+    if (next.length === 4) {
+      if (next === STORED_PIN) {
+        setAuthed(true)
+        setPin('')
+        setAuthError('')
+      } else {
+        setAuthError('Väärä PIN')
+        setTimeout(() => { setPin(''); setAuthError('') }, 800)
+      }
+    }
+  }
+
   if (splash) return <SplashScreen onComplete={() => setSplash(false)} />
+
+  if (!authed) return (
+    <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', fontFamily:"'Cinzel',serif" }}>
+      <SacredGeometry auraColor="#C9A84C"/>
+      <div style={{ position:'relative', zIndex:2, display:'flex', flexDirection:'column', alignItems:'center', gap:32 }}>
+        <img src="/ElielGold.png" style={{ width:80, height:80, objectFit:'contain', filter:'drop-shadow(0 0 18px rgba(201,168,76,0.5))' }} alt=""/>
+        <p style={{ color:'rgba(201,168,76,0.6)', fontSize:10, letterSpacing:'0.2em', textTransform:'uppercase', margin:0 }}>Duvaan</p>
+
+        {/* PIN dots */}
+        <div style={{ display:'flex', gap:12 }}>
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{ width:12, height:12, borderRadius:'50%', background: pin.length > i ? '#C9A84C' : 'rgba(201,168,76,0.2)', border:'1px solid rgba(201,168,76,0.4)', transition:'background 0.15s' }}/>
+          ))}
+        </div>
+
+        {authError && <p style={{ color:'#ff6b6b', fontSize:11, letterSpacing:'0.1em', margin:0 }}>{authError}</p>}
+
+        {/* PIN pad */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, width:220 }}>
+          {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((d,i) => (
+            <button key={i} onClick={() => {
+              if (d === '⌫') setPin(p => p.slice(0,-1))
+              else if (d !== '') handlePin(String(d))
+            }}
+              style={{ background: d==='' ? 'transparent' : 'rgba(201,168,76,0.06)', border: d==='' ? 'none' : '1px solid rgba(201,168,76,0.2)', borderRadius:12, padding:'16px 0', color:'#C9A84C', fontSize: d==='⌫' ? 18 : 20, fontFamily:"'Cinzel',serif", fontWeight:600, cursor: d==='' ? 'default' : 'pointer', pointerEvents: d==='' ? 'none' : 'auto' }}
+            >{d}</button>
+          ))}
+        </div>
+
+        {/* Face ID / Touch ID button */}
+        <button onClick={tryBiometric} style={{ background:'none', border:'1px solid rgba(201,168,76,0.25)', borderRadius:12, padding:'10px 24px', color:'rgba(201,168,76,0.6)', fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer' }}>
+          Face ID / Touch ID
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -322,7 +407,7 @@ export default function App() {
         alt=""
       />
     )}
-    <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1 }}>
+    <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1, overflowX:'hidden' }}>
       <style>{css}</style>
       <SacredGeometry auraColor={auraColor} />
       <div style={{ position:'relative', zIndex:2, minHeight:'calc(100vh - 120px)', paddingBottom:'110px' }} className={exitClass || enterClass}>

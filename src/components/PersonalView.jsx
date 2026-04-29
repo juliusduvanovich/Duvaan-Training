@@ -3,7 +3,7 @@ import ScrollPicker from "./ScrollPicker";
 import NotesView from "./NotesView";
 import { ELIEL_TIER_FILTERS } from "./SettingsView";
 import ToolboxView, { ChestButton } from "./ToolboxView";
-import SliderNav from "./SliderNav";
+import CarouselNav from "./CarouselNav";
 
 const TIER_ELIEL_FILTER = {
   member:        ELIEL_TIER_FILTERS.member,
@@ -334,6 +334,20 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   const[myClubs,setMyClubs]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]')}catch{return[]}})
   const photoInputRef=useRef(null)
 
+  // Smooth section transition
+  const [visibleSection, setVisibleSection] = useState(section)
+  const [transitioning, setTransitioning] = useState(false)
+
+  const handleSectionChange = (newSection) => {
+    if (newSection === visibleSection) return
+    setTransitioning(true)
+    setTimeout(() => {
+      setVisibleSection(newSection)
+      setSection(newSection)
+      setTransitioning(false)
+    }, 80)
+  }
+
   const handlePhoto=e=>{
     const file=e.target.files?.[0]
     if(!file)return
@@ -364,25 +378,41 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   return(
     <div style={{marginBottom:28,animation:'fadeInUp 0.5s ease both'}}>
       {/* ── SLIDER NAV replaces personal-subnav ── */}
-      <SliderNav
+      <CarouselNav
         tabs={tabs}
-        active={section}
-        onChange={setSection}
+        active={visibleSection}
+        onChange={handleSectionChange}
         auraColor={auraColor}
         rightSlot={
           <button
             onClick={onOpenSettings}
-            style={{background:'none',border:'none',cursor:'pointer',color:auraColor,fontSize:20,lineHeight:1,opacity:0.7,transition:'opacity 0.2s'}}
+            style={{background:'none',border:'none',cursor:'pointer',color:auraColor,lineHeight:1,opacity:0.7,transition:'opacity 0.2s', padding:0, display:'flex', alignItems:'center'}}
             title="Asetukset"
-          >⚙</button>
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="9" cy="9" r="2.5" stroke={auraColor} strokeWidth="1.2"/>
+              {[0,45,90,135,180,225,270,315].map((deg,i)=>{
+                const a = deg * Math.PI / 180
+                const x1 = 9 + 4.2*Math.cos(a), y1 = 9 + 4.2*Math.sin(a)
+                const x2 = 9 + 5.8*Math.cos(a), y2 = 9 + 5.8*Math.sin(a)
+                return <line key={i} x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)} stroke={auraColor} strokeWidth="1.4" strokeLinecap="round"/>
+              })}
+              <circle cx="9" cy="9" r="6.5" stroke={auraColor} strokeWidth="1" strokeOpacity="0.4"/>
+            </svg>
+          </button>
         }
       />
 
       <div style={{height:20}}/>
 
-      {section==='notes'&&<NotesView isClub={false}/>}
-      {section==='shop'&&<ShopSection/>}
-      {section==='profile'&&(
+      <div style={{
+        opacity: transitioning ? 0 : 1,
+        transform: transitioning ? 'translateY(8px)' : 'translateY(0)',
+        transition: 'opacity 0.08s ease, transform 0.08s ease',
+      }}>
+      {visibleSection==='notes'&&<NotesView isClub={false}/>}
+      {visibleSection==='shop'&&<ShopSection/>}
+      {visibleSection==='profile'&&(
         <div>
           {!editing&&(
             <div style={{
@@ -414,7 +444,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
                     </div>
                   </div>
                 </div>
-                <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'none',border:'1px solid rgba(201,168,76,0.25)',borderRadius:8,padding:'5px 12px',color:'rgba(201,168,76,0.5)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.1em',cursor:'pointer',flexShrink:0}}>Muokkaa</button>
+                <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'rgba(107,29,46,0.4)',border:'1.5px solid rgba(201,168,76,0.7)',borderRadius:8,padding:'6px 14px',color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.1em',fontWeight:600,cursor:'pointer',flexShrink:0}}>Muokkaa</button>
               </div>
 
               <div style={{marginBottom:14}}>
@@ -504,6 +534,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
           )}
         </div>
       )}
+      </div>
     </div>
   )
 }
@@ -569,6 +600,7 @@ export default function PersonalView({ onOpenSettings, settings }){
         <div style={{minHeight:'100vh',padding:'48px 24px 100px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px',animation:'fadeInUp 0.6s ease both'}}>
             <h2 style={{color:auraColor,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`,animation:'titleGlow 4s ease-in-out infinite'}}>Personal</h2>
+            <p style={{color:'#C9A84C',fontSize:'10px',letterSpacing:'0.14em',margin:'4px 0 0',textTransform:'uppercase'}}>{new Date().toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'})}</p>
           </div>
           <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings} auraColor={auraColor}/>
 

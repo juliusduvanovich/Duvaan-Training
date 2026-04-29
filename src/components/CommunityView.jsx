@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import ScrollPicker, { TimePicker } from "./ScrollPicker";
 import ClubView, { TIER_LIMITS } from "./ClubView";
-import SliderNav from "./SliderNav";
+import CarouselNav from "./CarouselNav";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
@@ -239,7 +239,7 @@ export default function CommunityView({ onNavigate, settings }) {
           </div>
 
           {/* ── SLIDER NAV replaces community-tab buttons ── */}
-          <SliderNav
+          <CarouselNav
             tabs={SECTION_TABS}
             active={section}
             onChange={setSection}
@@ -502,7 +502,7 @@ function LocationPicker({ location, setLocation }) {
   const [draft, setDraft] = useState(location);
   return (
     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-      <span style={{ color:"rgba(201,168,76,0.5)", fontSize:13 }}>📍</span>
+      <span style={{ color:"rgba(201,168,76,0.5)", fontSize:13 }}>▸</span>
       {editing ? (
         <>
           <input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){setLocation(draft);setEditing(false);}}} autoFocus placeholder="Kaupunki..." style={{ flex:1, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"6px 14px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:13, outline:"none" }} />
@@ -822,8 +822,8 @@ function Events({ auraColor = "#C9A84C" }) {
               </div>
               {ev.desc && <p style={{ color:"rgba(201,168,76,0.85)", fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5 }}>{ev.desc}</p>}
               <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:10 }}>
-                <span style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500 }}>📅 {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
-                <span style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500 }}>📍 {ev.location}</span>
+                <span style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:600 }}>◈ {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
+                <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:600, letterSpacing:'0.06em' }}>{ev.location}</span>
                 {ev.dresscode && <span style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic" }}>👔 {ev.dresscode}</span>}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
