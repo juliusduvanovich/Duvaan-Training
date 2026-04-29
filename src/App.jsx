@@ -318,7 +318,7 @@ export default function App() {
     <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1, overflowX:'hidden' }}>
       <style>{css}</style>
       {bgImage && (
-        <img src={bgImage} style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center', opacity:0.18, pointerEvents:'none', zIndex:0 }} alt=""/>
+        <img src={bgImage} style={{ position:'fixed', top:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:'480px', height:'100%', objectFit:'cover', objectPosition:'center', opacity:0.18, pointerEvents:'none', zIndex:0 }} alt=""/>
       )}
       <SacredGeometry auraColor={auraColor} />
       <div style={{ position:'relative', zIndex:2, minHeight:'calc(100vh - 120px)', paddingBottom:'110px' }} className={exitClass || enterClass}>
