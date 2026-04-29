@@ -254,8 +254,8 @@ export default function App() {
     catch { return { aura:'gold', bgImage:null, showClock:true, shortcuts:['','',''], pushNotifications:false, dailyCheckin:false, elielMemory:true } }
   })
   const [transitioning, setTransitioning] = useState(false)
-  const [exitClass, setExitClass]         = useState('')
-  const [enterClass, setEnterClass]       = useState('')
+  const [exitClass] = useState('')
+  const [enterClass] = useState('')
 
   useEffect(() => {
     function updateBg() {
@@ -281,10 +281,8 @@ export default function App() {
   }, [])
 
   const switchTab = (id) => {
-    if (id === tab || transitioning) return
-    setTransitioning(true)
+    if (id === tab) return
     setTab(id)
-    setTimeout(() => setTransitioning(false), 50)
   }
 
   const saveSettings = (s) => {
