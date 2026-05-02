@@ -48,6 +48,11 @@ const css = `
     50%     { opacity:1; filter:brightness(1.4); }
   }
   html, body { overflow-x: hidden; overscroll-behavior: none; }
+  :root { --aura-color: #C9A84C; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--aura-color); border-radius: 2px; }
+  * { scrollbar-width: thin; scrollbar-color: var(--aura-color) transparent; }
 `
 
 function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
@@ -56,46 +61,36 @@ function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
   const activeIdx = tabs.indexOf(tab)
   const hotspotPct = 50
 
+  const isLight = tab !== 'eliel'
   return (
     <div style={{
       position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)',
       width:'100%', maxWidth:'480px',
-      background:'linear-gradient(to bottom, rgba(20,4,10,0.0) 0%, rgba(20,4,10,0.85) 18%, rgba(15,3,8,0.97) 50%)',
+      background: tab === 'eliel'
+        ? 'linear-gradient(to bottom, rgba(20,4,10,0.0) 0%, rgba(20,4,10,0.85) 18%, rgba(15,3,8,0.97) 50%)'
+        : 'linear-gradient(to bottom, rgba(245,240,232,0) 0%, rgba(245,240,232,0.92) 18%, rgba(245,240,232,0.98) 50%)',
       backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
       zIndex:100, display:'flex', flexDirection:'column',
     }}>
-      <svg style={{ display:'block', width:'100%', height:10, overflow:'visible', flexShrink:0 }} viewBox="0 0 100 10" preserveAspectRatio="none">
+      <svg style={{ display:'block', width:'100%', height:6, overflow:'visible', flexShrink:0 }} viewBox="0 0 100 6" preserveAspectRatio="none">
         <defs>
-          <linearGradient id="dockBaseGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#C9A84C" stopOpacity="0"/>
-            <stop offset="12%"  stopColor="#C9A84C" stopOpacity="0.45"/>
-            <stop offset="50%"  stopColor="#C9A84C" stopOpacity="0.6"/>
-            <stop offset="88%"  stopColor="#C9A84C" stopOpacity="0.45"/>
-            <stop offset="100%" stopColor="#C9A84C" stopOpacity="0"/>
+          <linearGradient id="dockLineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0"/>
+            <stop offset="20%"  stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0.8"/>
+            <stop offset="50%"  stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="1"/>
+            <stop offset="80%"  stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0.8"/>
+            <stop offset="100%" stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0"/>
           </linearGradient>
-          <radialGradient id="dockHotspot" cx="50%" cy="100%" r="25%" gradientUnits="userSpaceOnUse">
-            <stop offset="0%"   stopColor={auraColor} stopOpacity="1"/>
-            <stop offset="60%"  stopColor={auraColor} stopOpacity="0.4"/>
-            <stop offset="100%" stopColor={auraColor} stopOpacity="0"/>
-          </radialGradient>
         </defs>
-        <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockBaseGrad)" strokeWidth="1.5" strokeLinecap="butt"/>
-        <path d="M0,7 Q50,2 100,7" fill="none" stroke="url(#dockHotspot)" strokeWidth="3"
-          style={{ filter:`drop-shadow(0 0 4px ${auraColor})`, transition:'all 0.38s cubic-bezier(0.22,1,0.36,1)' }}
-          strokeLinecap="butt"/>
+        <path d="M0,5 Q50,1 100,5" fill="none" stroke="url(#dockLineGrad)" strokeWidth="1"/>
       </svg>
 
       <div style={{ position:'relative', height:60, overflow:'hidden' }}>
         {tabs.map((t, i) => {
-          // offset relative to active: -1, 0, +1
-          // use modulo so it wraps: e.g. if active=community(2), personal(0) gets offset +1 (right)
           let offset = i - activeIdx
-          // Wrap to -1, 0, +1 range
           if (offset > 1)  offset -= 3
           if (offset < -1) offset += 3
-
           const active = offset === 0
-          // center=50%, left=16.67%, right=83.33%
           const xPct = 50 + offset * 33.33
 
           return (
@@ -107,26 +102,28 @@ function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
                 left:`${xPct}%`,
                 top:6,
                 transform:'translateX(-50%)',
-                transition:'left 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease',
+                transition:'left 0.38s cubic-bezier(0.22,1,0.36,1)',
+                willChange:'left',
                 background:'none', border:'none', cursor:'pointer',
                 display:'flex', flexDirection:'column', alignItems:'center', gap:6,
-                opacity: active ? 1 : 0.45,
                 whiteSpace:'nowrap',
                 paddingBottom:32,
               }}
             >
               <div style={{
-                width:active?6:3, height:active?6:3, borderRadius:'50%',
-                background:active?auraColor:'rgba(201,168,76,0.9)',
-                boxShadow:active?`0 0 10px ${auraShadow}`:'none',
+                width:active?7:3, height:active?7:3, borderRadius:'50%',
+                background: active ? auraColor : '#6B1D2E',
+                boxShadow: active ? `0 0 10px ${auraColor}, 0 0 20px ${auraColor}66` : 'none',
                 transition:'all 0.3s',
               }}/>
               <span style={{
                 fontFamily:"'Cinzel',serif",
-                fontSize:13, fontWeight:active?700:600,
-                letterSpacing:'0.16em', textTransform:'uppercase',
-                color:active?auraColor:'rgba(201,168,76,1)',
-                textShadow:active?`0 0 12px ${auraShadow}`:'none',
+                fontSize: active ? 14 : 11,
+                fontWeight: active ? 800 : 600,
+                letterSpacing:'0.16em',
+                textTransform:'uppercase',
+                color: '#6B1D2E',
+                textShadow: active ? `0 0 16px ${auraColor}, 0 0 32px ${auraColor}66` : 'none',
                 transition:'all 0.3s',
               }}>{labels[i]}</span>
             </button>
@@ -258,26 +255,9 @@ export default function App() {
   const [enterClass] = useState('')
 
   useEffect(() => {
-    function updateBg() {
-      const h = new Date().getHours() + new Date().getMinutes()/60
-      let bg
-      if      (h < 4)    bg = 'linear-gradient(to bottom,#010112,#02021a,#030220)'
-      else if (h < 5.5)  bg = 'linear-gradient(to bottom,#04030f,#0c0820,#1e1020)'
-      else if (h < 7)    bg = 'linear-gradient(to bottom,#0e0828,#201040,#3a1a28,#e05010)'
-      else if (h < 8.5)  bg = 'linear-gradient(to bottom,#1a2060,#2838a8,#3850c0,#d07030)'
-      else if (h < 10)   bg = 'linear-gradient(to bottom,#1a3888,#2258c8,#3070d8,#5088e0)'
-      else if (h < 15)   bg = 'linear-gradient(to bottom,#1045b8,#1a58d8,#2070ee,#40a0f8)'
-      else if (h < 19.5) bg = 'linear-gradient(to bottom,#1245b8,#1c58d5,#2570e8,#4090f0)'
-      else if (h < 21)   bg = 'linear-gradient(to bottom,#1a1040,#2a1848,#3a2020,#d05010)'
-      else if (h < 22)   bg = 'linear-gradient(to bottom,#100820,#1e1035,#381520,#cc4010)'
-      else if (h < 23)   bg = 'linear-gradient(to bottom,#040410,#08061a,#0e0812)'
-      else                bg = 'linear-gradient(to bottom,#010112,#010218,#02021e)'
-      document.body.style.background = bg
-      document.documentElement.style.background = bg
-    }
-    updateBg()
-    const iv = setInterval(updateBg, 60000)
-    return () => clearInterval(iv)
+    document.body.style.background = '#0a0208'
+    document.documentElement.style.background = '#0a0208'
+    return () => {}
   }, [])
 
   const switchTab = (id) => {
@@ -298,22 +278,39 @@ export default function App() {
   const auraColor  = AURA_COLORS[settings?.aura]  || "#C9A84C"
   const auraShadow = AURA_SHADOWS[settings?.aura] || "rgba(201,168,76,0.7)"
 
+  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
+  const userTier = getUserTier(points)
+  const TIER_COLORS  = { member:'#A0B4DC', builder:'#C9A84C', creator:'#F0E8C0' }
+  const TIER_SHADOWS = { member:'rgba(160,180,220,0.8)', builder:'rgba(201,168,76,0.8)', creator:'rgba(240,232,192,0.9)' }
+  const dockColor  = tab === 'eliel' ? (TIER_COLORS[userTier]  || "#C9A84C") : auraColor
+  const dockShadow = tab === 'eliel' ? (TIER_SHADOWS[userTier] || "rgba(201,168,76,0.8)") : auraShadow
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--aura-color', auraColor)
+  }, [auraColor])
+
   if (splash) return <SplashScreen onComplete={() => setSplash(false)} />
 
   return (
     <>
-    <div style={{ background:'#1a0810', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1, overflowX:'hidden' }}>
+    <div style={{ background: tab === 'eliel' ? '#1a0810' : '#f5f0e8', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1, overflowX:'hidden', transition:'background 0.3s ease' }}>
       <style>{css}</style>
       {bgImage && (
         <img src={bgImage} style={{ position:'fixed', top:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:'480px', height:'100%', objectFit:'cover', objectPosition:'center', opacity:0.18, pointerEvents:'none', zIndex:0 }} alt=""/>
       )}
-      <SacredGeometry auraColor={auraColor} />
-      <div style={{ position:'relative', zIndex:2, minHeight:'calc(100vh - 120px)', paddingBottom:'110px' }} className={exitClass || enterClass}>
+      <SacredGeometry tab={tab} auraColor={auraColor} />
+      <div
+        className={tab !== 'eliel' ? 'scrollable-view' : ''}
+        style={{ position:'relative', zIndex:2, minHeight:'calc(100vh - 120px)', paddingBottom:'110px', contain:'layout style',
+          ...(tab === 'eliel' ? { overflow:'hidden', height:'100vh' } : {}),
+        }}
+      >
+        <style>{`.scrollable-view { --aura-color: ${auraColor}; }`}</style>
         {tab === 'eliel'     && <LobbyView    onNavigate={switchTab} settings={settings} />}
         {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} settings={settings} />}
         {tab === 'community' && <CommunityView onNavigate={switchTab} settings={settings} />}
       </div>
-      <OrnamentNav tab={tab} switchTab={switchTab} auraColor={auraColor} auraShadow={auraShadow} />
+      <OrnamentNav tab={tab} switchTab={switchTab} auraColor={dockColor} auraShadow={dockShadow} />
     </div>
 
     {tab !== 'eliel' && createPortal(

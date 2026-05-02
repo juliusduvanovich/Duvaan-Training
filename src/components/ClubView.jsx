@@ -21,31 +21,31 @@ const css = `
     background:none; border:none; cursor:pointer; flex:1; text-align:center;
     padding:8px 0; font-family:'Cinzel',serif; font-size:9px;
     letter-spacing:0.14em; text-transform:uppercase;
-    color:rgba(201,168,76,0.45); border-bottom:1px solid transparent;
+    color:rgba(107,29,46,0.5); border-bottom:1px solid transparent;
     transition:all 0.25s;
   }
-  .club-tab.active { color:#C9A84C; border-bottom:1px solid #C9A84C; }
+  .club-tab.active { color:#6B1D2E; border-bottom:2px solid #6B1D2E; font-weight:700; }
   .club-chat-input {
     flex:1; background:transparent; border:none; outline:none;
-    color:#C9A84C; font-family:'Cormorant Garamond',serif;
+    color:#2a1008; font-family:'Cormorant Garamond',serif;
     font-size:14px; letter-spacing:0.04em;
   }
-  .club-chat-input::placeholder { color:rgba(201,168,76,0.3); font-style:italic; }
+  .club-chat-input::placeholder { color:rgba(107,29,46,0.3); font-style:italic; }
   .member-row {
     display:flex; align-items:center; gap:12px; padding:10px 0;
-    border-bottom:0.5px solid rgba(201,168,76,0.07);
+    border-bottom:0.5px solid rgba(107,29,46,0.1);
   }
   .member-row:last-child { border-bottom:none; }
   .perm-toggle {
     display:flex; align-items:center; justify-content:space-between;
-    padding:10px 0; border-bottom:0.5px solid rgba(201,168,76,0.07);
+    padding:10px 0; border-bottom:0.5px solid rgba(107,29,46,0.08);
   }
   .perm-toggle:last-child { border-bottom:none; }
 `;
 
 function Avatar({ name, photo, size=36, color=GOLD }) {
   return (
-    <div style={{ width:size, height:size, borderRadius:'50%', background:`linear-gradient(135deg,${BURGUNDY},${color})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', border:`1px solid ${color}44` }}>
+    <div style={{ width:size, height:size, borderRadius:'50%', background:`linear-gradient(135deg,${BURGUNDY},${color})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', border:`1px solid ${BURGUNDY}44` }}>
       {photo
         ? <img src={photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="" />
         : <span style={{ color:'#fff', fontFamily:"'Cinzel',serif", fontSize:size*0.4, fontWeight:700 }}>{name?.[0]?.toUpperCase()||'?'}</span>
@@ -54,25 +54,21 @@ function Avatar({ name, photo, size=36, color=GOLD }) {
   );
 }
 
-function Toggle({ value, onChange, color=GOLD }) {
+function Toggle({ value, onChange, color=BURGUNDY }) {
   return (
-    <div onClick={() => onChange(!value)} style={{ width:38, height:20, borderRadius:10, background:value?`${color}22`:'rgba(255,255,255,0.05)', border:`1px solid ${value?color:'rgba(201,168,76,0.2)'}`, position:'relative', cursor:'pointer', transition:'all 0.2s', flexShrink:0 }}>
-      <div style={{ width:14, height:14, borderRadius:'50%', background:value?color:'rgba(201,168,76,0.25)', position:'absolute', top:2, left:value?21:3, transition:'left 0.2s, background 0.2s' }}/>
+    <div onClick={() => onChange(!value)} style={{ width:38, height:20, borderRadius:10, background:value?`${BURGUNDY}22`:'rgba(255,255,255,0.5)', border:`1.5px solid ${value?GOLD:'rgba(107,29,46,0.3)'}`, position:'relative', cursor:'pointer', transition:'all 0.2s', flexShrink:0 }}>
+      <div style={{ width:14, height:14, borderRadius:'50%', background:value?GOLD:BURGUNDY, position:'absolute', top:2, left:value?21:3, transition:'left 0.2s, background 0.2s' }}/>
     </div>
   );
 }
 
-// ── QR CODE (simple SVG grid) ─────────────────────────────────────────────────
 function QRCode({ value, size=140 }) {
-  // Simple deterministic QR-like pattern from string hash
   const hash = value.split('').reduce((a,c) => ((a<<5)-a)+c.charCodeAt(0), 0);
   const cells = 11;
   const cell = size / cells;
   const grid = Array.from({length:cells}, (_,r) =>
     Array.from({length:cells}, (_,c) => {
-      // Finder patterns
       if ((r<3&&c<3)||(r<3&&c>cells-4)||(r>cells-4&&c<3)) return true;
-      // Data from hash
       return ((hash >> ((r*cells+c)%31)) & 1) === 1;
     })
   );
@@ -85,13 +81,11 @@ function QRCode({ value, size=140 }) {
   );
 }
 
-// ── UNIFIED FEED + CHAT ───────────────────────────────────────────────────────
 function ClubFeed({ club, canChat }) {
   const [msgs, setMsgs] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`club_feed_${club.id}`)||'[]') } catch { return [] }
   });
   const [text, setText] = useState('');
-  const [dmMember, setDmMember] = useState(null); // for DM from members tab
   const bottomRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -99,14 +93,7 @@ function ClubFeed({ club, canChat }) {
 
   const send = (content, type='text', imageData=null) => {
     if (!content.trim() && !imageData) return;
-    const m = {
-      id: Date.now(),
-      author: 'Julius',
-      text: content.trim(),
-      image: imageData,
-      type,
-      time: new Date().toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'}),
-    };
+    const m = { id:Date.now(), author:'Julius', text:content.trim(), image:imageData, type, time:new Date().toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'}) };
     const updated = [...msgs, m];
     setMsgs(updated);
     localStorage.setItem(`club_feed_${club.id}`, JSON.stringify(updated));
@@ -129,55 +116,43 @@ function ClubFeed({ club, canChat }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 240px)' }}>
-      {/* Message stream */}
       <div style={{ flex:1, overflowY:'auto', padding:'12px 0' }}>
         {msgs.length === 0 && (
-          <p style={{ color:'rgba(201,168,76,0.25)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', textAlign:'center', marginTop:32 }}>
+          <p style={{ color:'rgba(107,29,46,0.35)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', textAlign:'center', marginTop:32 }}>
             Aloita keskustelu klubisi kanssa.
           </p>
         )}
         {msgs.map((m,i) => (
           <div key={m.id} style={{ marginBottom:12, animation:'msgIn 0.25s ease both', animationDelay:`${Math.min(i*0.03,0.3)}s` }}>
             <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:4 }}>
-              <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, fontWeight:600, letterSpacing:'0.06em' }}>{m.author}</span>
-              <span style={{ color:'rgba(201,168,76,0.3)', fontFamily:"'Cormorant Garamond',serif", fontSize:11 }}>{m.time}</span>
+              <span style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, fontWeight:700, letterSpacing:'0.06em' }}>{m.author}</span>
+              <span style={{ color:'rgba(107,29,46,0.35)', fontFamily:"'Cormorant Garamond',serif", fontSize:11 }}>{m.time}</span>
             </div>
-            {m.image && (
-              <img src={m.image} alt="" style={{ maxWidth:'100%', borderRadius:10, marginBottom:m.text?6:0, display:'block' }}/>
-            )}
-            {m.text && (
-              <p style={{ color:'rgba(255,255,255,0.75)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, margin:0, lineHeight:1.6 }}>{m.text}</p>
-            )}
+            {m.image && <img src={m.image} alt="" style={{ maxWidth:'100%', borderRadius:10, marginBottom:m.text?6:0, display:'block' }}/>}
+            {m.text && <p style={{ color:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:15, margin:0, lineHeight:1.6 }}>{m.text}</p>}
           </div>
         ))}
         <div ref={bottomRef}/>
       </div>
-
-      {/* Input bar */}
       {canChat ? (
-        <div style={{ borderTop:'0.5px solid rgba(201,168,76,0.1)', paddingTop:10, display:'flex', gap:10, alignItems:'flex-end' }}>
-          <button onClick={() => fileRef.current?.click()} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.35)', fontSize:18, lineHeight:1, flexShrink:0, paddingBottom:6 }}>📎</button>
+        <div style={{ borderTop:'1px solid rgba(107,29,46,0.15)', paddingTop:10, display:'flex', gap:10, alignItems:'flex-end', background:'rgba(255,255,255,0.4)', borderRadius:12, padding:'10px 12px' }}>
+          <button onClick={() => fileRef.current?.click()} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(107,29,46,0.4)', fontSize:18, lineHeight:1, flexShrink:0, paddingBottom:2 }}>📎</button>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} style={{ display:'none' }}/>
-          <textarea
-            value={text} onChange={e=>setText(e.target.value)} placeholder="Kirjoita viesti..."
-            rows={1}
+          <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Kirjoita viesti..." rows={1}
             onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send(text);}}}
-            style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'rgba(201,168,76,0.8)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, resize:'none', lineHeight:1.5 }}
+            style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:15, resize:'none', lineHeight:1.5 }}
           />
           <button onClick={() => send(text)} style={{ width:30, height:30, background:BURGUNDY, border:'none', borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <svg width="11" height="11" viewBox="0 0 14 14"><path d="M2 12L12 7L2 2V5.8L8 7L2 8.2V12Z" fill={GOLD}/></svg>
           </button>
         </div>
       ) : (
-        <p style={{ color:'rgba(201,168,76,0.3)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic', textAlign:'center', padding:'10px 0', borderTop:'0.5px solid rgba(201,168,76,0.08)' }}>
-          Ei chat-oikeuksia
-        </p>
+        <p style={{ color:'rgba(107,29,46,0.35)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic', textAlign:'center', padding:'10px 0', borderTop:'0.5px solid rgba(107,29,46,0.1)' }}>Ei chat-oikeuksia</p>
       )}
     </div>
   );
 }
 
-// ── DM VIEW ───────────────────────────────────────────────────────────────────
 function DMView({ member, clubId, onBack }) {
   const [msgs, setMsgs] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`dm_${clubId}_${member.id}`)||'[]') } catch { return [] }
@@ -197,24 +172,24 @@ function DMView({ member, clubId, onBack }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 200px)', animation:'fadeUp 0.25s ease both' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:10, paddingBottom:12, borderBottom:'0.5px solid rgba(201,168,76,0.1)', marginBottom:12 }}>
-        <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', padding:0 }}>←</button>
+      <div style={{ display:'flex', alignItems:'center', gap:10, paddingBottom:12, borderBottom:'1px solid rgba(107,29,46,0.15)', marginBottom:12 }}>
+        <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(107,29,46,0.5)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', padding:0 }}>←</button>
         <Avatar name={member.name} size={32}/>
-        <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600 }}>{member.name}</span>
+        <span style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700 }}>{member.name}</span>
       </div>
       <div style={{ flex:1, overflowY:'auto' }}>
-        {msgs.length===0 && <p style={{ color:'rgba(201,168,76,0.25)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', textAlign:'center', marginTop:24 }}>Aloita keskustelu.</p>}
+        {msgs.length===0 && <p style={{ color:'rgba(107,29,46,0.3)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', textAlign:'center', marginTop:24 }}>Aloita keskustelu.</p>}
         {msgs.map(m => (
           <div key={m.id} style={{ marginBottom:10, textAlign:m.author==='Julius'?'right':'left' }}>
-            <span style={{ display:'inline-block', background:m.author==='Julius'?BURGUNDY:'rgba(255,255,255,0.04)', border:`1px solid ${m.author==='Julius'?'rgba(201,168,76,0.3)':'rgba(201,168,76,0.12)'}`, borderRadius:12, padding:'7px 12px', color:'rgba(255,255,255,0.8)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, maxWidth:'80%', lineHeight:1.5 }}>{m.text}</span>
-            <p style={{ color:'rgba(201,168,76,0.3)', fontFamily:"'Cormorant Garamond',serif", fontSize:10, margin:'3px 0 0' }}>{m.time}</p>
+            <span style={{ display:'inline-block', background:m.author==='Julius'?BURGUNDY:'rgba(255,255,255,0.7)', border:`1px solid ${m.author==='Julius'?'rgba(201,168,76,0.3)':'rgba(107,29,46,0.2)'}`, borderRadius:12, padding:'7px 12px', color:m.author==='Julius'?GOLD:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:14, maxWidth:'80%', lineHeight:1.5 }}>{m.text}</span>
+            <p style={{ color:'rgba(107,29,46,0.3)', fontFamily:"'Cormorant Garamond',serif", fontSize:10, margin:'3px 0 0' }}>{m.time}</p>
           </div>
         ))}
         <div ref={bottomRef}/>
       </div>
-      <div style={{ borderTop:'0.5px solid rgba(201,168,76,0.1)', paddingTop:10, display:'flex', gap:10, alignItems:'center' }}>
+      <div style={{ borderTop:'1px solid rgba(107,29,46,0.15)', paddingTop:10, display:'flex', gap:10, alignItems:'center', background:'rgba(255,255,255,0.4)', borderRadius:12, padding:'10px 12px' }}>
         <input value={text} onChange={e=>setText(e.target.value)} placeholder="Viesti..." onKeyDown={e=>{if(e.key==='Enter')send();}}
-          style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'rgba(201,168,76,0.8)', fontFamily:"'Cormorant Garamond',serif", fontSize:15 }}/>
+          style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:15 }}/>
         <button onClick={send} style={{ width:30, height:30, background:BURGUNDY, border:'none', borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <svg width="11" height="11" viewBox="0 0 14 14"><path d="M2 12L12 7L2 2V5.8L8 7L2 8.2V12Z" fill={GOLD}/></svg>
         </button>
@@ -223,7 +198,6 @@ function DMView({ member, clubId, onBack }) {
   );
 }
 
-// ── CLUB EVENTS ───────────────────────────────────────────────────────────────
 function ClubEvents({ club, canCreate }) {
   const [events, setEvents] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`club_events_${club.id}`)||'[]') } catch { return [] }
@@ -242,63 +216,60 @@ function ClubEvents({ club, canCreate }) {
   };
 
   const attend = (id) => {
-    const updated = events.map(e => e.id===id
-      ? { ...e, attending: e.attending.includes('Julius') ? e.attending.filter(a=>a!=='Julius') : [...e.attending,'Julius'] }
-      : e
-    );
+    const updated = events.map(e => e.id===id ? { ...e, attending: e.attending.includes('Julius') ? e.attending.filter(a=>a!=='Julius') : [...e.attending,'Julius'] } : e);
     setEvents(updated);
     localStorage.setItem(`club_events_${club.id}`, JSON.stringify(updated));
   };
 
   if (creating) return (
     <div style={{ padding:'16px 0', animation:'fadeUp 0.3s ease both' }}>
-      <button onClick={() => setCreating(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', marginBottom:16, padding:0 }}>← Takaisin</button>
+      <button onClick={() => setCreating(false)} style={{ background:'none', border:'none', cursor:'pointer', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', marginBottom:16, padding:0 }}>← Takaisin</button>
       {[['Nimi','name','Tapahtuman nimi'],['Sijainti','location','Missä?'],['Kuvaus','desc','Mistä on kyse...']].map(([label,field,ph]) => (
         <div key={field} style={{ marginBottom:12 }}>
-          <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>{label}</p>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>{label}</p>
           <input value={form[field]} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}
-            style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:9, padding:'9px 12px', color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:'none' }}/>
+            style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.7)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:9, padding:'9px 12px', color:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:'none' }}/>
         </div>
       ))}
       <div style={{ display:'flex', gap:10, marginBottom:12 }}>
         <div style={{ flex:1 }}>
-          <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>Päivämäärä</p>
-          <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:9, padding:'9px 12px', color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, outline:'none', colorScheme:'dark' }}/>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>Päivämäärä</p>
+          <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.7)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:9, padding:'9px 12px', color:'#2a1008', fontFamily:"'Cinzel',serif", fontSize:13, outline:'none' }}/>
         </div>
         <div style={{ flex:1 }}>
-          <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>Kellonaika</p>
-          <input type="time" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.2)', borderRadius:9, padding:'9px 12px', color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, outline:'none', colorScheme:'dark' }}/>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>Kellonaika</p>
+          <input type="time" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.7)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:9, padding:'9px 12px', color:'#2a1008', fontFamily:"'Cinzel',serif", fontSize:13, outline:'none' }}/>
         </div>
       </div>
       <div style={{ display:'flex', gap:8, marginBottom:16 }}>
         {[[true,'Ilmainen'],[false,'Maksullinen']].map(([val,label]) => (
-          <button key={String(val)} onClick={() => setForm(f=>({...f,free:val}))} style={{ flex:1, padding:'9px', background:form.free===val?'rgba(201,168,76,0.1)':'rgba(255,255,255,0.02)', border:`1px solid ${form.free===val?GOLD:'rgba(201,168,76,0.2)'}`, borderRadius:9, cursor:'pointer', color:form.free===val?GOLD:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.1em' }}>{label}</button>
+          <button key={String(val)} onClick={() => setForm(f=>({...f,free:val}))} style={{ flex:1, padding:'9px', background:form.free===val?'rgba(107,29,46,0.1)':'rgba(255,255,255,0.5)', border:`1.5px solid ${form.free===val?BURGUNDY:'rgba(107,29,46,0.25)'}`, borderRadius:9, cursor:'pointer', color:form.free===val?BURGUNDY:'rgba(107,29,46,0.5)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.1em', fontWeight:form.free===val?700:400 }}>{label}</button>
         ))}
       </div>
-      <button onClick={save} style={{ width:'100%', padding:'12px', background:BURGUNDY, border:`1px solid ${GOLD}88`, borderRadius:11, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer' }}>Luo tapahtuma</button>
+      <button onClick={save} style={{ width:'100%', padding:'12px', background:BURGUNDY, border:'none', borderRadius:11, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer' }}>Luo tapahtuma</button>
     </div>
   );
 
   return (
     <div style={{ padding:'16px 0' }}>
       {canCreate && (
-        <button onClick={() => setCreating(true)} style={{ width:'100%', padding:'11px', marginBottom:16, background:'rgba(107,29,46,0.2)', border:`1px solid ${GOLD}55`, borderRadius:11, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer' }}>+ Luo tapahtuma</button>
+        <button onClick={() => setCreating(true)} style={{ width:'100%', padding:'11px', marginBottom:16, background:BURGUNDY, border:'none', borderRadius:11, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer' }}>+ Luo tapahtuma</button>
       )}
       {events.length === 0
-        ? <p style={{ color:'rgba(201,168,76,0.3)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', textAlign:'center', marginTop:16 }}>Ei tapahtumia.</p>
+        ? <p style={{ color:'rgba(107,29,46,0.35)', fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:'italic', textAlign:'center', marginTop:16 }}>Ei tapahtumia.</p>
         : events.map(ev => {
           const going = ev.attending.includes('Julius');
           return (
-            <div key={ev.id} style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.15)', borderRadius:12, padding:'14px', marginBottom:10 }}>
+            <div key={ev.id} style={{ background:'rgba(255,255,255,0.65)', border:'1.5px solid rgba(107,29,46,0.2)', borderRadius:12, padding:'14px', marginBottom:10 }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600 }}>{ev.name}</span>
-                <span style={{ color:ev.free?'#6effa0':GOLD, fontFamily:"'Cinzel',serif", fontSize:11 }}>{ev.free?'Ilmainen':ev.price}</span>
+                <span style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700 }}>{ev.name}</span>
+                <span style={{ color:ev.free?'#2a9a50':BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:11 }}>{ev.free?'Ilmainen':ev.price}</span>
               </div>
-              {ev.desc && <p style={{ color:'rgba(201,168,76,0.6)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic', margin:'0 0 8px' }}>{ev.desc}</p>}
-              <p style={{ color:'rgba(201,168,76,0.7)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:'0 0 10px' }}>📅 {ev.date}{ev.time?` · ${ev.time}`:''}{ev.location?` · ${ev.location}`:''}</p>
+              {ev.desc && <p style={{ color:'#6B1D2E', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic', margin:'0 0 8px' }}>{ev.desc}</p>}
+              <p style={{ color:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:13, margin:'0 0 10px' }}>📅 {ev.date}{ev.time?` · ${ev.time}`:''}{ev.location?` · ${ev.location}`:''}</p>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:9 }}>{ev.attending.length} ilmoittautunut</span>
-                <button onClick={() => attend(ev.id)} style={{ background:going?'rgba(110,255,160,0.1)':'rgba(107,29,46,0.3)', border:`1px solid ${going?'rgba(110,255,160,0.4)':'rgba(201,168,76,0.3)'}`, borderRadius:20, padding:'6px 16px', cursor:'pointer', color:going?'#6effa0':GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+                <span style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, opacity:0.6 }}>{ev.attending.length} ilmoittautunut</span>
+                <button onClick={() => attend(ev.id)} style={{ background:going?'rgba(42,154,80,0.1)':'rgba(107,29,46,0.08)', border:`1.5px solid ${going?'rgba(42,154,80,0.5)':BURGUNDY}`, borderRadius:20, padding:'6px 16px', cursor:'pointer', color:going?'#2a9a50':BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:700 }}>
                   {going ? '✓ Ilmoittautunut' : 'Ilmoittaudu'}
                 </button>
               </div>
@@ -310,13 +281,12 @@ function ClubEvents({ club, canCreate }) {
   );
 }
 
-// ── CLUB MEMBERS ──────────────────────────────────────────────────────────────
 function ClubMembers({ club, isAdmin, onUpdateClub }) {
   const [editingMember, setEditingMember] = useState(null);
   const [dmMember, setDmMember] = useState(null);
   const members = club.members || [{ id:'julius', name:'Julius', role:'admin', perms:{ invite:true, events:true, chat:true, settings:true } }];
 
-  const ROLE_COLORS = { admin:'#C9A84C', moderator:'#55CCFF', member:'rgba(201,168,76,0.45)' };
+  const ROLE_COLORS = { admin:GOLD, moderator:'#55CCFF', member:BURGUNDY };
   const ROLE_LABELS = { admin:'Admin', moderator:'Moderaattori', member:'Jäsen' };
   const PERMS = [
     { key:'invite',   label:'Kutsu jäseniä' },
@@ -329,65 +299,55 @@ function ClubMembers({ club, isAdmin, onUpdateClub }) {
     const updated = members.map(m => m.id===memberId ? { ...m, perms:{...m.perms,[perm]:val} } : m);
     onUpdateClub({ ...club, members:updated });
   };
-  const promoteToMod = (memberId) => {
-    onUpdateClub({ ...club, members: members.map(m => m.id===memberId ? { ...m, role:'moderator' } : m) });
-  };
-  const demote = (memberId) => {
-    onUpdateClub({ ...club, members: members.map(m => m.id===memberId ? { ...m, role:'member', perms:{invite:false,events:false,chat:false,settings:false} } : m) });
-  };
-  const remove = (memberId) => {
-    onUpdateClub({ ...club, members: members.filter(m => m.id!==memberId) });
-  };
+  const promoteToMod = (memberId) => onUpdateClub({ ...club, members: members.map(m => m.id===memberId ? { ...m, role:'moderator' } : m) });
+  const demote = (memberId) => onUpdateClub({ ...club, members: members.map(m => m.id===memberId ? { ...m, role:'member', perms:{invite:false,events:false,chat:false,settings:false} } : m) });
+  const remove = (memberId) => onUpdateClub({ ...club, members: members.filter(m => m.id!==memberId) });
 
   if (dmMember) return <DMView member={dmMember} clubId={club.id} onBack={() => setDmMember(null)} />;
 
   return (
     <div style={{ padding:'16px 0' }}>
-      <span style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase' }}>{members.length} jäsentä</span>
+      <span style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', opacity:0.6 }}>{members.length} jäsentä</span>
       {members.map(m => (
         <div key={m.id}>
           <div className="member-row">
             <Avatar name={m.name} size={38} />
             <div style={{ flex:1 }}>
-              <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:600, margin:'0 0 2px' }}>{m.name}</p>
+              <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, margin:'0 0 2px' }}>{m.name}</p>
               <span style={{ color:ROLE_COLORS[m.role], fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em' }}>{ROLE_LABELS[m.role]}</span>
             </div>
             <div style={{ display:'flex', gap:6 }}>
               {m.role !== 'admin' && (
-                <button onClick={() => setDmMember(m)}
-                  style={{ background:'none', border:'1px solid rgba(201,168,76,0.2)', borderRadius:8, padding:'4px 10px', cursor:'pointer', color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em' }}>
-                  DM
-                </button>
+                <button onClick={() => setDmMember(m)} style={{ background:'none', border:'1px solid rgba(107,29,46,0.3)', borderRadius:8, padding:'4px 10px', cursor:'pointer', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em' }}>DM</button>
               )}
               {isAdmin && m.role !== 'admin' && (
-                <button onClick={() => setEditingMember(editingMember===m.id ? null : m.id)}
-                  style={{ background:'none', border:'1px solid rgba(201,168,76,0.2)', borderRadius:8, padding:'4px 10px', cursor:'pointer', color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em' }}>
+                <button onClick={() => setEditingMember(editingMember===m.id ? null : m.id)} style={{ background:'none', border:'1px solid rgba(107,29,46,0.3)', borderRadius:8, padding:'4px 10px', cursor:'pointer', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em' }}>
                   {editingMember===m.id ? '↑' : '···'}
                 </button>
               )}
             </div>
           </div>
           {isAdmin && editingMember===m.id && m.role!=='admin' && (
-            <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.1)', borderRadius:10, padding:'12px 14px', marginBottom:8, animation:'fadeUp 0.2s ease both' }}>
+            <div style={{ background:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(107,29,46,0.2)', borderRadius:10, padding:'12px 14px', marginBottom:8, animation:'fadeUp 0.2s ease both' }}>
               <div style={{ display:'flex', gap:8, marginBottom:12 }}>
                 {['member','moderator'].map(r => (
-                  <button key={r} onClick={() => r==='moderator' ? promoteToMod(m.id) : demote(m.id)} style={{ flex:1, padding:'7px', background:m.role===r?'rgba(201,168,76,0.1)':'rgba(255,255,255,0.02)', border:`1px solid ${m.role===r?GOLD:'rgba(201,168,76,0.2)'}`, borderRadius:8, cursor:'pointer', color:m.role===r?GOLD:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em' }}>
+                  <button key={r} onClick={() => r==='moderator' ? promoteToMod(m.id) : demote(m.id)} style={{ flex:1, padding:'7px', background:m.role===r?BURGUNDY:'rgba(255,255,255,0.5)', border:`1.5px solid ${m.role===r?BURGUNDY:'rgba(107,29,46,0.3)'}`, borderRadius:8, cursor:'pointer', color:m.role===r?GOLD:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', fontWeight:700 }}>
                     {r==='moderator'?'Moderaattori':'Jäsen'}
                   </button>
                 ))}
               </div>
               {m.role === 'moderator' && (
                 <div style={{ marginBottom:10 }}>
-                  <p style={{ color:'rgba(201,168,76,0.35)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', margin:'0 0 8px' }}>Oikeudet</p>
+                  <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', margin:'0 0 8px', opacity:0.6 }}>Oikeudet</p>
                   {PERMS.map(perm => (
                     <div key={perm.key} className="perm-toggle">
-                      <span style={{ color:'rgba(201,168,76,0.7)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.06em' }}>{perm.label}</span>
+                      <span style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.06em' }}>{perm.label}</span>
                       <Toggle value={m.perms?.[perm.key]||false} onChange={v => updatePerm(m.id, perm.key, v)} />
                     </div>
                   ))}
                 </div>
               )}
-              <button onClick={() => { remove(m.id); setEditingMember(null); }} style={{ width:'100%', padding:'8px', background:'rgba(255,50,50,0.05)', border:'1px solid rgba(255,60,60,0.2)', borderRadius:8, cursor:'pointer', color:'rgba(255,90,90,0.6)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+              <button onClick={() => { remove(m.id); setEditingMember(null); }} style={{ width:'100%', padding:'8px', background:'rgba(255,50,50,0.05)', border:'1px solid rgba(255,60,60,0.3)', borderRadius:8, cursor:'pointer', color:'rgba(200,50,50,0.8)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase' }}>
                 Poista klubista
               </button>
             </div>
@@ -398,37 +358,28 @@ function ClubMembers({ club, isAdmin, onUpdateClub }) {
   );
 }
 
-// ── CLUB SETTINGS (admin only) ────────────────────────────────────────────────
 function ClubSettings({ club, onUpdateClub, onDeleteClub, onNavigateToFeed }) {
   const [form, setForm] = useState({ name:club.name, desc:club.desc||'', location:club.location||'', isPublic:club.isPublic||false, tags:club.tags||[] });
   const [showQR, setShowQR] = useState(false);
-  const [showInvite, setShowInvite] = useState(false);
   const [copied, setCopied] = useState(false);
   const photoRef = useRef(null);
-
   const inviteLink = `https://duvaan.app/join/${club.id}`;
 
-  const copyLink = () => {
-    navigator.clipboard?.writeText(inviteLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  };
-
-  const shareLink = () => {
-    navigator.share?.({ title:`Liity ${club.name} -klubiin`, url:inviteLink }).catch(()=>{});
-  };
+  const copyLink = () => { navigator.clipboard?.writeText(inviteLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
+  const shareLink = () => { navigator.share?.({ title:`Liity ${club.name} -klubiin`, url:inviteLink }).catch(()=>{}); };
 
   const handlePhoto = (e) => {
     const file = e.target.files?.[0]; if(!file) return;
-    const img = new Image();
-    const url = URL.createObjectURL(file);
+    const img = new Image(); const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
-      const max = 400; const ratio = Math.min(max/img.width, max/img.height, 1);
-      canvas.width = Math.round(img.width*ratio); canvas.height = Math.round(img.height*ratio);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      onUpdateClub({ ...club, photo: canvas.toDataURL('image/jpeg', 0.75) });
+      const max=400; const ratio=Math.min(max/img.width,max/img.height,1);
+      canvas.width=Math.round(img.width*ratio); canvas.height=Math.round(img.height*ratio);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      onUpdateClub({ ...club, photo:canvas.toDataURL('image/jpeg',0.75) });
     };
-    img.src = url;
+    img.src=url;
   };
 
   const [saved, setSaved] = useState(false);
@@ -441,91 +392,73 @@ function ClubSettings({ club, onUpdateClub, onDeleteClub, onNavigateToFeed }) {
 
   return (
     <div style={{ padding:'16px 0' }}>
-
-      {/* Photo */}
       <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:20 }}>
-        <div onClick={() => photoRef.current?.click()} style={{ width:60, height:60, borderRadius:'50%', border:'1.5px dashed rgba(201,168,76,0.3)', overflow:'hidden', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-          {club.photo ? <img src={club.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'rgba(201,168,76,0.3)', fontSize:22 }}>+</span>}
+        <div onClick={() => photoRef.current?.click()} style={{ width:60, height:60, borderRadius:'50%', border:'1.5px dashed rgba(107,29,46,0.4)', overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+          {club.photo ? <img src={club.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:BURGUNDY, fontSize:22, opacity:0.4 }}>+</span>}
         </div>
         <input ref={photoRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display:'none' }}/>
         <div>
-          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 4px' }}>Klubin kuva</p>
-          <button onClick={() => photoRef.current?.click()} style={{ background:'none', border:'1px solid rgba(201,168,76,0.25)', borderRadius:7, padding:'4px 12px', color:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', cursor:'pointer' }}>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 4px', fontWeight:700 }}>Klubin kuva</p>
+          <button onClick={() => photoRef.current?.click()} style={{ background:'none', border:'1.5px solid rgba(107,29,46,0.35)', borderRadius:7, padding:'4px 12px', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', cursor:'pointer' }}>
             {club.photo ? 'Vaihda' : 'Lisää kuva'}
           </button>
         </div>
       </div>
 
-      {/* Name & bio */}
       {[['Nimi','name'],['Bio','desc'],['Sijainti','location']].map(([label,field]) => (
         <div key={field} style={{ marginBottom:12 }}>
-          <p style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px' }}>{label}</p>
-          <input value={form[field]} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.18)', borderRadius:9, padding:'9px 12px', color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:'none' }}/>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 6px', fontWeight:700 }}>{label}</p>
+          <input value={form[field]} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.7)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:9, padding:'9px 12px', color:'#2a1008', fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:'none' }}/>
         </div>
       ))}
 
-      {/* Public toggle */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
         <div>
-          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:'0.07em', margin:'0 0 2px' }}>Julkinen klubi</p>
-          <p style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>Kaikki voivat löytää ja liittyä</p>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:'0.07em', margin:'0 0 2px', fontWeight:700 }}>Julkinen klubi</p>
+          <p style={{ color:'rgba(107,29,46,0.6)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>Kaikki voivat löytää ja liittyä</p>
         </div>
         <Toggle value={form.isPublic} onChange={v=>setForm(f=>({...f,isPublic:v}))} />
       </div>
 
-      {/* Tags */}
       <div style={{ marginBottom:20 }}>
-        <p style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 10px' }}>Tagit</p>
+        <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.2em', textTransform:'uppercase', margin:'0 0 10px', fontWeight:700 }}>Tagit</p>
         <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
           {ALL_TAGS.map(tag => {
             const sel = form.tags.includes(tag);
-            return <button key={tag} onClick={() => toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.15)':'rgba(255,255,255,0.02)', border:`1px solid ${sel?GOLD:'rgba(201,168,76,0.18)'}`, borderRadius:20, padding:'5px 12px', cursor:'pointer', color:sel?GOLD:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em', transition:'all 0.15s' }}>{tag}</button>;
+            return <button key={tag} onClick={() => toggleTag(tag)} style={{ background:sel?BURGUNDY:'rgba(255,255,255,0.6)', border:`1.5px solid ${BURGUNDY}`, borderRadius:20, padding:'5px 12px', cursor:'pointer', color:sel?GOLD:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em', fontWeight:700 }}>{tag}</button>;
           })}
         </div>
       </div>
 
-      <button onClick={save} style={{ width:'100%', padding:'12px', marginBottom:12, background:saved?'rgba(110,255,160,0.1)':BURGUNDY, border:`1px solid ${saved?'rgba(110,255,160,0.4)':`${GOLD}88`}`, borderRadius:11, color:saved?'#6effa0':GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer', transition:'all 0.3s' }}>
+      <button onClick={save} style={{ width:'100%', padding:'12px', marginBottom:12, background:saved?'rgba(42,154,80,0.1)':BURGUNDY, border:`1.5px solid ${saved?'rgba(42,154,80,0.5)':'rgba(201,168,76,0.3)'}`, borderRadius:11, color:saved?'#2a9a50':GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', cursor:'pointer', transition:'all 0.3s', fontWeight:700 }}>
         {saved ? '✓ Tallennettu' : 'Tallenna muutokset'}
       </button>
 
-      {/* Invite section */}
-      <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.12)', borderRadius:12, padding:'14px', marginBottom:12 }}>
-        <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', margin:'0 0 12px' }}>Kutsu jäseniä</p>
+      <div style={{ background:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(107,29,46,0.2)', borderRadius:12, padding:'14px', marginBottom:12 }}>
+        <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', margin:'0 0 12px', fontWeight:700 }}>Kutsu jäseniä</p>
         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          <button onClick={copyLink} style={{ padding:'10px', background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:9, cursor:'pointer', color:copied?'#6effa0':GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>
-            {copied ? '✓ Linkki kopioitu' : '🔗 Kopioi kutsu-linkki'}
-          </button>
-          <button onClick={shareLink} style={{ padding:'10px', background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:9, cursor:'pointer', color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>
-            📱 Jaa puhelinnumerolla
-          </button>
-          <button onClick={() => setShowQR(!showQR)} style={{ padding:'10px', background:'rgba(201,168,76,0.08)', border:'1px solid rgba(201,168,76,0.25)', borderRadius:9, cursor:'pointer', color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+          {[['🔗 Kopioi kutsu-linkki', copyLink, copied?'✓ Linkki kopioitu':null],['📱 Jaa puhelinnumerolla', shareLink, null]].map(([label, fn, alt], i) => (
+            <button key={i} onClick={fn} style={{ padding:'10px', background:'rgba(255,255,255,0.6)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:9, cursor:'pointer', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:700 }}>{alt || label}</button>
+          ))}
+          <button onClick={() => setShowQR(!showQR)} style={{ padding:'10px', background:'rgba(255,255,255,0.6)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:9, cursor:'pointer', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:700 }}>
             {showQR ? 'Piilota QR' : '⬛ Näytä QR-koodi'}
           </button>
-          {showQR && (
-            <div style={{ display:'flex', justifyContent:'center', paddingTop:8, animation:'fadeUp 0.25s ease both' }}>
-              <QRCode value={inviteLink} size={150} />
-            </div>
-          )}
+          {showQR && <div style={{ display:'flex', justifyContent:'center', paddingTop:8, animation:'fadeUp 0.25s ease both' }}><QRCode value={inviteLink} size={150} /></div>}
         </div>
       </div>
 
-      {/* Danger zone */}
-      <button onClick={() => { if(window.confirm('Poistetaanko klubi pysyvästi?')) onDeleteClub(); }} style={{ width:'100%', padding:'11px', background:'rgba(255,40,40,0.05)', border:'1px solid rgba(255,50,50,0.2)', borderRadius:11, cursor:'pointer', color:'rgba(255,80,80,0.6)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase' }}>
+      <button onClick={() => { if(window.confirm('Poistetaanko klubi pysyvästi?')) onDeleteClub(); }} style={{ width:'100%', padding:'11px', background:'rgba(255,40,40,0.05)', border:'1px solid rgba(255,50,50,0.25)', borderRadius:11, cursor:'pointer', color:'rgba(200,50,50,0.8)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase' }}>
         Poista klubi
       </button>
     </div>
   );
 }
 
-// ── MAIN CLUB VIEW ────────────────────────────────────────────────────────────
 export default function ClubView({ club, onClose, onUpdateClub, onDeleteClub, userTier }) {
   const [tab, setTab] = useState('feed');
-  const isAdmin = true; // current user is always admin of their own clubs
-  const isMod   = isAdmin || club.members?.find(m=>m.id==='julius')?.role==='moderator';
-  const canChat    = isAdmin || club.members?.find(m=>m.id==='julius')?.perms?.chat;
-  const canEvents  = isAdmin || club.members?.find(m=>m.id==='julius')?.perms?.events;
-
-  const limits = TIER_LIMITS[userTier] || TIER_LIMITS.member;
+  const isAdmin = true;
+  const canChat   = isAdmin || club.members?.find(m=>m.id==='julius')?.perms?.chat;
+  const canEvents = isAdmin || club.members?.find(m=>m.id==='julius')?.perms?.events;
 
   const TABS = [
     { id:'feed',     label:'Feed'     },
@@ -537,22 +470,21 @@ export default function ClubView({ club, onClose, onUpdateClub, onDeleteClub, us
   return (
     <>
       <style>{css}</style>
-      <div style={{ position:'fixed', inset:0, zIndex:500, background:'#0d0406', overflowY:'auto', display:'flex', justifyContent:'center' }}>
+      <div style={{ position:'fixed', inset:0, zIndex:500, background:'#f5f0e8', overflowY:'auto', display:'flex', justifyContent:'center' }}>
         <div style={{ width:'100%', maxWidth:480 }}>
 
           {/* Header */}
-          <div style={{ position:'sticky', top:0, background:'rgba(13,4,6,0.97)', backdropFilter:'blur(12px)', zIndex:10, borderBottom:'0.5px solid rgba(201,168,76,0.1)' }}>
+          <div style={{ position:'sticky', top:0, background:'rgba(245,240,232,0.97)', backdropFilter:'blur(12px)', zIndex:10, borderBottom:'1px solid rgba(107,29,46,0.2)' }}>
             <div style={{ padding:'52px 20px 0', display:'flex', alignItems:'center', gap:14 }}>
-              <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(201,168,76,0.45)', fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', padding:0, flexShrink:0 }}>←</button>
+              <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:'0.14em', padding:0, flexShrink:0 }}>←</button>
               <Avatar name={club.name} photo={club.photo} size={42} />
               <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:'0.06em', margin:'0 0 2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{club.name}</p>
-                <p style={{ color:'rgba(201,168,76,0.45)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>
+                <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:'0.06em', margin:'0 0 2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{club.name}</p>
+                <p style={{ color:'rgba(107,29,46,0.6)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>
                   {club.members?.length||1} jäsentä · {club.isPublic?'Julkinen':'Yksityinen'}
                 </p>
               </div>
             </div>
-            {/* Tabs */}
             <div style={{ display:'flex', padding:'8px 0 0' }}>
               {TABS.filter(t => t.id!=='settings' || isAdmin).map(t => (
                 <button key={t.id} className={`club-tab ${tab===t.id?'active':''}`} onClick={() => setTab(t.id)}>{t.label}</button>

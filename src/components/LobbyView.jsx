@@ -195,6 +195,8 @@ export default function LobbyView({ onNavigate, settings }) {
   const userTier = getUserTier(points)
   const elielFilter = ELIEL_TIER_FILTERS[userTier]
   const elielGlowColor = ELIEL_TIER_GLOW[userTier]
+  const TIER_COLORS = { member:'#A0B4DC', builder:'#C9A84C', creator:'#F0E8C0' }
+  const tierColor = TIER_COLORS[userTier] || '#C9A84C'
 
   const [blinkFrame, setBlinkFrame] = useState(0)
   useEffect(() => {
@@ -255,13 +257,13 @@ export default function LobbyView({ onNavigate, settings }) {
   const fullText = text(NAME)
 
   const renderBubbleText = () => {
-    if(!highlight) return <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText}</span>
+    if(!highlight) return <span style={{color:tierColor,fontStyle:"italic",opacity:0.85}}>{fullText}</span>
     const idx=fullText.indexOf(highlight)
-    if(idx===-1) return <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText}</span>
+    if(idx===-1) return <span style={{color:tierColor,fontStyle:"italic",opacity:0.85}}>{fullText}</span>
     return (<>
-      <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText.slice(0,idx)}</span>
-      <span style={{color:GOLD,fontStyle:"normal",textShadow:"0 0 18px rgba(201,168,76,0.6)"}}>{highlight}</span>
-      <span style={{color:"rgba(201,168,76,0.92)",fontStyle:"italic",textShadow:"0 0 18px rgba(201,168,76,0.45)"}}>{fullText.slice(idx+highlight.length)}</span>
+      <span style={{color:tierColor,fontStyle:"italic",opacity:0.85}}>{fullText.slice(0,idx)}</span>
+      <span style={{color:tierColor,fontStyle:"normal"}}>{highlight}</span>
+      <span style={{color:tierColor,fontStyle:"italic",opacity:0.85}}>{fullText.slice(idx+highlight.length)}</span>
     </>)
   }
 
@@ -308,7 +310,7 @@ export default function LobbyView({ onNavigate, settings }) {
             {['/ElielGold.png','/ElielGoldHC.png','/ElielGoldFC.png','/ElielGoldHC.png'].map((src,i)=>(
               <img key={i} src={src} alt="" style={{ position:'absolute', top:0, left:0, width:260, height:260, objectFit:'contain', filter:elielFilter, opacity:blinkFrame===i?1:0, pointerEvents:'none', userSelect:'none', animation:i===0?'elielFloat 7s ease-in-out infinite':'none' }}/>
             ))}
-            <ElielGlow size={260} auraColor={aura.color} glowColor={elielGlowColor}/>
+            <ElielGlow size={260} auraColor={tierColor} glowColor={elielGlowColor}/>
           </div>
         </div>
 
@@ -360,7 +362,7 @@ export default function LobbyView({ onNavigate, settings }) {
                   <>
                     <div style={{ display:"flex", justifyContent:"center", alignItems:"flex-end", gap:4, marginBottom:12, height:28 }}>
                       {[0,1,2,3,4].map(i=>(
-                        <div key={i} style={{ width:3, borderRadius:2, background:aura.color, boxShadow:`0 0 6px ${aura.shadow}`, animation:`voiceBar 0.7s ease-in-out infinite`, animationDelay:`${i*0.1}s`, height:`${12+i*4}px` }}/>
+                        <div key={i} style={{ width:3, borderRadius:2, background:aura.color, boxShadow:`0 0 6px ${tierColor}`, animation:`voiceBar 0.7s ease-in-out infinite`, animationDelay:`${i*0.1}s`, height:`${12+i*4}px` }}/>
                       ))}
                     </div>
                     {transcript && <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", margin:"0 0 12px", lineHeight:1.6 }}>{transcript}</p>}

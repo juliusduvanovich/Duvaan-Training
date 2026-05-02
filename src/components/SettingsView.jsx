@@ -56,19 +56,19 @@ const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
   @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes breatheBox {
-    0%,100% { box-shadow: 0 2px 12px rgba(107,29,46,0.08), 0 0 0 rgba(201,168,76,0); }
-    50%     { box-shadow: 0 4px 20px rgba(107,29,46,0.13), 0 0 0 rgba(201,168,76,0); }
+    0%,100% { box-shadow: 0 2px 12px #6B1D2E, 0 0 0 rgba(201,168,76,0); }
+    50%     { box-shadow: 0 4px 20px #6B1D2E, 0 0 0 rgba(201,168,76,0); }
   }
   @keyframes auraPulse {
-    0%,85%,100% { box-shadow: 0 2px 12px rgba(107,29,46,0.08); }
-    88%  { box-shadow: 0 0 0 2px var(--ac), 0 0 18px var(--ac), 0 2px 12px rgba(107,29,46,0.08); }
-    93%  { box-shadow: 0 0 0 1px var(--ac), 0 0 8px var(--ac), 0 2px 12px rgba(107,29,46,0.08); }
-    96%  { box-shadow: 0 0 0 2px var(--ac), 0 0 22px var(--ac), 0 2px 12px rgba(107,29,46,0.08); }
+    0%,85%,100% { box-shadow: 0 2px 12px #6B1D2E; }
+    88%  { box-shadow: 0 0 0 2px var(--ac), 0 0 18px var(--ac), 0 2px 12px #6B1D2E; }
+    93%  { box-shadow: 0 0 0 1px var(--ac), 0 0 8px var(--ac), 0 2px 12px #6B1D2E; }
+    96%  { box-shadow: 0 0 0 2px var(--ac), 0 0 22px var(--ac), 0 2px 12px #6B1D2E; }
   }
 
   .s-section {
     background: rgba(255,255,255,0.55);
-    border: 1.5px solid rgba(107,29,46,0.25);
+    border: 1.5px solid #6B1D2E;
     border-radius: 16px;
     padding: 18px 16px;
     margin-bottom: 12px;
@@ -80,9 +80,9 @@ const css = `
   .s-section:nth-child(5) { animation-delay: 0.15s, 5.5s; }
   .s-section:nth-child(6) { animation-delay: 0.2s, 7s; }
 
-  .s-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid rgba(107,29,46,0.1); }
+  .s-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid #6B1D2E; }
   .s-row:last-child { border-bottom:none; }
-  .toggle-track { width:44px; height:24px; border-radius:12px; position:relative; cursor:pointer; transition:background 0.22s; flex-shrink:0; border:1.5px solid rgba(107,29,46,0.2); }
+  .toggle-track { width:44px; height:24px; border-radius:12px; position:relative; cursor:pointer; transition:background 0.22s; flex-shrink:0; border:1.5px solid rgba(201,168,76,0.4); }
   .toggle-thumb { width:18px; height:18px; border-radius:50%; position:absolute; top:2px; transition:left 0.22s,background 0.22s; }
   .danger-btn { width:100%; padding:12px 0; background:rgba(255,50,50,0.06); border:1.5px solid rgba(200,50,50,0.25); border-radius:11px; color:rgba(160,30,30,0.8); font-family:'Cinzel',serif; font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; margin-bottom:8px; }
   .danger-btn:last-child { margin-bottom:0; }
@@ -100,7 +100,7 @@ function Toggle({ value, onChange }) {
 }
 
 function SecTitle({ children }) {
-  return <p style={{ color:"rgba(107,29,46,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 14px", borderBottom:"1px solid rgba(107,29,46,0.12)", paddingBottom:8 }}>{children}</p>
+  return <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:10, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", margin:"0 0 14px", borderBottom:"1px solid #6B1D2E", paddingBottom:8 }}>{children}</p>
 }
 
 function RowLabel({ title, sub }) {
@@ -186,11 +186,11 @@ export default function SettingsView({ onClose, settings, onSave }) {
       <div style={{ position:"fixed", inset:0, zIndex:500, display:"flex", justifyContent:"center", background:"rgba(0,0,0,0.5)" }}>
         <div style={{
           width:"100%", maxWidth:"480px",
-          background:"linear-gradient(160deg, #fdf8ee 0%, #f5e8c0 40%, #ede0b0 70%, #f8f0d8 100%)",
+          background:"#f5f0e8",
           overflowY:"auto", position:"relative",
         }}>
           {/* Header */}
-          <div style={{ position:"sticky", top:0, background:"rgba(253,248,238,0.97)", backdropFilter:"blur(12px)", zIndex:10, padding:"52px 20px 12px", borderBottom:"1px solid rgba(201,168,76,0.2)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div style={{ position:"sticky", top:0, background:"rgba(245,240,232,0.97)", backdropFilter:"blur(12px)", zIndex:10, padding:"52px 20px 12px", borderBottom:"1px solid rgba(201,168,76,0.2)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <h2 style={{ color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:0 }}>Asetukset</h2>
             <div style={{ display:"flex", gap:10, alignItems:"center" }}>
               <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(80,50,10,0.4)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.16em", textTransform:"uppercase" }}>Peruuta</button>
@@ -218,14 +218,61 @@ export default function SettingsView({ onClose, settings, onSave }) {
                     const pts = { Member:0, Builder:1000, Creator:5000 }
                     localStorage.setItem('duvaan_frequency', String(pts[tier.name]))
                     window.location.reload()
-                  }} style={{ flex:1, padding:"9px 0", background:"rgba(107,29,46,0.08)", border:`1px solid ${tier.color}55`, borderRadius:10, color:tier.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", textTransform:"uppercase", cursor:"pointer" }}>
+                  }} style={{ flex:1, padding:"9px 0", background:"#6B1D2E", border:`1px solid ${tier.color}55`, borderRadius:10, color:tier.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", textTransform:"uppercase", cursor:"pointer" }}>
                     {tier.icon} {tier.name}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* ── 2. TURVALLISUUS ── */}
+            {/* ── 2. KIELI ── */}
+            <div className="s-section">
+              <SecTitle>Kieli · Language</SecTitle>
+              {(() => {
+                const LANGUAGES = [
+                  { code:'fi', label:'Suomi' },
+                  { code:'en', label:'English' },
+                  { code:'sv', label:'Svenska' },
+                  { code:'no', label:'Norsk' },
+                  { code:'da', label:'Dansk' },
+                  { code:'de', label:'Deutsch' },
+                  { code:'fr', label:'Français' },
+                  { code:'es', label:'Español' },
+                  { code:'it', label:'Italiano' },
+                  { code:'pt', label:'Português' },
+                  { code:'nl', label:'Nederlands' },
+                  { code:'pl', label:'Polski' },
+                  { code:'ru', label:'Русский' },
+                  { code:'ja', label:'日本語' },
+                  { code:'zh', label:'中文' },
+                  { code:'ko', label:'한국어' },
+                  { code:'ar', label:'العربية' },
+                ]
+                const current = LANGUAGES.find(l => l.code === (local.language || 'fi')) || LANGUAGES[0]
+                const [open, setOpen] = [local._langOpen, (v) => set('_langOpen', v)]
+                return (
+                  <div style={{ position:'relative' }}>
+                    <button onClick={() => set('_langOpen', !local._langOpen)}
+                      style={{ width:'100%', padding:'11px 14px', background:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(107,29,46,0.35)', borderRadius: local._langOpen ? '10px 10px 0 0' : 10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:600, color:'#6B1D2E', letterSpacing:'0.08em' }}>
+                      <span>{current.label}</span>
+                      <span style={{ transition:'transform 0.2s', display:'inline-block', transform: local._langOpen ? 'rotate(180deg)' : 'none', fontSize:13 }}>↓</span>
+                    </button>
+                    {local._langOpen && (
+                      <div style={{ border:'1.5px solid rgba(107,29,46,0.35)', borderTop:'none', borderRadius:'0 0 10px 10px', background:'rgba(255,255,255,0.95)', maxHeight:220, overflowY:'auto', position:'relative', zIndex:10 }}>
+                        {LANGUAGES.map(lang => (
+                          <button key={lang.code} onClick={() => { set('language', lang.code); set('_langOpen', false); localStorage.setItem('duvaan_language', lang.code) }}
+                            style={{ width:'100%', padding:'11px 14px', background: lang.code === (local.language||'fi') ? 'rgba(107,29,46,0.08)' : 'transparent', border:'none', borderBottom:'0.5px solid rgba(107,29,46,0.1)', cursor:'pointer', textAlign:'left', fontFamily:"'Cinzel',serif", fontSize:11, fontWeight: lang.code === (local.language||'fi') ? 700 : 500, color: lang.code === (local.language||'fi') ? '#6B1D2E' : '#2a1008', letterSpacing:'0.06em' }}>
+                            {lang.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* ── 3. TURVALLISUUS ── */}
             <div className="s-section">
               <SecTitle>Turvallisuus</SecTitle>
               <div className="s-row">
@@ -241,7 +288,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
               </div>
               <div className="s-row" style={{ borderBottom:'none' }}>
                 <RowLabel title="Vaihda PIN" sub="4-numeroinen pääsykoodi"/>
-                <button onClick={() => setChangingPin(c => !c)} style={{ background:"rgba(107,29,46,0.1)", border:"1px solid rgba(201,168,76,0.3)", borderRadius:8, padding:"6px 14px", color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>
+                <button onClick={() => setChangingPin(c => !c)} style={{ background:"#6B1D2E", border:"1px solid rgba(201,168,76,0.3)", borderRadius:8, padding:"6px 14px", color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>
                   {changingPin ? 'Peruuta' : 'Vaihda'}
                 </button>
               </div>
@@ -252,14 +299,14 @@ export default function SettingsView({ onClose, settings, onSave }) {
                   </p>
                   <div style={{ display:'flex', gap:10 }}>
                     {[0,1,2,3].map(i => (
-                      <div key={i} style={{ width:12, height:12, borderRadius:'50%', background: (pinStep==='enter'?newPin:pinConfirm).length > i ? BURGUNDY : 'rgba(107,29,46,0.15)', border:'1px solid rgba(201,168,76,0.3)', transition:'background 0.15s' }}/>
+                      <div key={i} style={{ width:12, height:12, borderRadius:'50%', background: (pinStep==='enter'?newPin:pinConfirm).length > i ? BURGUNDY : '#6B1D2E', border:'1px solid rgba(201,168,76,0.3)', transition:'background 0.15s' }}/>
                     ))}
                   </div>
                   {pinMsg && <p style={{ color: pinMsg.startsWith('✓') ? '#2a7a2a' : '#aa3333', fontFamily:"'Cinzel',serif", fontSize:10, margin:0 }}>{pinMsg}</p>}
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, width:200 }}>
                     {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((d,i) => (
                       <button key={i} onClick={() => { if(d==='⌫') { if(pinStep==='enter') setNewPin(p=>p.slice(0,-1)); else setPinConfirm(p=>p.slice(0,-1)) } else if(d!=='') handlePinDigit(String(d)) }}
-                        style={{ background: d==='' ? 'transparent' : 'rgba(107,29,46,0.08)', border: d==='' ? 'none' : '1px solid rgba(201,168,76,0.2)', borderRadius:10, padding:"12px 0", color:"#3a2a0a", fontSize: d==='⌫'?16:18, fontFamily:"'Cinzel',serif", fontWeight:600, cursor: d===''?'default':'pointer', pointerEvents: d===''?'none':'auto' }}
+                        style={{ background: d==='' ? 'transparent' : '#6B1D2E', border: d==='' ? 'none' : '1px solid rgba(201,168,76,0.2)', borderRadius:10, padding:"12px 0", color:"#3a2a0a", fontSize: d==='⌫'?16:18, fontFamily:"'Cinzel',serif", fontWeight:600, cursor: d===''?'default':'pointer', pointerEvents: d===''?'none':'auto' }}
                       >{d}</button>
                     ))}
                   </div>
@@ -267,7 +314,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
               )}
             </div>
 
-            {/* ── 3. ULKOASU ── */}
+            {/* ── 4. ULKOASU ── */}
             <div className="s-section">
               <SecTitle>Ulkoasu</SecTitle>
               <div className="s-row" style={{ borderBottom:'none' }}>
@@ -289,7 +336,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
               </div>
             </div>
 
-            {/* ── 4. ELIEL ── */}
+            {/* ── 5. ELIEL ── */}
             <div className="s-section">
               <SecTitle>Eliel</SecTitle>
 
@@ -298,7 +345,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
                 <p style={{ color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, letterSpacing:"0.07em", margin:"0 0 8px" }}>Kommunikoinnin oletus</p>
                 <div style={{ display:"flex", gap:8 }}>
                   {[['text','✍ Kirjoitus'],['voice','Puhe']].map(([val,label]) => (
-                    <button key={val} onClick={() => set("elielMode", val)} style={{ flex:1, padding:"10px 8px", cursor:"pointer", background:local.elielMode===val?"rgba(107,29,46,0.12)":"rgba(255,255,255,0.3)", border:local.elielMode===val?`1.5px solid ${BURGUNDY}`:"1px solid rgba(201,168,76,0.2)", borderRadius:10, color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.08em" }}>{label}</button>
+                    <button key={val} onClick={() => set("elielMode", val)} style={{ flex:1, padding:"10px 8px", cursor:"pointer", background:local.elielMode===val?"#6B1D2E":"rgba(255,255,255,0.3)", border:local.elielMode===val?`1.5px solid ${BURGUNDY}`:"1px solid rgba(201,168,76,0.2)", borderRadius:10, color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.08em" }}>{label}</button>
                   ))}
                 </div>
               </div>
@@ -331,7 +378,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
                     const selected = local.aura === a.id
                     return (
                       <button key={a.id} onClick={() => !locked && set("aura", a.id)}
-                        style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'8px 10px', borderRadius:12, cursor:locked?'default':'pointer', background:selected?'rgba(107,29,46,0.12)':'rgba(255,255,255,0.3)', border:selected?`1.5px solid ${a.color}`:'1px solid rgba(201,168,76,0.2)', opacity:locked?0.35:1, minWidth:52 }}>
+                        style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'8px 10px', borderRadius:12, cursor:locked?'default':'pointer', background:selected?'#6B1D2E':'rgba(255,255,255,0.3)', border:selected?`1.5px solid ${a.color}`:'1px solid rgba(201,168,76,0.2)', opacity:locked?0.35:1, minWidth:52 }}>
                         <div style={{ width:20, height:20, borderRadius:'50%', background:`radial-gradient(circle at 35% 35%, ${a.color}, ${a.color}66)`, boxShadow:selected?`0 0 8px ${a.shadow}`:'none' }}/>
                         <span style={{ color:selected?a.color:"#3a2a0a", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.06em" }}>{a.name}</span>
                         {locked && <span style={{ fontSize:7, color:"rgba(80,50,10,0.4)" }}>🔒</span>}
@@ -342,7 +389,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
               </div>
             </div>
 
-            {/* ── 5. ILMOITUKSET ── */}
+            {/* ── 6. ILMOITUKSET ── */}
             <div className="s-section">
               <SecTitle>Ilmoitukset</SecTitle>
               <div className="s-row">
@@ -357,7 +404,7 @@ export default function SettingsView({ onClose, settings, onSave }) {
               ))}
             </div>
 
-            {/* ── 6. YKSITYISYYS ── */}
+            {/* ── 7. YKSITYISYYS ── */}
             <div className="s-section">
               <SecTitle>Yksityisyys</SecTitle>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>

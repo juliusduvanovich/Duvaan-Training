@@ -86,59 +86,61 @@ const css = `
   }
 
   .post-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(201,168,76,0.45);
+    background: rgba(255,255,255,0.65);
+    border: 1px solid #6B1D2E;
     border-radius: 16px; overflow: hidden;
-    
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 12px #6B1D2E;
   }
   .comment-input {
     flex: 1; background: transparent; border: none; outline: none;
-    color: #C9A84C; font-family: 'Cormorant Garamond', serif;
+    color: #2a1008; font-family: 'Cormorant Garamond', serif;
     font-size: 14px; letter-spacing: 0.04em;
   }
-  .comment-input::placeholder { color: #C9A84C; font-style: italic; }
+  .comment-input::placeholder { color: #6B1D2E; font-style: italic; }
   .chat-input {
     flex: 1; background: transparent; border: none; outline: none;
-    color: #C9A84C; font-family: 'Cormorant Garamond', serif;
+    color: #2a1008; font-family: 'Cormorant Garamond', serif;
     font-size: 14px; letter-spacing: 0.04em;
   }
-  .chat-input::placeholder { color: #C9A84C; font-style: italic; }
+  .chat-input::placeholder { color: #6B1D2E; font-style: italic; }
   .chat-msg {
     padding: 8px 0;
-    border-bottom: 0.5px solid rgba(201,168,76,0.35);
+    border-bottom: 0.5px solid #6B1D2E;
     animation: fadeInUp 0.3s ease both;
   }
   .text-field {
     width: 100%; box-sizing: border-box;
-    background: rgba(255,255,255,0.03);
-    border: 1.5px solid #C9A84C;
+    background: rgba(255,255,255,0.7);
+    border: 1.5px solid #6B1D2E;
     border-radius: 12px; padding: 12px 16px;
-    color: #C9A84C; font-family: 'Cinzel', serif;
+    color: #2a1008; font-family: 'Cinzel', serif;
     font-size: 13px; outline: none; letter-spacing: 0.04em;
   }
-  .text-field::placeholder { color: #C9A84C; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; }
-  .text-field:focus { border-color: #C9A84C; }
+  .text-field::placeholder { color: #6B1D2E; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; }
+  .text-field:focus { border-color: #6B1D2E; }
   .tag-btn {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(201,168,76,0.5);
+    background: rgba(255,255,255,0.5);
+    border: 1px solid #6B1D2E;
     border-radius: 20px; padding: 6px 14px; cursor: pointer;
-    color: rgba(201,168,76,0.8); font-family: 'Cinzel', serif;
+    color: #6B1D2E; font-family: 'Cinzel', serif;
     font-size: 9px; letter-spacing: 0.1em; transition: all 0.2s;
   }
   .tag-btn.selected {
-    background: rgba(201,168,76,0.25);
-    border-color: #C9A84C;
-    color: #C9A84C; transform: scale(1.04);
+    background: #6B1D2E;
+    border-color: #6B1D2E;
+    color: #C9A84C;
   }
   .club-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(201,168,76,0.35);
+    background: rgba(255,255,255,0.65);
+    border: 1px solid #6B1D2E;
     border-radius: 14px; padding: 14px 16px;
-    
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 10px #6B1D2E;
   }
   .club-card.duvaan {
-    border-color: rgba(201,168,76,0.7);
-    background: linear-gradient(135deg, rgba(107,29,46,0.25) 0%, rgba(10,8,6,0.6) 100%);
+    border-color: #6B1D2E;
+    background: rgba(255,255,255,0.8);
   }
   .search-panel {
     animation: searchSlide 0.25s ease both;
@@ -146,9 +148,10 @@ const css = `
 `;
 
 const ALL_TAGS = [
-  'Sports','Gastronomy','Philosophy','Business','Music',
-  'Wellness','Art','Technology','Finance','Travel',
-  'Mindfulness','Nutrition','Running','Film','Fashion',
+  'Music','Art','Philosophy',
+  'Sports','Wellness','Nutrition',
+  'Business','Finance','Technology',
+  'Gastronomy','Travel','Film','Fashion','Mindfulness',
 ];
 
 const MOCK_POSTS = [
@@ -188,28 +191,22 @@ const MOCK_PUBLIC_CLUBS = [
 
 const CLUB_TIER_STYLES = {
   member: {
-    boxBg: 'linear-gradient(135deg,rgba(40,50,80,0.55) 0%,rgba(8,6,14,0.95) 60%,rgba(120,40,40,0.25) 100%)',
-    borderColor: '#A0B4DC',
-    innerGlow: 'rgba(160,180,220,0.12)',
-    color: '#A0B4DC',
-    icon: '◈',
-    master: false,
+    boxBg: 'linear-gradient(135deg,rgba(100,120,170,0.85) 0%,rgba(50,60,100,0.95) 50%,rgba(80,90,130,0.8) 100%)',
+    borderColor: '#B0C4DE', glowRgb: '180,200,230',
+    innerGlow: 'rgba(180,200,230,0.2)',
+    color: '#C8D8F0', icon: '◈', master: false,
   },
   builder: {
-    boxBg: 'linear-gradient(135deg,rgba(60,40,10,0.6) 0%,rgba(8,4,6,0.95) 60%,rgba(40,60,100,0.2) 100%)',
-    borderColor: '#C9A84C',
-    innerGlow: 'rgba(201,168,76,0.1)',
-    color: '#C9A84C',
-    icon: '✦',
-    master: false,
+    boxBg: 'linear-gradient(135deg,rgba(90,60,15,0.9) 0%,rgba(30,18,6,0.97) 55%,rgba(60,80,140,0.35) 100%)',
+    borderColor: '#C9A84C', glowRgb: '201,168,76',
+    innerGlow: 'rgba(201,168,76,0.18)',
+    color: '#C9A84C', icon: '✦', master: false,
   },
   creator: {
-    boxBg: 'linear-gradient(135deg,rgba(45,15,85,0.92) 0%,rgba(28,8,65,0.95) 40%,rgba(55,18,95,0.88) 70%,rgba(35,10,70,0.93) 100%)',
-    borderColor: '#E8D48A',
-    innerGlow: 'rgba(232,212,138,0.18)',
-    color: '#FFF5D0',
-    icon: '✸',
-    master: true,
+    boxBg: 'linear-gradient(135deg,rgba(30,15,60,0.97) 0%,rgba(80,30,100,0.85) 35%,rgba(120,35,80,0.8) 65%,rgba(30,15,60,0.97) 100%)',
+    borderColor: '#E8D48A', glowRgb: '232,212,138',
+    innerGlow: 'rgba(232,212,138,0.15)',
+    color: '#F0E8C0', icon: '✸', master: true,
   },
 };
 
@@ -231,8 +228,8 @@ export default function CommunityView({ onNavigate, settings }) {
         <div style={{ padding:"48px 24px 0", animation:"fadeInUp 0.6s ease both" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"24px" }}>
             <div>
-              <h2 style={{ color:auraColor, fontSize:"22px", fontWeight:700, letterSpacing:"0.1em", margin:0, fontFamily:"'Cinzel',serif", textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`, animation:"titleGlow 4s ease-in-out infinite" }}>Community</h2>
-              <p style={{ color:"#C9A84C", fontSize:"10px", letterSpacing:"0.14em", margin:"4px 0 0", textTransform:"uppercase" }}>
+              <h2 style={{ color:"#6B1D2E", fontSize:"22px", fontWeight:700, letterSpacing:"0.1em", margin:0, fontFamily:"'Cinzel',serif", textShadow:`0 0 30px ${auraColor}66, 0 0 60px ${auraColor}33` }}>Community</h2>
+              <p style={{ color:"#6B1D2E", fontSize:"12px", letterSpacing:"0.14em", margin:"4px 0 0", textTransform:"uppercase", fontWeight:600, fontFamily:"'Cinzel',serif" }}>
                 {new Date().toLocaleDateString('fi-FI', { weekday:'long', day:'numeric', month:'long' })}
               </p>
             </div>
@@ -244,6 +241,8 @@ export default function CommunityView({ onNavigate, settings }) {
             active={section}
             onChange={setSection}
             auraColor={auraColor}
+            lineColor="#6B1D2E"
+            textColor="#6B1D2E"
           />
         </div>
 
@@ -321,7 +320,7 @@ function Private({ auraColor = "#C9A84C" }) {
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
       <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
       <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Luo klubi</h3>
-      <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 20px" }}>
+      <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 20px" }}>
         {userTier==='member'?'Member: 1 klubi, max 10 jäsentä':userTier==='builder'?'Builder: 3 klubia, max 50 jäsentä':'Creator: 10 klubia, max 1500 jäsentä'}
       </p>
 
@@ -338,9 +337,9 @@ function Private({ auraColor = "#C9A84C" }) {
 
       {[['Nimi *','name','Klubin nimi...'],['Bio','desc','Mistä klubissa on kyse...'],['Sijainti','location','Helsinki, Suomi']].map(([label,field,ph]) => (
         <div key={field} style={{ marginBottom:12 }}>
-          <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>{label}</p>
+          <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>{label}</p>
           <input value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}
-            style={{ width:"100%", boxSizing:"border-box", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.18)", borderRadius:9, padding:"9px 12px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none" }}/>
+            style={{ width:"100%", boxSizing:"border-box", background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.18)", borderRadius:9, padding:"9px 12px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none" }}/>
         </div>
       ))}
 
@@ -357,11 +356,11 @@ function Private({ auraColor = "#C9A84C" }) {
       )}
 
       <div style={{ marginBottom:20 }}>
-        <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 10px" }}>Tagit</p>
-        <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+        <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 10px" }}>Tagit</p>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:7 }}>
           {ALL_TAGS.map(tag => {
             const sel=form.tags.includes(tag);
-            return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.15)':'rgba(255,255,255,0.02)', border:`1px solid ${sel?GOLD:'rgba(201,168,76,0.15)'}`, borderRadius:20, padding:'5px 12px', cursor:'pointer', color:sel?GOLD:'rgba(201,168,76,0.4)', fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:'0.1em', transition:'all 0.15s' }}>{tag}</button>;
+            return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.22)':'rgba(255,255,255,0.04)', border:sel?'1.5px solid #C9A84C':'1px solid rgba(201,168,76,0.4)', borderRadius:10, padding:'8px 6px', cursor:'pointer', color:sel?'#FFE89A':'rgba(201,168,76,0.85)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em', textAlign:'center', transition:'all 0.15s', fontWeight:sel?700:500 }}>{tag}</button>;
           })}
         </div>
       </div>
@@ -369,7 +368,7 @@ function Private({ auraColor = "#C9A84C" }) {
       {created ? (
         <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Klubi luotu</p>
       ) : (
-        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:14, background:form.name.trim()?BURGUNDY:"rgba(107,29,46,0.15)", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()?1:0.4 }}>
+        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:14, background:form.name.trim()?BURGUNDY:"#6B1D2E", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()?1:0.4 }}>
           Luo klubi
         </WaterButton>
       )}
@@ -384,31 +383,31 @@ function Private({ auraColor = "#C9A84C" }) {
       </div>
 
       {canCreate && (
-        <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"13px 0", marginBottom:20, background:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}66`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>
+        <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"13px 0", marginBottom:20, background:"#6B1D2E", border:`1.5px solid ${auraColor}66`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>
           + Luo klubi
         </WaterButton>
       )}
 
       {clubs.length === 0 ? (
-        <p style={{ color:"rgba(201,168,76,0.4)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", textAlign:"center", marginTop:32 }}>Ei klubeja vielä.</p>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", textAlign:"center", marginTop:32 }}>Ei klubeja vielä.</p>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {clubs.map(club => (
-            <div key={club.id} onClick={() => setOpenClub(club)} style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"14px 16px", cursor:'pointer', transition:'border-color 0.2s' }}>
+            <div key={club.id} onClick={() => setOpenClub(club)} style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid #6B1D2E", borderRadius:14, padding:"14px 16px", cursor:'pointer', transition:'border-color 0.2s' }}>
               <div style={{ display:"flex", alignItems:'center', gap:12, marginBottom:6 }}>
-                <div style={{ width:40, height:40, borderRadius:'50%', background:`linear-gradient(135deg,${BURGUNDY},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', border:'1px solid rgba(201,168,76,0.3)' }}>
+                <div style={{ width:40, height:40, borderRadius:'50%', background:`linear-gradient(135deg,${BURGUNDY},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', border:'1px solid #6B1D2E' }}>
                   {club.photo ? <img src={club.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'#fff', fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700 }}>{club.name[0]}</span>}
                 </div>
                 <div style={{ flex:1 }}>
-                  <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em", margin:'0 0 2px' }}>{club.name}</p>
-                  <p style={{ color:'rgba(201,168,76,0.65)', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:0 }}>{club.members?.length||1} jäsentä · {club.isPublic?'Julkinen':'Yksityinen'}</p>
+                  <p style={{ color:'#6B1D2E', fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700, letterSpacing:"0.06em", margin:'0 0 2px' }}>{club.name}</p>
+                  <p style={{ color:'#6B1D2E', fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:0 }}>{club.members?.length||1} jäsentä · {club.isPublic?'Julkinen':'Yksityinen'}</p>
                 </div>
-                <span style={{ color:'rgba(201,168,76,0.3)', fontSize:16 }}>›</span>
+                <span style={{ color:'#6B1D2E', fontSize:16 }}>›</span>
               </div>
-              {club.desc && <p style={{ color:"rgba(201,168,76,0.8)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:"0 0 8px" }}>{club.desc}</p>}
+              {club.desc && <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:"0 0 8px" }}>{club.desc}</p>}
               {club.tags?.length>0 && (
                 <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                  {club.tags.slice(0,4).map(t => <span key={t} style={{ background:"rgba(201,168,76,0.08)", border:"0.5px solid rgba(201,168,76,0.2)", borderRadius:20, padding:"3px 10px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:8 }}>{t}</span>)}
+                  {club.tags.slice(0,4).map(t => <span key={t} style={{ background:"#6B1D2E", border:"0.5px solid #6B1D2E", borderRadius:20, padding:"3px 10px", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8 }}>{t}</span>)}
                 </div>
               )}
             </div>
@@ -437,10 +436,10 @@ function ClubServiceView({ club, services, onBack, onPurchase }) {
   if (confirming && selected) return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
       <button onClick={() => setConfirming(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
-      <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"24px 20px" }}>
-        <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>Varauksen yhteenveto</p>
+      <div style={{ background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"24px 20px" }}>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>Varauksen yhteenveto</p>
         <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, margin:"0 0 4px" }}>{selected.name}</h3>
-        <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 20px" }}>{club.name}</p>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 20px" }}>{club.name}</p>
         <div style={{ borderTop:"0.5px solid rgba(201,168,76,0.15)", borderBottom:"0.5px solid rgba(201,168,76,0.15)", padding:"14px 0", marginBottom:20 }}>
           {[["Kesto",selected.duration],["Hinta",selected.price+"€"],["Frequency","+20 pistettä"]].map(([l,v]) => (
             <div key={l} style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
@@ -467,8 +466,8 @@ function ClubServiceView({ club, services, onBack, onPurchase }) {
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
       <button onClick={onBack} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:16, padding:0 }}>← Takaisin</button>
       <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, letterSpacing:"0.08em", margin:"0 0 4px" }}>{club.name}</h3>
-      <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 20px" }}>{club.desc}</p>
-      <p style={{ color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 12px" }}>Palvelut</p>
+      <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 20px" }}>{club.desc}</p>
+      <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 12px" }}>Palvelut</p>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {services.map(service => (
           <div key={service.id} onClick={() => setSelected(service)} style={{ background:selected?.id===service.id?"rgba(201,168,76,0.05)":"rgba(255,255,255,0.02)", border:selected?.id===service.id?"1px solid rgba(201,168,76,0.6)":"1px solid rgba(201,168,76,0.25)", borderRadius:16, padding:"16px 18px", cursor:"pointer", transition:"all 0.2s" }}>
@@ -502,10 +501,10 @@ function LocationPicker({ location, setLocation }) {
   const [draft, setDraft] = useState(location);
   return (
     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-      <span style={{ color:"rgba(201,168,76,0.5)", fontSize:13 }}>▸</span>
+      <span style={{ color:"#6B1D2E", fontSize:13 }}>▸</span>
       {editing ? (
         <>
-          <input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){setLocation(draft);setEditing(false);}}} autoFocus placeholder="Kaupunki..." style={{ flex:1, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"6px 14px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:13, outline:"none" }} />
+          <input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){setLocation(draft);setEditing(false);}}} autoFocus placeholder="Kaupunki..." style={{ flex:1, background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"6px 14px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:13, outline:"none" }} />
           <button onClick={()=>{setLocation(draft);setEditing(false);}} style={{ background:BURGUNDY, border:"none", borderRadius:20, padding:"6px 14px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>OK</button>
         </>
       ) : (
@@ -557,11 +556,11 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
         onClick={() => setSearchOpen(o => !o)}
         style={{
           width:"100%", padding:"13px 16px", marginBottom: searchOpen ? 0 : 16,
-          background: searchOpen ? "rgba(201,168,76,0.1)" : "rgba(201,168,76,0.04)",
-          border:"1.5px solid rgba(201,168,76,0.7)",
+          background: searchOpen ? "rgba(107,29,46,0.08)" : "rgba(107,29,46,0.04)",
+          border:"1.5px solid rgba(107,29,46,0.4)",
           borderRadius: searchOpen ? "12px 12px 0 0" : 12,
-          color:"rgba(201,168,76,1)", fontFamily:"'Cinzel',serif",
-          fontSize:12, fontWeight:600, letterSpacing:"0.18em", textTransform:"uppercase",
+          color:"#6B1D2E", fontFamily:"'Cinzel',serif",
+          fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase",
           cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between",
           transition:"all 0.2s",
         }}
@@ -572,7 +571,7 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
 
       {searchOpen && (
         <div className="search-panel" style={{
-          background:"rgba(255,255,255,0.02)",
+          background:"rgba(255,255,255,0.65)",
           border:"1px solid rgba(201,168,76,0.35)",
           borderTop:"none",
           borderRadius:"0 0 12px 12px",
@@ -586,7 +585,7 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
             placeholder="Etsi klubeja..."
             style={{
               width:"100%", boxSizing:"border-box", marginBottom:14,
-              background:"rgba(255,255,255,0.03)", border:"1px solid rgba(201,168,76,0.25)",
+              background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.25)",
               borderRadius:24, padding:"9px 16px", color:GOLD,
               fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none",
             }}
@@ -597,7 +596,7 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
             ))}
           </div>
           {(search||filter) && (
-            <button onClick={() => { setSearch(''); setFilter(null); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.5)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", marginTop:10, padding:0 }}>
+            <button onClick={() => { setSearch(''); setFilter(null); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", marginTop:10, padding:0 }}>
               × Tyhjennä haku
             </button>
           )}
@@ -625,18 +624,18 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:club.duvaan?17:15, fontWeight:700, letterSpacing:"0.06em" }}>{club.name}</span>
                 {club.active && <span style={{ fontSize:9, color:"#6effa0", fontWeight:600 }}>● LIVE</span>}
-                {club.duvaan && <span style={{ fontSize:10, color:"#6eb4ff" }}>✦</span>}
+                {club.duvaan && <span style={{ fontSize:10, color:ts.color }}>✦</span>}
               </div>
-              <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, opacity:0.75 }}>{club.members.toLocaleString()} jäsentä</span>
+              <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, opacity:0.7 }}>{club.members.toLocaleString()} jäsentä</span>
             </div>
-            <p style={{ color:"rgba(201,168,76,0.85)", fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5 }}>{club.desc}</p>
+            <p style={{ color:ts.color, fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5, opacity:0.85 }}>{club.desc}</p>
             <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
               {club.tags.map(t => (
-                <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}55`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
+                <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}66`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
               ))}
             </div>
             <div style={{ display:"flex", gap:8 }}>
-              <button style={{ background:"rgba(107,29,46,0.3)", border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"7px 16px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
+              <button style={{ background:"#6B1D2E", border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"7px 16px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
                 {club.duvaan ? 'Jäsenyydet' : 'Liity'}
               </button>
               {MOCK_SERVICES[club.id] && (
@@ -669,7 +668,7 @@ function PricePicker({ value, onChange }) {
   const [val, setVal] = useState(value);
   return (
     <div style={{ width:"100%" }}>
-      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.03)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12, padding:"12px 16px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val}€</button>
+      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12, padding:"12px 16px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val}€</button>
       {open && (
         <div style={{ background:"rgba(12,12,12,0.97)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"8px 12px", marginTop:4 }}>
           <ScrollPicker value={val} onChange={v=>{setVal(v);onChange(v);}} min={1} max={500} step={1} unit="€" />
@@ -685,7 +684,7 @@ function CapacityPicker({ value, onChange }) {
   const [val, setVal] = useState(value);
   return (
     <div style={{ width:"100%" }}>
-      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.03)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12, padding:"12px 16px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val} hlö</button>
+      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12, padding:"12px 16px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val} hlö</button>
       {open && (
         <div style={{ background:"rgba(12,12,12,0.97)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"8px 12px", marginTop:4 }}>
           <ScrollPicker value={val} onChange={v=>{setVal(v);onChange(v);}} min={1} max={500} step={1} unit=" hlö" />
@@ -777,22 +776,25 @@ function Events({ auraColor = "#C9A84C" }) {
 
       <div style={{ marginBottom:28 }}>
         <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>Kategoria</p>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-          {ALL_TAGS.map(tag => <button key={tag} className={`tag-btn ${form.tags.includes(tag)?'selected':''}`} onClick={()=>toggleTag(tag)}>{tag}</button>)}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:7 }}>
+          {ALL_TAGS.map(tag => {
+            const sel=form.tags.includes(tag);
+            return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.22)':'rgba(255,255,255,0.04)', border:sel?'1.5px solid #C9A84C':'1px solid rgba(201,168,76,0.4)', borderRadius:10, padding:'8px 6px', cursor:'pointer', color:sel?'#FFE89A':'rgba(201,168,76,0.85)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em', textAlign:'center', fontWeight:sel?700:500 }}>{tag}</button>
+          })}
         </div>
       </div>
 
       {created ? (
         <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Tapahtuma luotu</p>
       ) : (
-        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:canCreate?BURGUNDY:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}88`, borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:canCreate?"pointer":"default", opacity:canCreate?1:0.35 }}>Create Event</WaterButton>
+        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:canCreate?BURGUNDY:"#6B1D2E", border:`1.5px solid ${auraColor}88`, borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:canCreate?"pointer":"default", opacity:canCreate?1:0.35 }}>Create Event</WaterButton>
       )}
     </div>
   );
 
   return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:14, background:"rgba(107,29,46,0.2)", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create Event</WaterButton>
+      <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:14, background:"#6B1D2E", border:`1.5px solid #6B1D2E`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create Event</WaterButton>
       <LocationPicker location={location} setLocation={saveLocation} />
       <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
         {events.map(ev => {
@@ -816,22 +818,22 @@ function Events({ auraColor = "#C9A84C" }) {
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                 <div>
                   <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:"0.06em" }}>{ev.name}</span>
-                  {ev.verified && <span style={{ color:"#6eb4ff", fontSize:11, marginLeft:6 }}>✦</span>}
+                  {ev.verified && <span style={{ color:ts.color, fontSize:11, marginLeft:6 }}>✦</span>}
                 </div>
                 <span style={{ color:ev.free?"#6effa0":ts.color, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:700 }}>{ev.free?'Ilmainen':ev.price}</span>
               </div>
-              {ev.desc && <p style={{ color:"rgba(201,168,76,0.85)", fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5 }}>{ev.desc}</p>}
+              {ev.desc && <p style={{ color:ts.color, fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5, opacity:0.85 }}>{ev.desc}</p>}
               <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:10 }}>
-                <span style={{ color:"rgba(201,168,76,0.9)", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:600 }}>◈ {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
-                <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:600, letterSpacing:'0.06em' }}>{ev.location}</span>
-                {ev.dresscode && <span style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic" }}>👔 {ev.dresscode}</span>}
+                <span style={{ color:ts.color, fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:600, opacity:0.9 }}>◈ {dateStr}{ev.time?` · klo ${ev.time}`:''}</span>
+                <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:'0.06em' }}>{ev.location}</span>
+                {ev.dresscode && <span style={{ color:ts.color, fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", opacity:0.7 }}>👔 {ev.dresscode}</span>}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
-                {ev.tags.map(t => <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}55`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>)}
+                {ev.tags.map(t => <span key={t} style={{ background:`rgba(${ts.glowRgb},0.12)`, border:`0.5px solid rgba(${ts.glowRgb},0.5)`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>)}
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 {spotsLeft!==null && <span style={{ color:full?"#ff6eb4":ts.color, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.08em", fontWeight:600, opacity:0.8 }}>{full?'Täynnä':`${spotsLeft} paikkaa jäljellä`}</span>}
-                <button disabled={full} style={{ background:full?"rgba(255,255,255,0.03)":BURGUNDY, border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"8px 20px", cursor:full?"default":"pointer", color:full?"rgba(201,168,76,0.35)":ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", opacity:full?0.5:1 }}>
+                <button disabled={full} style={{ background:full?`rgba(${ts.glowRgb},0.05)`:BURGUNDY, border:`1.5px solid rgba(${ts.glowRgb},0.6)`, borderRadius:20, padding:"8px 20px", cursor:full?"default":"pointer", color:full?`rgba(${ts.glowRgb},0.35)`:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", opacity:full?0.5:1 }}>
                   {full?'Täynnä':'Ilmoittaudu'}
                 </button>
               </div>

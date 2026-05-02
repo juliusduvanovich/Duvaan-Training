@@ -64,7 +64,12 @@ const PROGRAM = [
   {day:6,name:'Sunnuntai',focus:'Rest',exercises:[],rest:true},
 ]
 
-const PERSONAL_TAGS=['Sports','Gastronomy','Philosophy','Business','Music','Wellness','Art','Technology','Finance','Travel','Mindfulness','Nutrition','Running','Film','Fashion']
+const PERSONAL_TAGS = [
+  'Music','Art','Philosophy',
+  'Sports','Wellness','Nutrition',
+  'Business','Finance','Technology',
+  'Gastronomy','Travel','Film','Fashion','Mindfulness',
+]
 const STEPS=[
   {eliel:"Kerrotko ensin hiukan itsestäsi?"},
   {eliel:"Kuinka monta päivää viikossa treenaat?"},
@@ -77,54 +82,52 @@ const STEPS=[
 const css=`
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Cinzel:wght@400;600;700&display=swap');
   @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes elielColorShift{0%{filter:hue-rotate(0deg) saturate(1.2) brightness(1)}20%{filter:hue-rotate(280deg) saturate(1.8) brightness(0.9)}40%{filter:hue-rotate(30deg) saturate(2) brightness(1.1)}60%{filter:hue-rotate(160deg) saturate(1.5) brightness(0.95)}80%{filter:hue-rotate(80deg) saturate(1.8) brightness(1)}100%{filter:hue-rotate(0deg) saturate(1.2) brightness(1)}}
-  @keyframes progressShift{0%{background:#C9A84C}25%{background:#e8d5a3}50%{background:#ff6eb4}75%{background:#6eb4ff}100%{background:#C9A84C}}
-  @keyframes btnLiquid{0%{color:#C9A84C;border-color:rgba(201,168,76,0.9)}25%{color:#e8d5a3;border-color:rgba(232,213,163,0.9)}50%{color:#ff6eb4;border-color:rgba(255,110,180,0.9)}75%{color:#6eb4ff;border-color:rgba(110,180,255,0.9)}100%{color:#C9A84C;border-color:rgba(201,168,76,0.9)}}
+  @keyframes elielColorShift{0%{filter:hue-rotate(0deg) saturate(1.2) brightness(1)}100%{filter:hue-rotate(360deg) saturate(1.2) brightness(1)}}
+  @keyframes progressShift{0%{background:#C9A84C}50%{background:#6B1D2E}100%{background:#C9A84C}}
+  @keyframes btnLiquid{0%{color:#C9A84C}50%{color:#e8d5a3}100%{color:#C9A84C}}
   @keyframes breatheSlow{0%,100%{opacity:0.9;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
-  @keyframes breatheBtn{0%,100%{transform:translateY(0px) scale(1)}50%{transform:translateY(-4px) scale(1.015)}}
   @keyframes breatheArrow{0%,100%{transform:translateY(0);opacity:0.9}50%{transform:translateY(-3px);opacity:1}}
-  @keyframes todayGlow{0%{border-color:rgba(201,168,76,0.95);box-shadow:0 0 28px #C9A84C}25%{border-color:rgba(232,213,163,0.95);box-shadow:0 0 28px rgba(232,213,163,0.2)}50%{border-color:rgba(255,110,180,0.9);box-shadow:0 0 28px rgba(255,110,180,0.2)}75%{border-color:rgba(110,180,255,0.9);box-shadow:0 0 28px rgba(110,180,255,0.2)}100%{border-color:rgba(201,168,76,0.95);box-shadow:0 0 28px #C9A84C}}
-  @keyframes todayBg{0%{background:rgba(107,29,46,0.35)}25%{background:rgba(80,60,10,0.3)}50%{background:rgba(80,20,60,0.3)}75%{background:rgba(20,50,90,0.3)}100%{background:rgba(107,29,46,0.35)}}
-  @keyframes todayText{0%{color:#C9A84C}25%{color:#e8d5a3}50%{color:#ff6eb4}75%{color:#6eb4ff}100%{color:#C9A84C}}
-  @keyframes masterGlow{0%,100%{box-shadow:0 0 24px rgba(255,229,160,0.2)}50%{box-shadow:0 0 48px rgba(255,229,160,0.4)}}
-  @keyframes titleGlow{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:0.85;filter:brightness(1.3)}}
-  .option-btn{background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:14px 16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-align:center;}
-  .option-btn.selected{background:#C9A84C;border:2px solid rgba(201,168,76,0.95);box-shadow:0 0 20px #C9A84C;animation:btnLiquid 5s ease-in-out infinite}
-  .day-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;color:#C9A84C;font-family:'Cinzel',serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .day-btn.selected{background:#C9A84C;border:2px solid rgba(201,168,76,0.95);box-shadow:0 0 16px #C9A84C;animation:btnLiquid 5s ease-in-out infinite}
-  .nav-arrow{background:none;border:none;cursor:pointer;padding:8px 20px;display:flex;align-items:center;justify-content:center;animation:breatheArrow 3.5s ease-in-out infinite;will-change:transform}
+  @keyframes todayGlow{0%,100%{border-color:#6B1D2E}50%{border-color:#6B1D2E}}
+  @keyframes todayText{0%,100%{color:#6B1D2E}50%{color:#C9A84C}}
+  @keyframes titleGlow{0%,100%{opacity:1}50%{opacity:0.8}}
+
+  .option-btn{background:rgba(255,255,255,0.6);border:2px solid #6B1D2E;border-radius:14px;padding:14px 16px;color:#6B1D2E;font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-align:center;backdrop-filter:blur(4px);}
+  .option-btn.selected{background:#6B1D2E;color:#C9A84C;}
+  .day-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.5);border:2px solid #6B1D2E;color:#6B1D2E;font-family:'Cinzel',serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .day-btn.selected{background:#6B1D2E;color:#C9A84C;}
+  .nav-arrow{background:none;border:none;cursor:pointer;padding:8px 20px;display:flex;align-items:center;justify-content:center;}
   .nav-arrow:disabled{opacity:0;pointer-events:none}
   .arrow-svg{width:56px;height:34px}
-  .continue-btn{width:100%;padding:16px;background:rgba(107,29,46,0.8);border:2px solid #C9A84C;border-radius:16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;}
-  .text-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:14px 16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:13px;outline:none;letter-spacing:0.04em}
-  .text-input::placeholder{color:#C9A84C;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:14px}
-  .num-input{width:100%;background:rgba(255,255,255,0.03);border:2px solid #C9A84C;border-radius:14px;padding:13px 8px;color:#C9A84C;font-family:'Cinzel',serif;font-size:14px;font-weight:700;outline:none;text-align:center;-moz-appearance:textfield;box-sizing:border-box}
-  .num-input::placeholder{color:#C9A84C;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;font-weight:300}
+  .continue-btn{width:100%;padding:16px;background:#6B1D2E;border:none;border-radius:16px;color:#C9A84C;font-family:'Cinzel',serif;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 20px #6B1D2E;}
+  .text-input{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.7);border:1.5px solid #6B1D2E;border-radius:14px;padding:14px 16px;color:#2a1008;font-family:'Cinzel',serif;font-size:13px;outline:none;letter-spacing:0.04em}
+  .text-input::placeholder{color:#6B1D2E;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:14px}
+  .num-input{width:100%;background:rgba(255,255,255,0.7);border:1.5px solid #6B1D2E;border-radius:14px;padding:13px 8px;color:#2a1008;font-family:'Cinzel',serif;font-size:14px;font-weight:700;outline:none;text-align:center;-moz-appearance:textfield;box-sizing:border-box}
+  .num-input::placeholder{color:#6B1D2E;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;font-weight:300}
   .num-input::-webkit-outer-spin-button,.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
-  .day-card{background:rgba(255,255,255,0.03);border:1.5px solid #C9A84C;border-radius:14px;overflow:hidden;}
-  .day-card.today{border:2px solid rgba(201,168,76,0.95);}
-  .today-name{animation:todayText 8s ease-in-out infinite}
+  .day-card{background:rgba(255,255,255,0.65);border:1.5px solid #6B1D2E;border-radius:14px;overflow:hidden;backdrop-filter:blur(8px);box-shadow:0 2px 12px #6B1D2E;}
+  .day-card.today{border:2px solid #6B1D2E;background:rgba(255,255,255,0.85);}
+  .today-name{color:#6B1D2E !important;}
   .day-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-  .exercise-row{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #C9A84C}
-  .edit-input{background:rgba(255,255,255,0.03);border:1px solid #C9A84C;border-radius:8px;padding:6px 10px;color:#C9A84C;font-family:'Cormorant Garamond',serif;font-size:13px;outline:none}
+  .exercise-row{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(107,29,46,0.15)}
+  .edit-input{background:rgba(255,255,255,0.8);border:1px solid #6B1D2E;border-radius:8px;padding:6px 10px;color:#2a1008;font-family:'Cormorant Garamond',serif;font-size:13px;outline:none}
 `
 
 const FREQ_LEVELS = [
-  { name:'Member',  icon:'◈', color:'#A0B4DC', borderColor:'#A0B4DC',
-    boxBg:'linear-gradient(135deg,rgba(40,50,80,0.55) 0%,rgba(8,6,14,0.95) 60%,rgba(120,40,40,0.25) 100%)',
-    innerGlow:'rgba(160,180,220,0.12)',
+  { name:'Member',  icon:'◈', color:'#C8D8F0', borderColor:'#B0C4DE', glowRgb:'180,200,230',
+    boxBg:'linear-gradient(135deg,rgba(100,120,170,0.85) 0%,rgba(50,60,100,0.95) 50%,rgba(80,90,130,0.8) 100%)',
+    innerGlow:'rgba(180,200,230,0.2)',
     min:0,    max:999,  price:'4€/kk',  master:false, btnGold:false,
     features:[['Eliel Basic','Henkilökohtainen AI-opas — vastaa, ohjaa, sparraa'],['Training Builder','Rakenna oma treeniohjelma ja seuraa suorituksia'],['Eventit','Liity julkisiin tapahtumiin — et vielä luo omia'],['Klubit','1 yksityinen klubi · max 10 jäsentä'],['Frequency','Kerrytä pisteitä kohti Builder-tasoa']],
     btn:'Aktivoi Member' },
-  { name:'Builder', icon:'✦', color:'#C9A84C', borderColor:'#C9A84C',
-    boxBg:'linear-gradient(135deg,rgba(60,40,10,0.6) 0%,rgba(8,4,6,0.95) 60%,rgba(40,60,100,0.2) 100%)',
-    innerGlow:'rgba(201,168,76,0.1)',
+  { name:'Builder', icon:'✦', color:'#C9A84C', borderColor:'#C9A84C', glowRgb:'201,168,76',
+    boxBg:'linear-gradient(135deg,rgba(90,60,15,0.9) 0%,rgba(30,18,6,0.97) 55%,rgba(60,80,140,0.35) 100%)',
+    innerGlow:'rgba(201,168,76,0.18)',
     min:1000, max:4999, price:'9€/kk',  master:false, btnGold:false,
     features:[['Eliel Enhanced','Muistaa historian, tekee proaktiivisia ehdotuksia'],['Health Dashboard','Uni, makrot, HRV — kaikki yhdessä näkymässä'],['Luo eventtejä','Rakenna tapahtumia, kasvata yhteisöä'],['Builder-klubit','3 klubia · max 50 jäsentä per klubi'],['Edistymisdata','Syvempi analyysi treeneistä ja kehityksestä']],
     btn:'Aktivoi Builder' },
-  { name:'Creator', icon:'✸', color:'#FFF5D0', borderColor:'#E8D48A',
-    boxBg:'linear-gradient(135deg,rgba(45,15,85,0.92) 0%,rgba(28,8,65,0.95) 40%,rgba(55,18,95,0.88) 70%,rgba(35,10,70,0.93) 100%)',
-    innerGlow:'rgba(120,70,200,0.35)',
+  { name:'Creator', icon:'✸', color:'#F0E8C0', borderColor:'#E8D48A', glowRgb:'232,212,138',
+    boxBg:'linear-gradient(135deg,rgba(30,15,60,0.97) 0%,rgba(80,30,100,0.85) 35%,rgba(120,35,80,0.8) 65%,rgba(30,15,60,0.97) 100%)',
+    innerGlow:'rgba(232,212,138,0.15)',
     min:5000, max:null, price:'16€/kk', master:true,  btnGold:true,
     features:[['Eliel Master','Viikoittaiset yhteenvedot, patternien tunnistus, täysi muisti'],['Creator-klubit','10 klubia · max 1500 jäsentä per klubi'],['Early Access','Uudet Duvaan-julkaisut ennen kaikkia muita'],['Suora yhteys tiimiin','Palautekanava — sinun äänesi rakentaa tuotetta'],['Duvaan Wrapped','Vuosittainen personoitu tarina kasvustasi'],['Sovereign Events','Eksklusiiviset tapahtumat — digitaaliset ja fyysiset']],
     btn:'Aktivoi Creator' },
@@ -161,13 +164,13 @@ function ClubPennant({ name, color = "#C9A84C" }) {
   const totalW = textW + 10 // extra for the pointed tail
   const notchDepth = 9 // how deep the V-notch cuts in from right
 
-  // Shape: top-left → top-right → notch point → bottom-right → bottom-left
+  // Shape: notch on LEFT — tip points left like an arrow
   const points = [
-    [0, 0],
-    [totalW - notchDepth, 0],
-    [totalW, h / 2],
-    [totalW - notchDepth, h],
-    [0, h],
+    [notchDepth, 0],
+    [totalW, 0],
+    [totalW, h],
+    [notchDepth, h],
+    [0, h / 2],
   ].map(([x,y]) => `${x},${y}`).join(' ')
 
   return (
@@ -191,8 +194,8 @@ function ClubPennant({ name, color = "#C9A84C" }) {
         strokeWidth="1"
         strokeOpacity="0.55"
       />
-      {/* Left anchor line */}
-      <line x1="0" y1="0" x2="0" y2={h} stroke={color} strokeWidth="1.5" strokeOpacity="0.8"/>
+      {/* Right anchor line */}
+      <line x1={totalW} y1="0" x2={totalW} y2={h} stroke={color} strokeWidth="1.5" strokeOpacity="0.8"/>
       {/* Text */}
       <text
         x={textW / 2}
@@ -246,71 +249,149 @@ function FrequencyCard(){
   )
 }
 
+function ChipGeometry({ color = "#C9A84C", opacity = 0.18 }) {
+  const W = 320, H = 200
+  const o = opacity
+  const elems = []
+
+  // ── YLÄREUNAN linjat alas päin ──
+  ;[30,55,80,110,140,170,200,230,260,290].forEach((x, i) => {
+    const len = 12 + (i%3)*8
+    elems.push(<line key={`t${i}`} x1={x} y1={0} x2={x} y2={len} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
+    if (i%2===0) elems.push(<circle key={`td${i}`} cx={x} cy={len} r="1.5" fill={color} fillOpacity={o*1.5}/>)
+    if (i%3===0) elems.push(<line key={`th${i}`} x1={x} y1={len} x2={x+(i%2===0?12:-12)} y2={len} stroke={color} strokeWidth="0.5" strokeOpacity={o}/>)
+  })
+
+  // ── ALAREUNAN linjat ylös päin ──
+  ;[25,60,90,120,155,185,215,245,275,300].forEach((x, i) => {
+    const len = 14 + (i%3)*7
+    elems.push(<line key={`b${i}`} x1={x} y1={H} x2={x} y2={H-len} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
+    if (i%2===1) elems.push(<circle key={`bd${i}`} cx={x} cy={H-len} r="1.5" fill={color} fillOpacity={o*1.5}/>)
+    if (i%3===1) elems.push(<line key={`bh${i}`} x1={x} y1={H-len} x2={x+(i%2===0?10:-10)} y2={H-len} stroke={color} strokeWidth="0.5" strokeOpacity={o}/>)
+  })
+
+  // ── VASEN REUNA oikealle päin ──
+  ;[18,40,62,84,106,128,150,172].forEach((y, i) => {
+    const len = 16 + (i%3)*8
+    elems.push(<line key={`l${i}`} x1={0} y1={y} x2={len} y2={y} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
+    if (i%2===0) elems.push(<rect key={`lr${i}`} x={len} y={y-2} width="5" height="4" fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={o*1.8}/>)
+  })
+
+  // ── OIKEA REUNA vasemmalle päin ──
+  ;[25,48,70,92,114,136,158,180].forEach((y, i) => {
+    const len = 18 + (i%3)*7
+    elems.push(<line key={`r${i}`} x1={W} y1={y} x2={W-len} y2={y} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
+    if (i%2===1) elems.push(<rect key={`rr${i}`} x={W-len-5} y={y-2} width="5" height="4" fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={o*1.8}/>)
+  })
+
+  // ── KULMAORNAMENTIT ──
+  const cornerSize = 22
+  ;[[0,0,'M'],[W,0,'M'],[0,H,'M'],[W,H,'M']].forEach(([x,y,_],i) => {
+    const sx = i===1||i===3 ? -1 : 1
+    const sy = i===2||i===3 ? -1 : 1
+    elems.push(<path key={`ca${i}`} d={`M${x+sx*cornerSize},${y} L${x},${y} L${x},${y+sy*cornerSize}`}
+      fill="none" stroke={color} strokeWidth="1.2" strokeOpacity={o*3} strokeLinecap="round"/>)
+    elems.push(<path key={`cb${i}`} d={`M${x+sx*cornerSize*1.6},${y+sy*4} L${x+sx*4},${y+sy*4} L${x+sx*4},${y+sy*cornerSize*1.6}`}
+      fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={o*2}/>)
+  })
+
+  // ── PIENI CPU/CHIP OIKEAAN ALAKULMAAN ──
+  const cx = W-52, cy = H-52, cs = 28
+  elems.push(<rect key="cpu" x={cx-cs/2} y={cy-cs/2} width={cs} height={cs} fill="none" stroke={color} strokeWidth="0.8" strokeOpacity={o*2.5}/>)
+  elems.push(<rect key="cpu2" x={cx-cs/2+4} y={cy-cs/2+4} width={cs-8} height={cs-8} fill="none" stroke={color} strokeWidth="0.4" strokeOpacity={o*2}/>)
+  for (let r=0; r<3; r++) for (let c=0; c<3; c++) {
+    elems.push(<circle key={`cpd${r}${c}`} cx={cx-7+c*7} cy={cy-7+r*7} r="1" fill={color} fillOpacity={o*1.8}/>)
+  }
+
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none' }}
+      preserveAspectRatio="xMidYMid slice">
+      {elems}
+    </svg>
+  )
+}
+
 function ShopSection(){
   const[cardOrdered,setCardOrdered]=useState(()=>{try{return localStorage.getItem('duvaan_card_ordered')==='true'}catch{return false}})
   return(
     <div style={{paddingBottom:20}}>
-      <p style={{color:'#C9A84C',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',margin:'0 0 16px'}}>Jäsenyystasot</p>
+      <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.2em',textTransform:'uppercase',margin:'0 0 16px',fontWeight:700}}>Jäsenyystasot</p>
       {FREQ_LEVELS.map(tier=>(
         <div key={tier.name} style={{
           background: tier.boxBg,
-          border: `1.5px solid ${tier.borderColor}`,
-          boxShadow: `0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,
-          borderRadius:18, padding:'18px 18px 16px', marginBottom:12,
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: `1.5px solid rgba(${tier.glowRgb},0.9)`,
+          boxShadow: `0 0 30px rgba(${tier.glowRgb},0.2), 0 0 1px rgba(${tier.glowRgb},0.6), inset 0 0 40px rgba(${tier.glowRgb},0.08)`,
+          borderRadius:20, padding:'20px 18px 18px', marginBottom:14,
           position:'relative', overflow:'hidden',
         }}>
-          <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
-          {tier.master && <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)',pointerEvents:'none'}}/>}
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
-            <div>
-              {tier.master&&<p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:7,letterSpacing:'0.24em',textTransform:'uppercase',margin:'0 0 3px',opacity:0.7}}>Duvaan</p>}
-              <div style={{display:'flex',alignItems:'center',gap:10}}>
-                <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,letterSpacing:'0.06em'}}>{tier.icon} {tier.name}</span>
-                <img
-                  src="/ElielGold.png"
-                  alt=""
-                  style={{
-                    width:32, height:32,
-                    objectFit:'contain',
-                    filter: TIER_ELIEL_FILTER[TIER_NAME_MAP[tier.name]] || TIER_ELIEL_FILTER.member,
-                    flexShrink:0,
-                  }}
-                />
+          {/* Top shimmer */}
+          <div style={{position:'absolute',top:0,left:0,right:0,height:'1.5px',background:`linear-gradient(90deg,transparent,rgba(${tier.glowRgb},1) 50%,transparent)`}}/>
+          {/* Bottom shimmer */}
+          <div style={{position:'absolute',bottom:0,left:0,right:0,height:'1px',background:`linear-gradient(90deg,transparent,rgba(${tier.glowRgb},0.5) 50%,transparent)`}}/>
+          {/* Inner top glow */}
+          <div style={{position:'absolute',top:0,left:0,right:0,height:80,background:`radial-gradient(ellipse at 50% 0%,rgba(${tier.glowRgb},0.18) 0%,transparent 70%)`,pointerEvents:'none'}}/>
+          {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(160deg,rgba(100,60,180,0.2) 0%,rgba(180,60,120,0.15) 30%,rgba(60,140,180,0.12) 70%,rgba(120,60,200,0.15) 100%)',pointerEvents:'none'}}/>}
+
+          {/* Header */}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <img src="/ElielGold.png" alt="" style={{width:28,height:28,objectFit:'contain',filter:TIER_ELIEL_FILTER[TIER_NAME_MAP[tier.name]]||TIER_ELIEL_FILTER.member,flexShrink:0}}/>
+              <div>
+                {tier.master&&<p style={{color:`rgba(${tier.glowRgb},0.7)`,fontFamily:"'Cinzel',serif",fontSize:7,letterSpacing:'0.24em',textTransform:'uppercase',margin:'0 0 1px'}}>Duvaan</p>}
+                <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700,letterSpacing:'0.06em',textShadow:`0 0 20px rgba(${tier.glowRgb},0.6)`}}>{tier.icon} {tier.name}</span>
               </div>
             </div>
-            {tier.price
-              ?<div style={{textAlign:'right'}}><span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700}}>{tier.price.split('/')[0]}</span><span style={{color:'rgba(201,168,76,0.6)',fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic'}}>/kk</span></div>
-              :<span style={{color:'rgba(201,168,76,0.5)',fontFamily:"'Cinzel',serif",fontSize:12}}>Ilmainen</span>
-            }
+            <div style={{textAlign:'right'}}>
+              <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,textShadow:`0 0 16px rgba(${tier.glowRgb},0.5)`}}>{tier.price.split('/')[0]}</span>
+              <span style={{color:`rgba(${tier.glowRgb},0.6)`,fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic'}}>/kk</span>
+            </div>
           </div>
-          <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:tier.btn?14:0}}>
+
+          {/* Features */}
+          <div style={{display:'flex',flexDirection:'column',gap:9,marginBottom:tier.btn?16:0}}>
             {tier.features.map(([title,desc])=>(
-              <div key={title} style={{display:'flex',alignItems:'flex-start',gap:10}}>
-                <span style={{color:tier.color,fontSize:10,marginTop:2,flexShrink:0}}>{tier.icon}</span>
+              <div key={title} style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                <span style={{color:tier.color,fontSize:10,marginTop:3,flexShrink:0,opacity:0.8}}>{tier.icon}</span>
                 <div>
-                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:600,letterSpacing:'0.06em'}}>{title}</span>
-                  <span style={{color:'rgba(201,168,76,0.6)',fontFamily:"'Cormorant Garamond',serif",fontSize:13,marginLeft:6}}>{desc}</span>
+                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.05em'}}>{title}</span>
+                  <span style={{color:`rgba(${tier.glowRgb},0.75)`,fontFamily:"'Cormorant Garamond',serif",fontSize:14,marginLeft:6}}>{desc}</span>
                 </div>
               </div>
             ))}
           </div>
+
           {tier.btn&&(
             <button onClick={() => {
               const pts = { 'Aktivoi Member': 0, 'Aktivoi Builder': 1000, 'Aktivoi Creator': 5000 }
               localStorage.setItem('duvaan_frequency', String(pts[tier.btn] ?? 0))
               window.location.reload()
-            }} style={{width:'100%',padding:'13px 0',background:tier.btnGold?GOLD:'rgba(107,29,46,0.5)',border:tier.btnGold?'none':`1.5px solid ${tier.color}`,borderRadius:13,color:tier.btnGold?'#080808':tier.color,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer'}}>{tier.btn}</button>
+            }} style={{
+              width:'100%',padding:'12px 0',
+              background: tier.btnGold ? `rgba(${tier.glowRgb},0.2)` : `rgba(${tier.glowRgb},0.12)`,
+              border:`1.5px solid rgba(${tier.glowRgb},0.8)`,
+              borderRadius:13,
+              color:tier.color,
+              fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer',
+              textShadow:`0 0 12px rgba(${tier.glowRgb},0.5)`,
+              boxShadow:`0 0 16px rgba(${tier.glowRgb},0.15)`,
+            }}>{tier.btn}</button>
           )}
         </div>
       ))}
-      <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #C9A84C',borderRadius:16,padding:'18px 20px',marginBottom:16}}>
+
+      {/* Duvaan Card */}
+      <div style={{background:'rgba(255,255,255,0.18)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'1px solid rgba(201,168,76,0.4)',boxShadow:'0 0 24px rgba(201,168,76,0.1)',borderRadius:20,padding:'18px 20px',marginBottom:16,position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:0,left:0,right:0,height:'1px',background:'linear-gradient(90deg,transparent,rgba(201,168,76,0.8),transparent)'}}/>
         <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:13,fontWeight:700,letterSpacing:'0.1em',margin:'0 0 14px'}}>Duvaan-kortti</p>
         <div style={{marginBottom:14,borderRadius:16,overflow:'hidden'}}>
           <img src="/DuvaanPlatinum.png" alt="Duvaan Card" style={{width:'100%',display:'block',borderRadius:16}}/>
         </div>
         {cardOrdered
-          ?<p style={{color:'#6effa0',fontFamily:"'Cinzel',serif",fontSize:12,letterSpacing:'0.1em',margin:0,textAlign:'center'}}>✓ Kortti tilattu</p>
-          :<button onClick={()=>{localStorage.setItem('duvaan_card_ordered','true');setCardOrdered(true)}} style={{width:'100%',padding:'13px 0',background:'rgba(107,29,46,0.5)',border:'1.5px solid #C9A84C',borderRadius:14,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:600,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer'}}>Tilaa kortti — Creator-jäsenille</button>
+          ?<p style={{color:'#2a9a50',fontFamily:"'Cinzel',serif",fontSize:12,letterSpacing:'0.1em',margin:0,textAlign:'center',fontWeight:700}}>✓ Kortti tilattu</p>
+          :<button onClick={()=>{localStorage.setItem('duvaan_card_ordered','true');setCardOrdered(true)}} style={{width:'100%',padding:'13px 0',background:'rgba(107,29,46,0.15)',border:'1.5px solid rgba(201,168,76,0.6)',borderRadius:14,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.16em',textTransform:'uppercase',cursor:'pointer',boxShadow:'0 0 16px rgba(201,168,76,0.1)'}}>Tilaa kortti — Creator-jäsenille</button>
         }
       </div>
     </div>
@@ -382,6 +463,8 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
         active={visibleSection}
         onChange={handleSectionChange}
         auraColor={auraColor}
+        lineColor="#6B1D2E"
+        textColor="#6B1D2E"
         rightSlot={
           <button
             onClick={onOpenSettings}
@@ -424,7 +507,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
               {/* Top shimmer line */}
               <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
               {/* Creator rainbow overlay */}
-              {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)',pointerEvents:'none'}}/>}
+              {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(160deg, rgba(100,60,180,0.35) 0%, rgba(180,60,120,0.3) 20%, rgba(220,120,40,0.25) 40%, rgba(180,160,40,0.2) 60%, rgba(60,140,180,0.2) 80%, rgba(120,60,200,0.25) 100%)',pointerEvents:'none'}}/>}
 
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
                 <div style={{display:'flex',alignItems:'center',gap:14}}>
@@ -435,29 +518,29 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
                     }
                   </div>
                   <div>
-                    <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,letterSpacing:'0.06em',margin:'0 0 3px'}}>{displayName||'—'}</p>
+                    <p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,letterSpacing:'0.06em',margin:'0 0 3px'}}>{displayName||'—'}</p>
                     <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
                       <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:10,fontWeight:600,letterSpacing:'0.12em'}}>{tier.icon} {tier.name}</span>
                       {profile?.location&&<span style={{color:'rgba(201,168,76,0.45)',fontFamily:"'Cormorant Garamond',serif",fontSize:12}}>· 📍 {profile.location}</span>}
                     </div>
                   </div>
                 </div>
-                <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'rgba(107,29,46,0.4)',border:'1.5px solid rgba(201,168,76,0.7)',borderRadius:8,padding:'6px 14px',color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.1em',fontWeight:600,cursor:'pointer',flexShrink:0}}>Muokkaa</button>
+                <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'rgba(107,29,46,0.4)',border:`1.5px solid ${tier.color}`,borderRadius:8,padding:'6px 14px',color:tier.color,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.1em',fontWeight:600,cursor:'pointer',flexShrink:0}}>Muokkaa</button>
               </div>
 
               <div style={{marginBottom:14}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}}>
-                  <span style={{color:'rgba(201,168,76,0.4)',fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase'}}>Frequency</span>
-                  <span style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700}}>{points.toLocaleString()} <span style={{fontSize:8,opacity:0.5,fontWeight:400}}>p</span></span>
+                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',opacity:0.8}}>Frequency</span>
+                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700,textShadow:`0 0 12px ${tier.color}88`}}>{points.toLocaleString()} <span style={{fontSize:8,opacity:0.6,fontWeight:400}}>p</span></span>
                 </div>
-                <div style={{background:'rgba(255,255,255,0.06)',borderRadius:4,height:3,overflow:'hidden',marginBottom:5}}>
+                <div style={{background:'rgba(255,255,255,0.12)',borderRadius:4,height:3,overflow:'hidden',marginBottom:5}}>
                   <div style={{height:'100%',borderRadius:4,width:progress+'%',background:nextTier?`linear-gradient(90deg,${tier.color},${nextTier.color})`:tier.color,boxShadow:`0 0 8px ${tier.color}`,transition:'width 0.8s ease'}}/>
                 </div>
                 <div style={{display:'flex',justifyContent:'space-between'}}>
-                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8}}>{tier.icon} {tier.name}</span>
+                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,opacity:0.85}}>{tier.icon} {tier.name}</span>
                   {nextTier
-                    ?<span style={{color:nextTier.color,fontFamily:"'Cinzel',serif",fontSize:8}}>{nextTier.icon} {nextTier.name} — {nextTier.min.toLocaleString()} p</span>
-                    :<span style={{color:'rgba(201,168,76,0.35)',fontFamily:"'Cinzel',serif",fontSize:8,fontStyle:'italic'}}>Huipulla ✸</span>
+                    ?<span style={{color:nextTier.color,fontFamily:"'Cinzel',serif",fontSize:8,opacity:0.85}}>{nextTier.icon} {nextTier.name} — {nextTier.min.toLocaleString()} p</span>
+                    :<span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,fontStyle:'italic',opacity:0.7}}>Huipulla ✸</span>
                   }
                 </div>
               </div>
@@ -483,12 +566,12 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
           )}
 
           {editing&&(
-            <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(201,168,76,0.4)',borderRadius:14,padding:'18px 16px',marginBottom:16}}>
+            <div style={{background:'rgba(255,255,255,0.65)',border:'1px solid rgba(201,168,76,0.4)',borderRadius:14,padding:'18px 16px',marginBottom:16}}>
               <div style={{display:'flex',flexDirection:'column',gap:14}}>
                 <div style={{display:'flex',alignItems:'center',gap:14}}>
                   <div
                     onClick={()=>photoInputRef.current?.click()}
-                    style={{width:60,height:60,borderRadius:'50%',border:'1.5px dashed rgba(201,168,76,0.4)',flexShrink:0,overflow:'hidden',background:'rgba(255,255,255,0.03)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}
+                    style={{width:60,height:60,borderRadius:'50%',border:'1.5px dashed rgba(201,168,76,0.4)',flexShrink:0,overflow:'hidden',background:'rgba(255,255,255,0.65)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}
                   >
                     {form.photo
                       ?<img src={form.photo} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
@@ -497,7 +580,7 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
                   </div>
                   <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhoto} style={{display:'none'}}/>
                   <div>
-                    <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',margin:'0 0 4px'}}>Profiilikuva</p>
+                    <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',margin:'0 0 4px'}}>Profiilikuva</p>
                     <button onClick={()=>photoInputRef.current?.click()} style={{background:'none',border:'1px solid rgba(201,168,76,0.3)',borderRadius:8,padding:'5px 12px',color:'rgba(201,168,76,0.6)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.1em',cursor:'pointer'}}>
                       {form.photo?'Vaihda kuva':'Lisää kuva'}
                     </button>
@@ -506,20 +589,33 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
 
                 {[['Nimi','name','Julius Duvaan'],['Paikkakunta','location','Helsinki']].map(([label,field,ph])=>(
                   <div key={field}>
-                    <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>{label}</p>
+                    <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>{label}</p>
                     <input className="num-input" style={{width:'100%',boxSizing:'border-box',textAlign:'left',padding:'11px 14px'}} value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}/>
                   </div>
                 ))}
 
                 <div>
-                  <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>Bio</p>
+                  <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>Bio</p>
                   <textarea className="num-input" style={{width:'100%',boxSizing:'border-box',textAlign:'left',padding:'11px 14px',resize:'none',fontFamily:"'Cormorant Garamond',serif",fontSize:14}} rows={2} value={form.bio||''} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} placeholder="Solisti, säveltäjä..."/>
                 </div>
 
                 <div>
-                  <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 8px'}}>Tagit</p>
-                  <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
-                    {PERSONAL_TAGS.map(tag=>{const sel=(form.tags||[]).includes(tag);return<button key={tag} onClick={()=>toggleTag(tag)} style={{background:sel?'rgba(201,168,76,0.18)':'rgba(255,255,255,0.02)',border:sel?'1.5px solid #C9A84C':'1px solid rgba(201,168,76,0.3)',borderRadius:20,padding:'6px 14px',cursor:'pointer',color:sel?GOLD:'rgba(201,168,76,0.55)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.1em',transition:'all 0.2s'}}>{tag}</button>})}
+                  <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 10px'}}>Tagit</p>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7}}>
+                    {PERSONAL_TAGS.map(tag=>{
+                      const sel=(form.tags||[]).includes(tag)
+                      return(
+                        <button key={tag} onClick={()=>toggleTag(tag)} style={{
+                          background: sel ? '#6B1D2E' : 'rgba(255,255,255,0.7)',
+                          border: '1.5px solid #6B1D2E',
+                          borderRadius:10, padding:'8px 6px', cursor:'pointer',
+                          color: sel ? tier.color : '#6B1D2E',
+                          fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em',
+                          textAlign:'center', transition:'all 0.15s',
+                          fontWeight: 700,
+                        }}>{tag}</button>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -598,8 +694,8 @@ export default function PersonalView({ onOpenSettings, settings }){
         <div style={{minHeight:'100vh',padding:'48px 24px 100px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px',animation:'fadeInUp 0.6s ease both'}}>
             <div>
-              <h2 style={{color:auraColor,fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 20px ${auraColor}88, 0 0 40px ${auraColor}44`,animation:'titleGlow 4s ease-in-out infinite'}}>Personal</h2>
-              <p style={{color:'#C9A84C',fontSize:'10px',letterSpacing:'0.14em',margin:'4px 0 0',textTransform:'uppercase'}}>{new Date().toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'})}</p>
+              <h2 style={{color:'#6B1D2E',fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 30px ${auraColor}66, 0 0 60px ${auraColor}33`,}}>Personal</h2>
+              <p style={{color:'#6B1D2E',fontSize:'12px',letterSpacing:'0.14em',margin:'4px 0 0',textTransform:'uppercase',fontWeight:600,fontFamily:"'Cinzel',serif"}}>{new Date().toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'})}</p>
             </div>
           </div>
           <ProfileSection section={personalSection} setSection={setPersonalSection} onOpenSettings={onOpenSettings} auraColor={auraColor}/>
@@ -607,7 +703,7 @@ export default function PersonalView({ onOpenSettings, settings }){
           {personalSection==='training'&&(
             <div style={{display:'flex',flexDirection:'column',gap:'10px',animation:'fadeInUp 0.8s ease both'}}>
               <div style={{display:'flex',justifyContent:'flex-end',marginBottom:4}}>
-                <button onClick={()=>{setIsEditing(true);setMode('onboarding');setStep(0)}} style={{background:'none',border:'1px solid rgba(201,168,76,0.35)',borderRadius:10,padding:'6px 14px',color:'rgba(201,168,76,0.6)',fontFamily:"'Cinzel',serif",fontSize:'9px',letterSpacing:'0.12em',cursor:'pointer'}}>Muokkaa ohjelmaa</button>
+                <button onClick={()=>{setIsEditing(true);setMode('onboarding');setStep(0)}} style={{background:'none',border:'1.5px solid #6B1D2E',borderRadius:10,padding:'6px 14px',color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:'9px',fontWeight:700,letterSpacing:'0.12em',cursor:'pointer'}}>Muokkaa ohjelmaa</button>
               </div>
               {program.map((day,i)=>{
                 const isToday=i===todayIdx,isOpen=expanded===i,isEditingThis=editingDay===i
@@ -615,16 +711,16 @@ export default function PersonalView({ onOpenSettings, settings }){
                   <div key={i} className={`day-card ${isToday?'today':''}`} style={isDone(i)?{borderColor:'rgba(110,255,160,0.3)'}:{}}>
                     <div className="day-header" onClick={()=>!isEditingThis&&setExpanded(isOpen?null:i)}>
                       <div>
-                        <p className={isToday?"today-name":""} style={{color:isToday?GOLD:'#C9A84C',fontSize:'14px',fontWeight:isToday?700:600,letterSpacing:'0.08em',margin:0,marginBottom:'4px',fontFamily:"'Cinzel',serif"}}>
+                        <p className={isToday?"today-name":""} style={{color:isToday?'#6B1D2E':'#2a1008',fontSize:'14px',fontWeight:isToday?700:600,letterSpacing:'0.08em',margin:0,marginBottom:'4px',fontFamily:"'Cinzel',serif"}}>
                           {day.name}
                           {isToday&&<span style={{fontSize:'9px',marginLeft:'10px',opacity:0.7,fontWeight:400}}>— tänään</span>}
                           {isDone(i)&&<span style={{fontSize:'9px',marginLeft:'10px',color:'#6effa0',fontWeight:400}}>✓ tehty</span>}
                         </p>
-                        <p style={{color:'#C9A84C',fontSize:'12px',fontStyle:'italic',margin:0,fontFamily:"'Cormorant Garamond',serif"}}>{day.focus}</p>
+                        <p style={{color:'#6B1D2E',fontSize:'12px',fontStyle:'italic',margin:0,fontFamily:"'Cormorant Garamond',serif"}}>{day.focus}</p>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                        {day.exercises.length>0&&<span style={{color:'#C9A84C',fontSize:'12px',fontFamily:"'Cinzel',serif",fontWeight:600}}>{day.exercises.length}</span>}
-                        <span style={{color:'#C9A84C',fontSize:'12px',transition:'transform 0.3s',display:'inline-block',transform:isOpen?'rotate(180deg)':'rotate(0deg)'}}>↓</span>
+                        {day.exercises.length>0&&<span style={{color:'#6B1D2E',fontSize:'12px',fontFamily:"'Cinzel',serif",fontWeight:600}}>{day.exercises.length}</span>}
+                        <span style={{color:'#6B1D2E',fontSize:'12px',transition:'transform 0.3s',display:'inline-block',transform:isOpen?'rotate(180deg)':'rotate(0deg)'}}>↓</span>
                       </div>
                     </div>
                     {isOpen&&(
@@ -650,13 +746,13 @@ export default function PersonalView({ onOpenSettings, settings }){
                           <>
                             {day.exercises.map(ex=>(
                               <div key={ex.id} className="exercise-row">
-                                <span style={{color:'#C9A84C',fontSize:'16px',fontFamily:"'Cormorant Garamond',serif",fontWeight:400}}>{ex.name}</span>
-                                <span style={{color:GOLD,fontSize:'15px',fontStyle:'italic',fontFamily:"'Cormorant Garamond',serif"}}>{formatSets(ex)}</span>
+                                <span style={{color:'#2a1008',fontSize:'17px',fontFamily:"'Cormorant Garamond',serif",fontWeight:500}}>{ex.name}</span>
+                                <span style={{color:'#6B1D2E',fontSize:'16px',fontStyle:'italic',fontFamily:"'Cormorant Garamond',serif",fontWeight:500}}>{formatSets(ex)}</span>
                               </div>
                             ))}
                             <button onClick={e=>{e.stopPropagation();startEditDay(i)}} style={{width:'100%',padding:'10px',background:'none',border:'none',borderTop:'1px solid #C9A84C',color:'#C9A84C',fontFamily:"'Cinzel',serif",fontSize:'9px',letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Muokkaa päivää</button>
-                            {!isDone(i)&&<button onClick={e=>{e.stopPropagation();markDone(i)}} style={{width:'100%',padding:'14px',background:'rgba(110,255,160,0.08)',border:'none',borderTop:'1px solid rgba(110,255,160,0.15)',color:'#6effa0',fontFamily:"'Cinzel',serif",fontSize:'11px',letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer',fontWeight:600}}>✓ Done</button>}
-                            {isDone(i)&&<div style={{width:'100%',padding:'14px',textAlign:'center',borderTop:'1px solid rgba(110,255,160,0.1)',color:'rgba(110,255,160,0.5)',fontFamily:"'Cinzel',serif",fontSize:'10px',letterSpacing:'0.18em',textTransform:'uppercase'}}>✓ Suoritettu</div>}
+                            {!isDone(i)&&<button onClick={e=>{e.stopPropagation();markDone(i)}} style={{width:'100%',padding:'14px',background:'rgba(30,120,60,0.15)',border:'none',borderTop:'2px solid rgba(46,180,90,0.5)',color:'#2a9a50',fontFamily:"'Cinzel',serif",fontSize:'12px',letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer',fontWeight:700}}>✓ Done</button>}
+                            {isDone(i)&&<div style={{width:'100%',padding:'14px',textAlign:'center',borderTop:'1px solid rgba(46,180,90,0.2)',color:'#2a9a50',fontFamily:"'Cinzel',serif",fontSize:'11px',letterSpacing:'0.18em',textTransform:'uppercase',fontWeight:600}}>✓ Suoritettu</div>}
                           </>
                         )}
                       </div>
