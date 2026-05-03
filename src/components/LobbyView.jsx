@@ -90,18 +90,16 @@ const css = `
     30%          { opacity:1;    transform:translateY(-6px) scale(1.1); }
   }
   @keyframes dotColor {
-    0%   { background:#C9A84C; }
-    25%  { background:#e8d5a3; }
-    50%  { background:#ff9a6e; }
-    75%  { background:#6eb4ff; }
-    100% { background:#C9A84C; }
+    0%   { background:#6B1D2E; }
+    50%  { background:#C9A84C; }
+    100% { background:#6B1D2E; }
   }
   .lobby-msg { animation: msgFade 5s ease-in-out both; }
   .tap-pulse { animation: tapPulse 2.8s ease-in-out infinite; }
   .chat-msg  { animation: chatMsg 0.3s ease both; }
   .typing-dot {
     display:inline-block; width:6px; height:6px; border-radius:50%;
-    background:#C9A84C; margin:0 3px;
+    background:#6B1D2E; margin:0 3px;
     animation: typingWave 1.4s ease-in-out infinite, dotColor 3s ease-in-out infinite;
   }
   .typing-dot:nth-child(2){ animation-delay:0.18s, 0.6s; }
@@ -322,7 +320,7 @@ export default function LobbyView({ onNavigate, settings }) {
             </div>
           )}
           {chatOpen && messages.length===0 && !loading && (
-            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", color:"rgba(201,168,76,0.45)", letterSpacing:"0.06em", lineHeight:1.8, margin:0 }}>...</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", color:"rgba(107,29,46,0.4)", letterSpacing:"0.06em", lineHeight:1.8, margin:0 }}>...</p>
           )}
           {chatOpen && loading && (
             <div style={{ display:"flex", justifyContent:"center", gap:4 }}>
@@ -332,7 +330,7 @@ export default function LobbyView({ onNavigate, settings }) {
           {chatOpen && messages.length>0 && !loading && (
             <div style={{ width:"100%" }}>
               {messages.slice(-2).map((m,i)=>(
-                <p key={i} className="chat-msg" style={{ margin:i===0?0:"10px 0 0", fontFamily:"'Cormorant Garamond',serif", fontSize:m.role==="user"?13:15, fontStyle:m.role==="assistant"?"italic":"normal", color:m.role==="user"?"rgba(201,168,76,0.35)":"rgba(255,255,255,0.75)", textAlign:"center", lineHeight:1.75, letterSpacing:m.role==="assistant"?"0.02em":"0.06em" }}>{m.content}</p>
+                <p key={i} className="chat-msg" style={{ margin:i===0?0:"10px 0 0", fontFamily:"'Cormorant Garamond',serif", fontSize:m.role==="user"?13:15, fontStyle:m.role==="assistant"?"italic":"normal", color:m.role==="user"?"rgba(107,29,46,0.45)":"#2a1008", textAlign:"center", lineHeight:1.75, letterSpacing:m.role==="assistant"?"0.02em":"0.06em" }}>{m.content}</p>
               ))}
             </div>
           )}
@@ -343,13 +341,13 @@ export default function LobbyView({ onNavigate, settings }) {
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button className="tap-pulse"
               onClick={()=>{ setChatOpen(true); if(inputMode==='voice') setTimeout(()=>startVoice(),200); else setTimeout(()=>inputRef.current?.focus(),100) }}
-              style={{ background:"none", border:"none", outline:"none", boxShadow:"none", WebkitAppearance:"none", padding:"8px 28px", cursor:"pointer", fontFamily:"'Cinzel',serif", fontSize:10, fontWeight:600, letterSpacing:"0.22em", textTransform:"uppercase", color:"rgba(201,168,76,0.45)" }}
+              style={{ background:"none", border:"none", outline:"none", boxShadow:"none", WebkitAppearance:"none", padding:"8px 28px", cursor:"pointer", fontFamily:"'Cinzel',serif", fontSize:10, fontWeight:600, letterSpacing:"0.22em", textTransform:"uppercase", color:tierColor }}
             >
               {inputMode==='voice' ? 'Tap to Talk' : 'Tap to Write'}
             </button>
             <button onClick={()=>setInputMode(m=>m==='text'?'voice':'text')}
               style={{ background:"none", border:"none", cursor:"pointer", padding:4, display:'flex', alignItems:'center' }}>
-              {inputMode==='text' ? <MicIcon color="rgba(201,168,76,0.35)"/> : <PenIcon color="rgba(201,168,76,0.35)"/>}
+              {inputMode==='text' ? <MicIcon color={tierColor}/> : <PenIcon color={tierColor}/>}
             </button>
           </div>
         )}

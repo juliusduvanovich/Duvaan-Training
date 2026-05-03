@@ -1,10 +1,43 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ScrollPicker, { TimePicker } from "./ScrollPicker";
 import ClubView, { TIER_LIMITS } from "./ClubView";
 import CarouselNav from "./CarouselNav";
 
 const GOLD = "#C9A84C";
 const BURGUNDY = "#6B1D2E";
+
+// ─── SHIMMER HOOK ─────────────────────────────────────────────────────────────
+function useShimmerOnScroll(containerRef) {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            el.classList.remove('shimmer-active');
+            void el.offsetWidth; // force reflow to restart animation
+            el.classList.add('shimmer-active');
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    const observe = () => {
+      container.querySelectorAll('.shimmer-card').forEach((el) => observer.observe(el));
+    };
+    observe();
+
+    // Pick up dynamically added cards
+    const mutObs = new MutationObserver(observe);
+    mutObs.observe(container, { childList: true, subtree: true });
+
+    return () => { observer.disconnect(); mutObs.disconnect(); };
+  }, [containerRef]);
+}
 
 // ─── WATER BUTTON ────────────────────────────────────────────────────────────
 function WaterButton({ children, onClick, style, auraColor = "#C9A84C" }) {
@@ -16,42 +49,16 @@ function WaterButton({ children, onClick, style, auraColor = "#C9A84C" }) {
     setPhase('down');
     setShowRipple(true);
     setTimeout(() => setPhase('up'), 200);
-    setTimeout(() => {
-      setPhase('idle');
-      setShowRipple(false);
-    }, 550);
+    setTimeout(() => { setPhase('idle'); setShowRipple(false); }, 550);
     setTimeout(() => onClick?.(), 480);
   };
 
   return (
     <div style={{ position:'relative', display:'block' }}>
-      <button
-        onPointerDown={handlePress}
-        style={{
-          ...style,
-          transform:
-            phase === 'down' ? 'translateY(4px) scale(0.98)' :
-            phase === 'up'   ? 'translateY(-2px) scale(1.01)' :
-                               'translateY(0) scale(1)',
-          transition:
-            phase === 'down' ? 'transform 0.18s ease-in' :
-            phase === 'up'   ? 'transform 0.32s cubic-bezier(0.34,1.56,0.64,1)' :
-                               'transform 0.2s ease-out',
-        }}
-      >
+      <button onPointerDown={handlePress} style={{ ...style, transform: phase==='down'?'translateY(4px) scale(0.98)':phase==='up'?'translateY(-2px) scale(1.01)':'translateY(0) scale(1)', transition: phase==='down'?'transform 0.18s ease-in':phase==='up'?'transform 0.32s cubic-bezier(0.34,1.56,0.64,1)':'transform 0.2s ease-out' }}>
         {children}
       </button>
-      {showRipple && (
-        <span style={{
-          position: 'absolute',
-          inset: -2,
-          borderRadius: style?.borderRadius || 14,
-          border: `1.5px solid ${auraColor}`,
-          boxShadow: `0 0 12px ${auraColor}66`,
-          pointerEvents: 'none',
-          animation: 'auraRipple 0.6s ease-out forwards',
-        }}/>
-      )}
+      {showRipple && <span style={{ position:'absolute', inset:-2, borderRadius:style?.borderRadius||14, border:`1.5px solid ${auraColor}`, boxShadow:`0 0 12px ${auraColor}66`, pointerEvents:'none', animation:'auraRipple 0.6s ease-out forwards' }}/>}
     </div>
   );
 }
@@ -60,112 +67,72 @@ const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;600;700&display=swap');
 
   @keyframes fadeInUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes auraRipple {
-    0%   { opacity: 0.8; transform: scale(1); }
-    100% { opacity: 0;   transform: scale(1.18); }
-  }
-  @keyframes todayText {
-    0% { color:#C9A84C; } 25% { color:#e8d5a3; }
-    50% { color:#ff6eb4; } 75% { color:#6eb4ff; } 100% { color:#C9A84C; }
-  }
-  @keyframes titleGlow {
-    0%,100% { opacity:1; filter:brightness(1); }
-    50%     { opacity:0.85; filter:brightness(1.35); }
-  }
-  @keyframes breatheBtn {
-    0%,100% { transform:translateY(0) scale(1); }
-    50%     { transform:translateY(-3px) scale(1.012); }
-  }
-  @keyframes pulseDot {
-    0%,100% { opacity:1; transform:scale(1); }
-    50%     { opacity:0.5; transform:scale(0.7); }
-  }
-  @keyframes searchSlide {
-    from { opacity:0; transform:translateY(-8px); }
-    to   { opacity:1; transform:translateY(0); }
+  @keyframes auraRipple { 0% { opacity:0.8; transform:scale(1); } 100% { opacity:0; transform:scale(1.18); } }
+  @keyframes breatheBtn { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-3px) scale(1.012); } }
+  @keyframes searchSlide { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── SHIMMER SWEEP ── */
+  @keyframes shimmerSweep {
+    0%   { transform: translateX(-130%) skewX(-15deg); opacity: 0; }
+    6%   { opacity: 1; }
+    70%  { opacity: 0.8; }
+    100% { transform: translateX(230%) skewX(-15deg); opacity: 0; }
   }
 
-  .post-card {
-    background: rgba(255,255,255,0.65);
-    border: 1px solid #6B1D2E;
-    border-radius: 16px; overflow: hidden;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 12px #6B1D2E;
+  .shimmer-card {
+    position: relative;
+    overflow: hidden;
   }
-  .comment-input {
-    flex: 1; background: transparent; border: none; outline: none;
-    color: #2a1008; font-family: 'Cormorant Garamond', serif;
-    font-size: 14px; letter-spacing: 0.04em;
+  .shimmer-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 25%,
+      rgba(255,255,255,0.03) 38%,
+      rgba(255,255,255,0.11) 46%,
+      rgba(255,255,255,0.20) 50%,
+      rgba(255,255,255,0.11) 54%,
+      rgba(255,255,255,0.03) 62%,
+      transparent 75%
+    );
+    transform: translateX(-130%) skewX(-15deg);
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
   }
-  .comment-input::placeholder { color: #6B1D2E; font-style: italic; }
-  .chat-input {
-    flex: 1; background: transparent; border: none; outline: none;
-    color: #2a1008; font-family: 'Cormorant Garamond', serif;
-    font-size: 14px; letter-spacing: 0.04em;
+  .shimmer-card.shimmer-active::after {
+    animation: shimmerSweep 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
-  .chat-input::placeholder { color: #6B1D2E; font-style: italic; }
-  .chat-msg {
-    padding: 8px 0;
-    border-bottom: 0.5px solid #6B1D2E;
-    animation: fadeInUp 0.3s ease both;
+  /* Slightly brighter for the light (vaalea) cards */
+  .shimmer-card.shimmer-light::after {
+    background: linear-gradient(
+      105deg,
+      transparent 25%,
+      rgba(255,255,255,0.05) 38%,
+      rgba(255,255,255,0.16) 46%,
+      rgba(255,255,255,0.28) 50%,
+      rgba(255,255,255,0.16) 54%,
+      rgba(255,255,255,0.05) 62%,
+      transparent 75%
+    );
   }
-  .text-field {
-    width: 100%; box-sizing: border-box;
-    background: rgba(255,255,255,0.7);
-    border: 1.5px solid #6B1D2E;
-    border-radius: 12px; padding: 12px 16px;
-    color: #2a1008; font-family: 'Cinzel', serif;
-    font-size: 13px; outline: none; letter-spacing: 0.04em;
-  }
-  .text-field::placeholder { color: #6B1D2E; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; }
-  .text-field:focus { border-color: #6B1D2E; }
-  .tag-btn {
-    background: rgba(255,255,255,0.5);
-    border: 1px solid #6B1D2E;
-    border-radius: 20px; padding: 6px 14px; cursor: pointer;
-    color: #6B1D2E; font-family: 'Cinzel', serif;
-    font-size: 9px; letter-spacing: 0.1em; transition: all 0.2s;
-  }
-  .tag-btn.selected {
-    background: #6B1D2E;
-    border-color: #6B1D2E;
-    color: #C9A84C;
-  }
-  .club-card {
-    background: rgba(255,255,255,0.65);
-    border: 1px solid #6B1D2E;
-    border-radius: 14px; padding: 14px 16px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 10px #6B1D2E;
-  }
-  .club-card.duvaan {
-    border-color: #6B1D2E;
-    background: rgba(255,255,255,0.8);
-  }
-  .search-panel {
-    animation: searchSlide 0.25s ease both;
-  }
+
+  .comment-input { flex:1; background:transparent; border:none; outline:none; color:#2a1008; font-family:'Cormorant Garamond',serif; font-size:14px; letter-spacing:0.04em; }
+  .comment-input::placeholder { color:#6B1D2E; font-style:italic; }
+  .chat-input { flex:1; background:transparent; border:none; outline:none; color:#2a1008; font-family:'Cormorant Garamond',serif; font-size:14px; letter-spacing:0.04em; }
+  .chat-input::placeholder { color:#6B1D2E; font-style:italic; }
+  .chat-msg { padding:8px 0; border-bottom:0.5px solid #6B1D2E; animation:fadeInUp 0.3s ease both; }
+  .text-field { width:100%; box-sizing:border-box; background:rgba(255,255,255,0.7); border:1.5px solid #6B1D2E; border-radius:12px; padding:12px 16px; color:#2a1008; font-family:'Cinzel',serif; font-size:13px; outline:none; letter-spacing:0.04em; }
+  .text-field::placeholder { color:#6B1D2E; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:14px; }
+  .text-field:focus { border-color:#6B1D2E; }
+  .tag-btn { background:rgba(255,255,255,0.5); border:1px solid #6B1D2E; border-radius:20px; padding:6px 14px; cursor:pointer; color:#6B1D2E; font-family:'Cinzel',serif; font-size:9px; letter-spacing:0.1em; transition:all 0.2s; }
+  .tag-btn.selected { background:#6B1D2E; border-color:#6B1D2E; color:#C9A84C; }
+  .search-panel { animation:searchSlide 0.25s ease both; }
 `;
 
-const ALL_TAGS = [
-  'Music','Art','Philosophy',
-  'Sports','Wellness','Nutrition',
-  'Business','Finance','Technology',
-  'Gastronomy','Travel','Film','Fashion','Mindfulness',
-];
-
-const MOCK_POSTS = [
-  { id:1, author:"Duvaan", verified:true, time:"2h", text:"Studio session 3. Uusi biisi alkaa hahmottua — se on jotain mitä ette odota. 🔥", likes:142, liked:false, comments:[{id:1,author:"Maria K.",text:"Ei voi odottaa enää 🙏",time:"1h"},{id:2,author:"Aleksi V.",text:"King 👑",time:"45min"}] },
-  { id:2, author:"Duvaan", verified:true, time:"1d", text:"Helsinki City Run — ilmoittautumiset auki. Voittaja saa liput Duvaan-keikalle + Coti-paketti.", likes:287, liked:false, comments:[{id:1,author:"Joonas H.",text:"Olen mukana 💪",time:"20h"},{id:2,author:"Elisa M.",text:"Juoksen sen sinulle 🏃‍♀️",time:"18h"}] },
-  { id:3, author:"Julius", verified:true, time:"3d", text:"Aamulenkki 6km. Pää selkeni. Nämä hetket ovat pyhiä.", likes:198, liked:false, comments:[{id:1,author:"Samu T.",text:"Inspiroivaa 🌅",time:"3d"}] },
-];
-
-const MOCK_CHAT = [
-  { id:1, author:"Maria K.", text:"Koska seuraava keikka? 🔥", time:"14:22" },
-  { id:2, author:"Aleksi V.", text:"Tää appi on sick", time:"14:24" },
-  { id:3, author:"Duvaan", text:"Pian. Pysykää kuulolla 👀", time:"14:31", verified:true },
-  { id:4, author:"Joonas H.", text:"King 👑", time:"14:32" },
-];
+const ALL_TAGS = ['Music','Art','Philosophy','Sports','Wellness','Nutrition','Business','Finance','Technology','Gastronomy','Travel','Film','Fashion','Mindfulness'];
 
 const MOCK_SERVICES = {
   1:  [ { id:1, name:"Private Session — Eliel", desc:"Eksklusiivinen istunto Elielin kanssa, Duvaan-jäsenille", duration:"60 min", price:0, spots:1, spotsLeft:1, category:"Music" } ],
@@ -190,41 +157,22 @@ const MOCK_PUBLIC_CLUBS = [
 ];
 
 const CLUB_TIER_STYLES = {
-  member: {
-    boxBg: 'linear-gradient(135deg,rgba(100,120,170,0.85) 0%,rgba(50,60,100,0.95) 50%,rgba(80,90,130,0.8) 100%)',
-    borderColor: '#B0C4DE', glowRgb: '180,200,230',
-    innerGlow: 'rgba(180,200,230,0.2)',
-    color: '#C8D8F0', icon: '◈', master: false,
-  },
-  builder: {
-    boxBg: 'linear-gradient(135deg,rgba(90,60,15,0.9) 0%,rgba(30,18,6,0.97) 55%,rgba(60,80,140,0.35) 100%)',
-    borderColor: '#C9A84C', glowRgb: '201,168,76',
-    innerGlow: 'rgba(201,168,76,0.18)',
-    color: '#C9A84C', icon: '✦', master: false,
-  },
-  creator: {
-    boxBg: 'linear-gradient(135deg,rgba(30,15,60,0.97) 0%,rgba(80,30,100,0.85) 35%,rgba(120,35,80,0.8) 65%,rgba(30,15,60,0.97) 100%)',
-    borderColor: '#E8D48A', glowRgb: '232,212,138',
-    innerGlow: 'rgba(232,212,138,0.15)',
-    color: '#F0E8C0', icon: '✸', master: true,
-  },
+  member:  { boxBg:'linear-gradient(135deg,rgba(100,120,170,0.85) 0%,rgba(50,60,100,0.95) 50%,rgba(80,90,130,0.8) 100%)', borderColor:'#B0C4DE', glowRgb:'180,200,230', innerGlow:'rgba(180,200,230,0.2)', color:'#C8D8F0', master:false },
+  builder: { boxBg:'linear-gradient(135deg,rgba(90,60,15,0.9) 0%,rgba(30,18,6,0.97) 55%,rgba(60,80,140,0.35) 100%)', borderColor:'#C9A84C', glowRgb:'201,168,76', innerGlow:'rgba(201,168,76,0.18)', color:'#C9A84C', master:false },
+  creator: { boxBg:'linear-gradient(135deg,rgba(30,15,60,0.97) 0%,rgba(80,30,100,0.85) 35%,rgba(120,35,80,0.8) 65%,rgba(30,15,60,0.97) 100%)', borderColor:'#E8D48A', glowRgb:'232,212,138', innerGlow:'rgba(232,212,138,0.15)', color:'#F0E8C0', master:true },
 };
 
-const SECTION_TABS = [
-  { id: 0, label: 'Private' },
-  { id: 1, label: 'Clubs' },
-  { id: 2, label: 'Events' },
-];
+const SECTION_TABS = [{ id:0, label:'Private' }, { id:1, label:'Clubs' }, { id:2, label:'Events' }];
 
 export default function CommunityView({ onNavigate, settings }) {
-  const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
-  const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C"
+  const AURA_COLORS = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" };
+  const auraColor = AURA_COLORS[settings?.aura] || "#C9A84C";
   const [section, setSection] = useState(1);
 
   return (
     <>
       <style>{css}</style>
-      <div style={{ minHeight:"100vh", paddingBottom:80, fontFamily:"'Cinzel', serif" }}>
+      <div style={{ minHeight:"100vh", paddingBottom:80, fontFamily:"'Cinzel',serif" }}>
         <div style={{ padding:"48px 24px 0", animation:"fadeInUp 0.6s ease both" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"24px" }}>
             <div>
@@ -234,20 +182,9 @@ export default function CommunityView({ onNavigate, settings }) {
               </p>
             </div>
           </div>
-
-          {/* ── SLIDER NAV replaces community-tab buttons ── */}
-          <CarouselNav
-            tabs={SECTION_TABS}
-            active={section}
-            onChange={setSection}
-            auraColor={auraColor}
-            lineColor="#6B1D2E"
-            textColor="#6B1D2E"
-          />
+          <CarouselNav tabs={SECTION_TABS} active={section} onChange={setSection} auraColor={auraColor} lineColor="#6B1D2E" textColor="#6B1D2E" />
         </div>
-
-        <div style={{ height: 4 }} />
-
+        <div style={{ height:4 }} />
         {section === 0 && <Private auraColor={auraColor} />}
         {section === 1 && <PublicClubs auraColor={auraColor} />}
         {section === 2 && <Events auraColor={auraColor} />}
@@ -258,9 +195,11 @@ export default function CommunityView({ onNavigate, settings }) {
 
 // ─── PRIVATE ────────────────────────────────────────────────────────────────
 function Private({ auraColor = "#C9A84C" }) {
-  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })()
-  const userTier = points>=5000?'creator':points>=1000?'builder':'member'
-  const limits = TIER_LIMITS[userTier]
+  const points = (() => { try { return parseInt(localStorage.getItem('duvaan_frequency')||'0') } catch { return 0 } })();
+  const userTier = points>=5000?'creator':points>=1000?'builder':'member';
+  const limits = TIER_LIMITS[userTier];
+  const containerRef = useRef(null);
+  useShimmerOnScroll(containerRef);
 
   const [clubs, setClubs] = useState(() => { try { return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]') } catch { return [] } });
   const [view, setView] = useState('list');
@@ -294,106 +233,72 @@ function Private({ auraColor = "#C9A84C" }) {
     setTimeout(() => { setView('list'); setCreated(false); setForm({name:'',desc:'',location:'',isPublic:false,tags:[],maxMembers:limits.maxMembers}); }, 1200);
   };
 
-  const updateClub = (updated) => {
-    const all = clubs.map(c => c.id===updated.id ? updated : c);
-    setClubs(all); localStorage.setItem('duvaan_my_clubs', JSON.stringify(all));
-    setOpenClub(updated);
-  };
+  const updateClub = (updated) => { const all = clubs.map(c => c.id===updated.id?updated:c); setClubs(all); localStorage.setItem('duvaan_my_clubs', JSON.stringify(all)); setOpenClub(updated); };
+  const deleteClub = (id) => { const all = clubs.filter(c => c.id!==id); setClubs(all); localStorage.setItem('duvaan_my_clubs', JSON.stringify(all)); setOpenClub(null); };
 
-  const deleteClub = (id) => {
-    const all = clubs.filter(c => c.id!==id);
-    setClubs(all); localStorage.setItem('duvaan_my_clubs', JSON.stringify(all));
-    setOpenClub(null);
-  };
-
-  if (openClub) return (
-    <ClubView
-      club={openClub}
-      userTier={userTier}
-      onClose={() => setOpenClub(null)}
-      onUpdateClub={updateClub}
-      onDeleteClub={() => deleteClub(openClub.id)}
-    />
-  );
+  if (openClub) return <ClubView club={openClub} userTier={userTier} onClose={() => setOpenClub(null)} onUpdateClub={updateClub} onDeleteClub={() => deleteClub(openClub.id)} />;
 
   if (view === 'create') return (
     <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
-      <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Luo klubi</h3>
-      <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 20px" }}>
+      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
+      <h3 style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Luo klubi</h3>
+      <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 20px", opacity:0.7 }}>
         {userTier==='member'?'Member: 1 klubi, max 10 jäsentä':userTier==='builder'?'Builder: 3 klubia, max 50 jäsentä':'Creator: 10 klubia, max 1500 jäsentä'}
       </p>
-
       <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
-        <div onClick={() => photoRef.current?.click()} style={{ width:56, height:56, borderRadius:'50%', border:'1.5px dashed rgba(201,168,76,0.3)', overflow:'hidden', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-          {form.photo ? <img src={form.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'rgba(201,168,76,0.3)', fontSize:22 }}>+</span>}
+        <div onClick={() => photoRef.current?.click()} style={{ width:56, height:56, borderRadius:'50%', border:'1.5px dashed rgba(107,29,46,0.4)', overflow:'hidden', background:'rgba(255,255,255,0.5)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+          {form.photo ? <img src={form.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'rgba(107,29,46,0.4)', fontSize:22 }}>+</span>}
         </div>
         <input ref={photoRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display:'none' }}/>
         <div>
-          <p style={{ color:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 4px' }}>Profiilikuva</p>
-          <button onClick={() => photoRef.current?.click()} style={{ background:'none', border:'1px solid rgba(201,168,76,0.25)', borderRadius:7, padding:'4px 12px', color:'rgba(201,168,76,0.5)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', cursor:'pointer' }}>{form.photo?'Vaihda':'Lisää kuva'}</button>
+          <p style={{ color:'#6B1D2E', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 4px', fontWeight:700 }}>Profiilikuva</p>
+          <button onClick={() => photoRef.current?.click()} style={{ background:'none', border:'1.5px solid #6B1D2E', borderRadius:7, padding:'4px 12px', color:'#6B1D2E', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', cursor:'pointer', fontWeight:600 }}>{form.photo?'Vaihda':'Lisää kuva'}</button>
         </div>
       </div>
-
       {[['Nimi *','name','Klubin nimi...'],['Bio','desc','Mistä klubissa on kyse...'],['Sijainti','location','Helsinki, Suomi']].map(([label,field,ph]) => (
         <div key={field} style={{ marginBottom:12 }}>
-          <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px" }}>{label}</p>
-          <input value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}
-            style={{ width:"100%", boxSizing:"border-box", background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.18)", borderRadius:9, padding:"9px 12px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none" }}/>
+          <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 6px", fontWeight:700 }}>{label}</p>
+          <input value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph} style={{ width:"100%", boxSizing:"border-box", background:"rgba(255,255,255,0.7)", border:"1.5px solid rgba(107,29,46,0.3)", borderRadius:9, padding:"9px 12px", color:"#2a1008", fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none" }}/>
         </div>
       ))}
-
       {limits.canPublic && (
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
           <div>
-            <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, margin:'0 0 2px' }}>Julkinen klubi</p>
-            <p style={{ color:'rgba(201,168,76,0.4)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>Kaikki voivat löytää ja liittyä</p>
+            <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:11, margin:'0 0 2px', fontWeight:700 }}>Julkinen klubi</p>
+            <p style={{ color:'rgba(107,29,46,0.6)', fontFamily:"'Cormorant Garamond',serif", fontSize:12, fontStyle:'italic', margin:0 }}>Kaikki voivat löytää ja liittyä</p>
           </div>
-          <div onClick={() => setForm(f=>({...f,isPublic:!f.isPublic}))} style={{ width:38, height:20, borderRadius:10, background:form.isPublic?'rgba(201,168,76,0.2)':'rgba(255,255,255,0.04)', border:`1px solid ${form.isPublic?GOLD:'rgba(201,168,76,0.2)'}`, position:'relative', cursor:'pointer', transition:'all 0.2s' }}>
-            <div style={{ width:14, height:14, borderRadius:'50%', background:form.isPublic?GOLD:'rgba(201,168,76,0.25)', position:'absolute', top:2, left:form.isPublic?21:3, transition:'left 0.2s' }}/>
+          <div onClick={() => setForm(f=>({...f,isPublic:!f.isPublic}))} style={{ width:38, height:20, borderRadius:10, background:form.isPublic?'rgba(107,29,46,0.15)':'rgba(255,255,255,0.5)', border:`1.5px solid ${form.isPublic?GOLD:'rgba(107,29,46,0.35)'}`, position:'relative', cursor:'pointer', transition:'all 0.2s' }}>
+            <div style={{ width:14, height:14, borderRadius:'50%', background:form.isPublic?GOLD:BURGUNDY, position:'absolute', top:2, left:form.isPublic?21:3, transition:'left 0.2s' }}/>
           </div>
         </div>
       )}
-
       <div style={{ marginBottom:20 }}>
-        <p style={{ color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 10px" }}>Tagit</p>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 10px", fontWeight:700 }}>Tagit</p>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:7 }}>
-          {ALL_TAGS.map(tag => {
-            const sel=form.tags.includes(tag);
-            return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.22)':'rgba(255,255,255,0.04)', border:sel?'1.5px solid #C9A84C':'1px solid rgba(201,168,76,0.4)', borderRadius:10, padding:'8px 6px', cursor:'pointer', color:sel?'#FFE89A':'rgba(201,168,76,0.85)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em', textAlign:'center', transition:'all 0.15s', fontWeight:sel?700:500 }}>{tag}</button>;
-          })}
+          {ALL_TAGS.map(tag => { const sel=form.tags.includes(tag); return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?BURGUNDY:'rgba(255,255,255,0.6)', border:'1.5px solid #6B1D2E', borderRadius:10, padding:'8px 6px', cursor:'pointer', color:sel?GOLD:'#6B1D2E', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em', textAlign:'center', transition:'all 0.15s', fontWeight:700 }}>{tag}</button>; })}
         </div>
       </div>
-
-      {created ? (
-        <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Klubi luotu</p>
-      ) : (
-        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:14, background:form.name.trim()?BURGUNDY:"#6B1D2E", border:`1.5px solid ${auraColor}88`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()?1:0.4 }}>
-          Luo klubi
-        </WaterButton>
+      {created ? <p style={{ color:"#2a9a50", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Klubi luotu</p> : (
+        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:14, background:form.name.trim()?BURGUNDY:"rgba(107,29,46,0.4)", border:"none", borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", opacity:form.name.trim()?1:0.5 }}>Luo klubi</WaterButton>
       )}
     </div>
   );
 
   return (
-    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
-      <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(201,168,76,0.1)', borderRadius:10, padding:'10px 14px', marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <span style={{ color:'rgba(201,168,76,0.5)', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:'italic' }}>{clubs.length}/{limits.maxClubs} klubia luotu</span>
-        {!canCreate && <span style={{ color:'rgba(255,140,0,0.7)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em' }}>Päivitä tasoa</span>}
+    <div ref={containerRef} style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+      <div style={{ background:'rgba(255,255,255,0.5)', border:'1.5px solid rgba(107,29,46,0.3)', borderRadius:10, padding:'10px 14px', marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <span style={{ color:'#6B1D2E', fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontWeight:600 }}>{clubs.length}/{limits.maxClubs} klubia luotu</span>
+        {!canCreate && <span style={{ color:'#6B1D2E', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.1em', fontWeight:700 }}>Päivitä tasoa</span>}
       </div>
-
       {canCreate && (
-        <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"13px 0", marginBottom:20, background:"#6B1D2E", border:`1.5px solid ${auraColor}66`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>
-          + Luo klubi
-        </WaterButton>
+        <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"13px 0", marginBottom:20, background:"#6B1D2E", border:`1.5px solid ${auraColor}66`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Luo klubi</WaterButton>
       )}
-
       {clubs.length === 0 ? (
         <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontStyle:"italic", textAlign:"center", marginTop:32 }}>Ei klubeja vielä.</p>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {clubs.map(club => (
-            <div key={club.id} onClick={() => setOpenClub(club)} style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid #6B1D2E", borderRadius:14, padding:"14px 16px", cursor:'pointer', transition:'border-color 0.2s' }}>
+            <div key={club.id} onClick={() => setOpenClub(club)} className="shimmer-card shimmer-light" style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid #6B1D2E", borderRadius:14, padding:"14px 16px", cursor:'pointer' }}>
               <div style={{ display:"flex", alignItems:'center', gap:12, marginBottom:6 }}>
                 <div style={{ width:40, height:40, borderRadius:'50%', background:`linear-gradient(135deg,${BURGUNDY},${GOLD})`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', border:'1px solid #6B1D2E' }}>
                   {club.photo ? <img src={club.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/> : <span style={{ color:'#fff', fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700 }}>{club.name[0]}</span>}
@@ -405,11 +310,7 @@ function Private({ auraColor = "#C9A84C" }) {
                 <span style={{ color:'#6B1D2E', fontSize:16 }}>›</span>
               </div>
               {club.desc && <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:15, fontWeight:500, margin:"0 0 8px" }}>{club.desc}</p>}
-              {club.tags?.length>0 && (
-                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                  {club.tags.slice(0,4).map(t => <span key={t} style={{ background:"#6B1D2E", border:"0.5px solid #6B1D2E", borderRadius:20, padding:"3px 10px", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8 }}>{t}</span>)}
-                </div>
-              )}
+              {club.tags?.length>0 && <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>{club.tags.slice(0,4).map(t => <span key={t} style={{ background:"rgba(107,29,46,0.1)", border:"0.5px solid #6B1D2E", borderRadius:20, padding:"3px 10px", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:8 }}>{t}</span>)}</div>}
             </div>
           ))}
         </div>
@@ -423,14 +324,12 @@ function ClubServiceView({ club, services, onBack, onPurchase }) {
   const [selected, setSelected] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState(false);
+  const containerRef = useRef(null);
+  useShimmerOnScroll(containerRef);
 
   const handleConfirm = () => {
     setDone(true);
-    setTimeout(() => {
-      const current = parseInt(localStorage.getItem('duvaan_frequency')||'0');
-      localStorage.setItem('duvaan_frequency', String(current + 20));
-      onPurchase(selected);
-    }, 1800);
+    setTimeout(() => { const current = parseInt(localStorage.getItem('duvaan_frequency')||'0'); localStorage.setItem('duvaan_frequency', String(current+20)); onPurchase(selected); }, 1800);
   };
 
   if (confirming && selected) return (
@@ -454,23 +353,21 @@ function ClubServiceView({ club, services, onBack, onPurchase }) {
             <p style={{ color:"rgba(110,255,160,0.6)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"6px 0 0" }}>+20 Frequency-pistettä lisätty</p>
           </div>
         ) : (
-          <button onClick={handleConfirm} style={{ width:"100%", padding:"16px 0", background:GOLD, border:"none", borderRadius:14, color:"#080808", fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>
-            Vahvista — {selected.price}€
-          </button>
+          <button onClick={handleConfirm} style={{ width:"100%", padding:"16px 0", background:GOLD, border:"none", borderRadius:14, color:"#080808", fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>Vahvista — {selected.price}€</button>
         )}
       </div>
     </div>
   );
 
   return (
-    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+    <div ref={containerRef} style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
       <button onClick={onBack} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(201,168,76,0.7)", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:16, padding:0 }}>← Takaisin</button>
       <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:18, fontWeight:700, letterSpacing:"0.08em", margin:"0 0 4px" }}>{club.name}</h3>
       <p style={{ color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:14, fontStyle:"italic", margin:"0 0 20px" }}>{club.desc}</p>
       <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.2em", textTransform:"uppercase", margin:"0 0 12px" }}>Palvelut</p>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {services.map(service => (
-          <div key={service.id} onClick={() => setSelected(service)} style={{ background:selected?.id===service.id?"rgba(201,168,76,0.05)":"rgba(255,255,255,0.02)", border:selected?.id===service.id?"1px solid rgba(201,168,76,0.6)":"1px solid rgba(201,168,76,0.25)", borderRadius:16, padding:"16px 18px", cursor:"pointer", transition:"all 0.2s" }}>
+          <div key={service.id} onClick={() => setSelected(service)} className="shimmer-card" style={{ background:selected?.id===service.id?"rgba(201,168,76,0.05)":"rgba(255,255,255,0.02)", border:selected?.id===service.id?"1px solid rgba(201,168,76,0.6)":"1px solid rgba(201,168,76,0.25)", borderRadius:16, padding:"16px 18px", cursor:"pointer", transition:"all 0.2s" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
               <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:13, fontWeight:600, letterSpacing:"0.06em" }}>{service.name}</span>
               <span style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700 }}>{service.price}€</span>
@@ -486,11 +383,7 @@ function ClubServiceView({ club, services, onBack, onPurchase }) {
           </div>
         ))}
       </div>
-      {selected && (
-        <button onClick={() => setConfirming(true)} style={{ width:"100%", padding:"15px 0", marginTop:16, background:GOLD, border:"none", borderRadius:14, color:"#080808", fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>
-          Varaa — {selected.price}€
-        </button>
-      )}
+      {selected && <button onClick={() => setConfirming(true)} style={{ width:"100%", padding:"15px 0", marginTop:16, background:GOLD, border:"none", borderRadius:14, color:"#080808", fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>Varaa — {selected.price}€</button>}
     </div>
   );
 }
@@ -504,11 +397,11 @@ function LocationPicker({ location, setLocation }) {
       <span style={{ color:"#6B1D2E", fontSize:13 }}>▸</span>
       {editing ? (
         <>
-          <input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){setLocation(draft);setEditing(false);}}} autoFocus placeholder="Kaupunki..." style={{ flex:1, background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:20, padding:"6px 14px", color:GOLD, fontFamily:"'Cormorant Garamond',serif", fontSize:13, outline:"none" }} />
+          <input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){setLocation(draft);setEditing(false);}}} autoFocus placeholder="Kaupunki..." style={{ flex:1, background:"rgba(255,255,255,0.65)", border:"1px solid #6B1D2E", borderRadius:20, padding:"6px 14px", color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:13, outline:"none" }} />
           <button onClick={()=>{setLocation(draft);setEditing(false);}} style={{ background:BURGUNDY, border:"none", borderRadius:20, padding:"6px 14px", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", cursor:"pointer" }}>OK</button>
         </>
       ) : (
-        <button onClick={()=>{setDraft(location);setEditing(true);}} style={{ background:"none", border:"1px solid rgba(201,168,76,0.2)", borderRadius:20, padding:"5px 14px", cursor:"pointer", color:"rgba(201,168,76,0.7)", fontFamily:"'Cormorant Garamond',serif", fontSize:13 }}>
+        <button onClick={()=>{setDraft(location);setEditing(true);}} style={{ background:"none", border:"1px solid #6B1D2E", borderRadius:20, padding:"5px 14px", cursor:"pointer", color:"#6B1D2E", fontFamily:"'Cormorant Garamond',serif", fontSize:13 }}>
           {location||'Valitse sijainti'} <span style={{ opacity:0.4, marginLeft:4 }}>✎</span>
         </button>
       )}
@@ -523,25 +416,19 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
   const [location, setLocation] = useState(() => localStorage.getItem('duvaan_location')||'Helsinki');
   const [selectedClub, setSelectedClub] = useState(null);
   const [purchasedService, setPurchasedService] = useState(null);
+  const containerRef = useRef(null);
+  useShimmerOnScroll(containerRef);
 
   const saveLocation = loc => { setLocation(loc); localStorage.setItem('duvaan_location', loc); };
-
   const filtered = MOCK_PUBLIC_CLUBS.filter(c =>
     (c.name.toLowerCase().includes(search.toLowerCase()) || c.desc.toLowerCase().includes(search.toLowerCase())) &&
     (!filter || c.tags.includes(filter))
   );
 
-  if (selectedClub) return (
-    <ClubServiceView
-      club={selectedClub}
-      services={MOCK_SERVICES[selectedClub.id]||[]}
-      onBack={() => setSelectedClub(null)}
-      onPurchase={service => { setPurchasedService(service); setSelectedClub(null); }}
-    />
-  );
+  if (selectedClub) return <ClubServiceView club={selectedClub} services={MOCK_SERVICES[selectedClub.id]||[]} onBack={() => setSelectedClub(null)} onPurchase={service => { setPurchasedService(service); setSelectedClub(null); }} />;
 
   return (
-    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+    <div ref={containerRef} style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
       {purchasedService && (
         <div style={{ background:"rgba(110,255,160,0.05)", border:"1px solid rgba(110,255,160,0.25)", borderRadius:14, padding:"12px 16px", marginBottom:14, display:"flex", gap:10, alignItems:"center" }}>
           <span style={{ fontSize:16 }}>✓</span>
@@ -552,54 +439,19 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
         </div>
       )}
 
-      <button
-        onClick={() => setSearchOpen(o => !o)}
-        style={{
-          width:"100%", padding:"13px 16px", marginBottom: searchOpen ? 0 : 16,
-          background: searchOpen ? "rgba(107,29,46,0.08)" : "rgba(107,29,46,0.04)",
-          border:"1.5px solid rgba(107,29,46,0.4)",
-          borderRadius: searchOpen ? "12px 12px 0 0" : 12,
-          color:"#6B1D2E", fontFamily:"'Cinzel',serif",
-          fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase",
-          cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between",
-          transition:"all 0.2s",
-        }}
-      >
+      <button onClick={() => setSearchOpen(o => !o)} style={{ width:"100%", padding:"13px 16px", marginBottom:searchOpen?0:16, background:searchOpen?"rgba(107,29,46,0.08)":"rgba(107,29,46,0.04)", border:`1.5px solid ${BURGUNDY}`, borderRadius:searchOpen?"12px 12px 0 0":12, color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", transition:"all 0.2s" }}>
         <span>Hae klubeja</span>
-        <span style={{ fontSize:13, opacity:0.9, transition:"transform 0.2s", transform: searchOpen ? "rotate(180deg)" : "none" }}>↓</span>
+        <span style={{ fontSize:13, opacity:0.9, transition:"transform 0.2s", transform:searchOpen?"rotate(180deg)":"none" }}>↓</span>
       </button>
 
       {searchOpen && (
-        <div className="search-panel" style={{
-          background:"rgba(255,255,255,0.65)",
-          border:"1px solid rgba(201,168,76,0.35)",
-          borderTop:"none",
-          borderRadius:"0 0 12px 12px",
-          padding:"14px 14px 16px",
-          marginBottom:16,
-        }}>
+        <div className="search-panel" style={{ background:"rgba(255,255,255,0.65)", border:`1.5px solid ${BURGUNDY}`, borderTop:"none", borderRadius:"0 0 12px 12px", padding:"14px 14px 16px", marginBottom:16 }}>
           <LocationPicker location={location} setLocation={saveLocation} />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Etsi klubeja..."
-            style={{
-              width:"100%", boxSizing:"border-box", marginBottom:14,
-              background:"rgba(255,255,255,0.65)", border:"1px solid rgba(201,168,76,0.25)",
-              borderRadius:24, padding:"9px 16px", color:GOLD,
-              fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none",
-            }}
-          />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Etsi klubeja..." style={{ width:"100%", boxSizing:"border-box", marginBottom:14, background:"rgba(255,255,255,0.65)", border:`1.5px solid ${BURGUNDY}`, borderRadius:24, padding:"9px 16px", color:"#2a1008", fontFamily:"'Cormorant Garamond',serif", fontSize:14, outline:"none" }} />
           <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-            {ALL_TAGS.map(t => (
-              <button key={t} className={`tag-btn ${filter===t?'selected':''}`} onClick={() => setFilter(filter===t?null:t)}>{t}</button>
-            ))}
+            {ALL_TAGS.map(t => <button key={t} className={`tag-btn ${filter===t?'selected':''}`} onClick={() => setFilter(filter===t?null:t)}>{t}</button>)}
           </div>
-          {(search||filter) && (
-            <button onClick={() => { setSearch(''); setFilter(null); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", marginTop:10, padding:0 }}>
-              × Tyhjennä haku
-            </button>
-          )}
+          {(search||filter) && <button onClick={() => { setSearch(''); setFilter(null); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.12em", marginTop:10, padding:0 }}>× Tyhjennä haku</button>}
         </div>
       )}
 
@@ -607,48 +459,29 @@ function PublicClubs({ auraColor = "#C9A84C" }) {
         {filtered.map(club => {
           const ts = CLUB_TIER_STYLES[club.tier] || CLUB_TIER_STYLES.member;
           return (
-          <div key={club.id} style={{
-            background: ts.boxBg,
-            border: `1.5px solid ${ts.borderColor}`,
-            boxShadow: `0 0 24px ${ts.innerGlow}, inset 0 0 32px ${ts.innerGlow}`,
-            borderRadius: 18, padding: '16px 18px',
-            position: 'relative', overflow: 'hidden',
-            animation: ts.master ? 'breatheBtn 5s ease-in-out infinite' : 'breatheBtn 6s ease-in-out infinite',
-          }}>
-            {/* Top shimmer */}
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${ts.borderColor},transparent)`, pointerEvents:'none' }}/>
-            {/* Creator rainbow overlay */}
-            {ts.master && <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)', pointerEvents:'none' }}/>}
-
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:club.duvaan?17:15, fontWeight:700, letterSpacing:"0.06em" }}>{club.name}</span>
-                {club.active && <span style={{ fontSize:9, color:"#6effa0", fontWeight:600 }}>● LIVE</span>}
-                {club.duvaan && <span style={{ fontSize:10, color:ts.color }}>✦</span>}
+            <div key={club.id} className="shimmer-card" style={{ background:ts.boxBg, border:`1.5px solid ${ts.borderColor}`, boxShadow:`0 0 24px ${ts.innerGlow}, inset 0 0 32px ${ts.innerGlow}`, borderRadius:18, padding:'16px 18px', position:'relative', overflow:'hidden', animation:ts.master?'breatheBtn 5s ease-in-out infinite':'breatheBtn 6s ease-in-out infinite' }}>
+              <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${ts.borderColor},transparent)`, pointerEvents:'none' }}/>
+              {ts.master && <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)', pointerEvents:'none' }}/>}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:club.duvaan?17:15, fontWeight:700, letterSpacing:"0.06em" }}>{club.name}</span>
+                  {club.active && <span style={{ fontSize:9, color:"#6effa0", fontWeight:600 }}>● LIVE</span>}
+                  {club.duvaan && <span style={{ fontSize:10, color:ts.color }}>✦</span>}
+                </div>
+                <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, opacity:0.7 }}>{club.members.toLocaleString()} jäsentä</span>
               </div>
-              <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:11, fontWeight:600, opacity:0.7 }}>{club.members.toLocaleString()} jäsentä</span>
+              <p style={{ color:ts.color, fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5, opacity:0.85 }}>{club.desc}</p>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
+                {club.tags.map(t => <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}66`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>)}
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button style={{ background:"#6B1D2E", border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"7px 16px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>{club.duvaan?'Jäsenyydet':'Liity'}</button>
+                {MOCK_SERVICES[club.id] && <button onClick={() => setSelectedClub(club)} style={{ background:`${ts.borderColor}18`, border:`1.5px solid ${ts.borderColor}88`, borderRadius:20, padding:"7px 18px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>Palvelut →</button>}
+              </div>
             </div>
-            <p style={{ color:ts.color, fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:500, margin:"0 0 10px", lineHeight:1.5, opacity:0.85 }}>{club.desc}</p>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
-              {club.tags.map(t => (
-                <span key={t} style={{ background:`${ts.borderColor}18`, border:`0.5px solid ${ts.borderColor}66`, borderRadius:20, padding:"3px 10px", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:8, letterSpacing:"0.1em" }}>{t}</span>
-              ))}
-            </div>
-            <div style={{ display:"flex", gap:8 }}>
-              <button style={{ background:"#6B1D2E", border:`1px solid ${ts.borderColor}55`, borderRadius:20, padding:"7px 16px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
-                {club.duvaan ? 'Jäsenyydet' : 'Liity'}
-              </button>
-              {MOCK_SERVICES[club.id] && (
-                <button onClick={() => setSelectedClub(club)} style={{ background:`${ts.borderColor}18`, border:`1.5px solid ${ts.borderColor}88`, borderRadius:20, padding:"7px 18px", cursor:"pointer", color:ts.color, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase" }}>
-                  Palvelut →
-                </button>
-              )}
-            </div>
-          </div>
-        )})}
-        {filtered.length === 0 && (
-          <p style={{ color:"rgba(201,168,76,0.45)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", textAlign:"center", marginTop:20 }}>Ei tuloksia — kokeile eri hakua.</p>
-        )}
+          );
+        })}
+        {filtered.length === 0 && <p style={{ color:"rgba(201,168,76,0.45)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", textAlign:"center", marginTop:20 }}>Ei tuloksia — kokeile eri hakua.</p>}
       </div>
     </div>
   );
@@ -668,13 +501,8 @@ function PricePicker({ value, onChange }) {
   const [val, setVal] = useState(value);
   return (
     <div style={{ width:"100%" }}>
-      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12, padding:"12px 16px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val}€</button>
-      {open && (
-        <div style={{ background:"rgba(12,12,12,0.97)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"8px 12px", marginTop:4 }}>
-          <ScrollPicker value={val} onChange={v=>{setVal(v);onChange(v);}} min={1} max={500} step={1} unit="€" />
-          <button onClick={() => setOpen(false)} style={{ width:"100%", marginTop:8, padding:"10px 0", background:"rgba(201,168,76,0.08)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:10, color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>Valmis</button>
-        </div>
-      )}
+      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.65)", border:`1.5px solid ${BURGUNDY}`, borderRadius:12, padding:"12px 16px", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val}€</button>
+      {open && <div style={{ background:"rgba(245,240,232,0.97)", border:`1px solid ${BURGUNDY}`, borderRadius:14, padding:"8px 12px", marginTop:4 }}><ScrollPicker value={val} onChange={v=>{setVal(v);onChange(v);}} min={1} max={500} step={1} unit="€" /><button onClick={() => setOpen(false)} style={{ width:"100%", marginTop:8, padding:"10px 0", background:"rgba(107,29,46,0.08)", border:`1px solid ${BURGUNDY}`, borderRadius:10, color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>Valmis</button></div>}
     </div>
   );
 }
@@ -684,13 +512,8 @@ function CapacityPicker({ value, onChange }) {
   const [val, setVal] = useState(value);
   return (
     <div style={{ width:"100%" }}>
-      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.65)", border:"1.5px solid rgba(201,168,76,0.5)", borderRadius:12, padding:"12px 16px", color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val} hlö</button>
-      {open && (
-        <div style={{ background:"rgba(12,12,12,0.97)", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"8px 12px", marginTop:4 }}>
-          <ScrollPicker value={val} onChange={v=>{setVal(v);onChange(v);}} min={1} max={500} step={1} unit=" hlö" />
-          <button onClick={() => setOpen(false)} style={{ width:"100%", marginTop:8, padding:"10px 0", background:"rgba(201,168,76,0.08)", border:"1px solid rgba(201,168,76,0.4)", borderRadius:10, color:"#C9A84C", fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>Valmis</button>
-        </div>
-      )}
+      <button onClick={() => setOpen(!open)} style={{ background:"rgba(255,255,255,0.65)", border:`1.5px solid ${BURGUNDY}`, borderRadius:12, padding:"12px 16px", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, letterSpacing:"0.06em", cursor:"pointer", width:"100%", textAlign:"center" }}>{val} hlö</button>
+      {open && <div style={{ background:"rgba(245,240,232,0.97)", border:`1px solid ${BURGUNDY}`, borderRadius:14, padding:"8px 12px", marginTop:4 }}><ScrollPicker value={val} onChange={v=>{setVal(v);onChange(v);}} min={1} max={500} step={1} unit=" hlö" /><button onClick={() => setOpen(false)} style={{ width:"100%", marginTop:8, padding:"10px 0", background:"rgba(107,29,46,0.08)", border:`1px solid ${BURGUNDY}`, borderRadius:10, color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.16em", textTransform:"uppercase", cursor:"pointer" }}>Valmis</button></div>}
     </div>
   );
 }
@@ -702,6 +525,8 @@ function Events({ auraColor = "#C9A84C" }) {
   const [events, setEvents] = useState(() => { try { return [...MOCK_EVENTS, ...JSON.parse(localStorage.getItem('duvaan_events')||'[]')] } catch { return MOCK_EVENTS } });
   const [form, setForm] = useState({ name:'',desc:'',date:'',time:'',location:'',capacity:'',free:true,price:'',tags:[],type:'public',dresscode:'',deadline:'' });
   const [created, setCreated] = useState(false);
+  const containerRef = useRef(null);
+  useShimmerOnScroll(containerRef);
 
   const toggleTag = tag => setForm(f => ({ ...f, tags: f.tags.includes(tag)?f.tags.filter(t=>t!==tag):[...f.tags,tag] }));
   const canCreate = form.name.trim() && form.date && form.location.trim();
@@ -718,82 +543,64 @@ function Events({ auraColor = "#C9A84C" }) {
 
   if (view === 'create') return (
     <div style={{ padding:"16px 16px 60px", animation:"fadeInUp 0.4s ease both" }}>
-      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:GOLD, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
-      <h3 style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Create Event</h3>
-      <p style={{ color:"rgba(201,168,76,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 22px" }}>Luo tapahtuma klubillesi tai koko yhteisölle.</p>
-
+      <button onClick={() => setView('list')} style={{ background:"none", border:"none", cursor:"pointer", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:10, letterSpacing:"0.14em", marginBottom:20, padding:0 }}>← Takaisin</button>
+      <h3 style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:700, letterSpacing:"0.1em", margin:"0 0 4px" }}>Create Event</h3>
+      <p style={{ color:"rgba(107,29,46,0.65)", fontFamily:"'Cormorant Garamond',serif", fontSize:13, fontStyle:"italic", margin:"0 0 22px" }}>Luo tapahtuma klubillesi tai koko yhteisölle.</p>
       {[["Nimi *","name","Event name..."],["Sijainti *","location","Missä tapahtuu..."],["Dress Code","dresscode","Dark & elegant, casual..."]].map(([label,field,ph]) => (
         <div key={field} style={{ marginBottom:14 }}>
-          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>{label}</p>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>{label}</p>
           <input className="text-field" value={form[field]} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph} />
         </div>
       ))}
-
       <div style={{ marginBottom:14 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Kuvaus</p>
+        <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>Kuvaus</p>
         <textarea className="text-field" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} placeholder="Mistä on kyse..." rows={2} style={{ resize:"none" }} />
       </div>
-
       <div style={{ display:"flex", gap:10, marginBottom:14 }}>
         <div style={{ flex:1 }}>
-          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Päivämäärä *</p>
-          <input className="text-field" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ colorScheme:"dark" }} />
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>Päivämäärä *</p>
+          <input className="text-field" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ colorScheme:"light" }} />
         </div>
         <div style={{ flex:1 }}>
-          <TimePicker label="Kellonaika" value={form.time||"12:00"} onChange={v=>setForm(f=>({...f,time:v}))} />
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>Kellonaika</p>
+          <input type="time" value={form.time||"12:00"} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={{ width:"100%", boxSizing:"border-box", background:"rgba(255,255,255,0.7)", border:`1.5px solid ${BURGUNDY}`, borderRadius:12, padding:"12px 16px", color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:600, outline:"none", colorScheme:"light" }} />
         </div>
       </div>
-
       <div style={{ display:"flex", gap:10, marginBottom:14 }}>
         <div style={{ flex:1 }}>
-          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Kapasiteetti</p>
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>Kapasiteetti</p>
           <CapacityPicker value={parseInt(form.capacity)||20} onChange={v=>setForm(f=>({...f,capacity:String(v)}))} />
         </div>
         <div style={{ flex:1 }}>
-          <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>RSVP deadline</p>
-          <input className="text-field" type="date" value={form.deadline} onChange={e=>setForm(f=>({...f,deadline:e.target.value}))} style={{ colorScheme:"dark" }} />
+          <p style={{ color:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>RSVP deadline</p>
+          <input className="text-field" type="date" value={form.deadline} onChange={e=>setForm(f=>({...f,deadline:e.target.value}))} style={{ colorScheme:"light" }} />
         </div>
       </div>
-
       <div style={{ marginBottom:14 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Tyyppi</p>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>Tyyppi</p>
         <div style={{ display:"flex", gap:8 }}>
-          {[['public','Julkinen'],['private','Yksityinen']].map(([val,label]) => (
-            <button key={val} onClick={()=>setForm(f=>({...f,type:val}))} style={{ flex:1, padding:"10px 8px", cursor:"pointer", background:form.type===val?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)", border:form.type===val?"1.5px solid #C9A84C":"1px solid rgba(201,168,76,0.35)", borderRadius:12, color:form.type===val?GOLD:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em" }}>{label}</button>
-          ))}
+          {[['public','Julkinen'],['private','Yksityinen']].map(([val,label]) => <button key={val} onClick={()=>setForm(f=>({...f,type:val}))} style={{ flex:1, padding:"10px 8px", cursor:"pointer", background:form.type===val?BURGUNDY:"rgba(255,255,255,0.6)", border:`1.5px solid ${form.type===val?BURGUNDY:"rgba(107,29,46,0.3)"}`, borderRadius:12, color:form.type===val?GOLD:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", fontWeight:700 }}>{label}</button>)}
         </div>
       </div>
-
       <div style={{ marginBottom:20 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px" }}>Hinta</p>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 7px", fontWeight:700 }}>Hinta</p>
         <div style={{ display:"flex", gap:8, marginBottom:8 }}>
-          {[[true,'Ilmainen'],[false,'Maksullinen']].map(([val,label]) => (
-            <button key={String(val)} onClick={()=>setForm(f=>({...f,free:val}))} style={{ flex:1, padding:"10px 8px", cursor:"pointer", background:form.free===val?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)", border:form.free===val?"1.5px solid #C9A84C":"1px solid rgba(201,168,76,0.35)", borderRadius:12, color:form.free===val?GOLD:"rgba(201,168,76,0.6)", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em" }}>{label}</button>
-          ))}
+          {[[true,'Ilmainen'],[false,'Maksullinen']].map(([val,label]) => <button key={String(val)} onClick={()=>setForm(f=>({...f,free:val}))} style={{ flex:1, padding:"10px 8px", cursor:"pointer", background:form.free===val?BURGUNDY:"rgba(255,255,255,0.6)", border:`1.5px solid ${form.free===val?BURGUNDY:"rgba(107,29,46,0.3)"}`, borderRadius:12, color:form.free===val?GOLD:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.1em", fontWeight:700 }}>{label}</button>)}
         </div>
         {!form.free && <PricePicker value={parseFloat(form.price)||10} onChange={v=>setForm(f=>({...f,price:v+'€'}))} />}
       </div>
-
       <div style={{ marginBottom:28 }}>
-        <p style={{ color:GOLD, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>Kategoria</p>
+        <p style={{ color:"#6B1D2E", fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px", fontWeight:700 }}>Kategoria</p>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:7 }}>
-          {ALL_TAGS.map(tag => {
-            const sel=form.tags.includes(tag);
-            return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?'rgba(201,168,76,0.22)':'rgba(255,255,255,0.04)', border:sel?'1.5px solid #C9A84C':'1px solid rgba(201,168,76,0.4)', borderRadius:10, padding:'8px 6px', cursor:'pointer', color:sel?'#FFE89A':'rgba(201,168,76,0.85)', fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em', textAlign:'center', fontWeight:sel?700:500 }}>{tag}</button>
-          })}
+          {ALL_TAGS.map(tag => { const sel=form.tags.includes(tag); return <button key={tag} onClick={()=>toggleTag(tag)} style={{ background:sel?BURGUNDY:'rgba(255,255,255,0.6)', border:'1.5px solid #6B1D2E', borderRadius:10, padding:'8px 6px', cursor:'pointer', color:sel?GOLD:BURGUNDY, fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em', textAlign:'center', fontWeight:700 }}>{tag}</button>; })}
         </div>
       </div>
-
-      {created ? (
-        <p style={{ color:"#6effa0", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Tapahtuma luotu</p>
-      ) : (
-        <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:canCreate?BURGUNDY:"#6B1D2E", border:`1.5px solid ${auraColor}88`, borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:canCreate?"pointer":"default", opacity:canCreate?1:0.35 }}>Create Event</WaterButton>
-      )}
+      {created ? <p style={{ color:"#2a9a50", fontFamily:"'Cinzel',serif", fontSize:13, letterSpacing:"0.1em", textAlign:"center" }}>✓ Tapahtuma luotu</p> : <WaterButton auraColor={auraColor} onClick={handleCreate} style={{ width:"100%", padding:16, background:canCreate?BURGUNDY:"rgba(107,29,46,0.4)", border:"none", borderRadius:16, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:12, letterSpacing:"0.18em", textTransform:"uppercase", cursor:canCreate?"pointer":"default", opacity:canCreate?1:0.4 }}>Create Event</WaterButton>}
     </div>
   );
 
   return (
-    <div style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
+    <div ref={containerRef} style={{ padding:"16px 16px 40px", animation:"fadeInUp 0.4s ease both" }}>
       <WaterButton auraColor={auraColor} onClick={() => setView('create')} style={{ width:"100%", padding:"14px 0", marginBottom:14, background:"#6B1D2E", border:`1.5px solid #6B1D2E`, borderRadius:14, color:GOLD, fontFamily:"'Cinzel',serif", fontSize:11, letterSpacing:"0.18em", textTransform:"uppercase", cursor:"pointer" }}>+ Create Event</WaterButton>
       <LocationPicker location={location} setLocation={saveLocation} />
       <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -803,18 +610,9 @@ function Events({ auraColor = "#C9A84C" }) {
           const dateStr = new Date(ev.date).toLocaleDateString('fi-FI', { weekday:'short', day:'numeric', month:'long' });
           const ts = CLUB_TIER_STYLES[ev.tier] || CLUB_TIER_STYLES.member;
           return (
-            <div key={ev.id} style={{
-              background: ts.boxBg,
-              border: `1.5px solid ${ts.borderColor}`,
-              boxShadow: `0 0 24px ${ts.innerGlow}, inset 0 0 32px ${ts.innerGlow}`,
-              borderRadius: 18, padding: '16px 18px',
-              position: 'relative', overflow: 'hidden',
-            }}>
-              {/* Top shimmer */}
+            <div key={ev.id} className="shimmer-card" style={{ background:ts.boxBg, border:`1.5px solid ${ts.borderColor}`, boxShadow:`0 0 24px ${ts.innerGlow}, inset 0 0 32px ${ts.innerGlow}`, borderRadius:18, padding:'16px 18px', position:'relative', overflow:'hidden' }}>
               <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${ts.borderColor},transparent)`, pointerEvents:'none' }}/>
-              {/* Creator rainbow overlay */}
               {ts.master && <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(60,10,20,0.22) 0%, rgba(80,20,0,0.1) 15%, rgba(60,40,0,0.08) 28%, rgba(10,40,15,0.07) 40%, rgba(0,30,50,0.07) 52%, rgba(20,15,70,0.1) 62%, rgba(55,10,90,0.28) 72%, rgba(70,15,110,0.4) 83%, rgba(200,180,240,0.38) 92%, rgba(255,245,255,0.28) 97%, rgba(255,250,230,0.18) 100%)', pointerEvents:'none' }}/>}
-
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                 <div>
                   <span style={{ color:ts.color, fontFamily:"'Cinzel',serif", fontSize:15, fontWeight:700, letterSpacing:"0.06em" }}>{ev.name}</span>

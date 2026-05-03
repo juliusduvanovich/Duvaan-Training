@@ -26,6 +26,11 @@ function loadProgram() {
 }
 function saveProgram(p) { try{localStorage.setItem(PROGRAM_KEY,JSON.stringify(p))}catch{} }
 
+// Read completed directly from localStorage — always fresh
+function readCompleted() {
+  try { return JSON.parse(localStorage.getItem('duvaan_completed')||'{}') } catch { return {} }
+}
+
 const PROGRAM = [
   {day:0,name:'Maanantai',focus:'Chest · Shoulder · Tricep',exercises:[
     {id:'mon1',name:'Pushups',sets:3,reps:'20',weight:null},{id:'mon2',name:'OH Pushups',sets:3,reps:'10',weight:null},
@@ -112,6 +117,21 @@ const css=`
   .edit-input{background:rgba(255,255,255,0.8);border:1px solid #6B1D2E;border-radius:8px;padding:6px 10px;color:#2a1008;font-family:'Cormorant Garamond',serif;font-size:13px;outline:none}
 `
 
+const TIER_METAL = {
+  member: {
+    border: 'linear-gradient(135deg, #d0d8e8 0%, #8899bb 25%, #e8eef8 50%, #6677aa 75%, #c0cce0 100%)',
+    shadow: '0 0 0 1px #8899bb, 0 0 20px rgba(160,180,220,0.3), inset 0 1px 0 rgba(240,245,255,0.5)',
+  },
+  builder: {
+    border: 'linear-gradient(135deg, #f0d060 0%, #a07820 25%, #f8e878 50%, #c09030 75%, #e8c848 100%)',
+    shadow: '0 0 0 1px #a07820, 0 0 24px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,240,180,0.5)',
+  },
+  creator: {
+    border: 'linear-gradient(135deg, #fff8e0 0%, #d4b860 20%, #fff0a0 40%, #e8d070 60%, #fff8d8 80%, #c8a040 100%)',
+    shadow: '0 0 0 1px #d4b860, 0 0 32px rgba(232,212,138,0.45), 0 0 60px rgba(232,212,138,0.2), inset 0 1px 0 rgba(255,252,230,0.8)',
+  },
+}
+
 const FREQ_LEVELS = [
   { name:'Member',  icon:'◈', color:'#C8D8F0', borderColor:'#B0C4DE', glowRgb:'180,200,230',
     boxBg:'linear-gradient(135deg,rgba(100,120,170,0.85) 0%,rgba(50,60,100,0.95) 50%,rgba(80,90,130,0.8) 100%)',
@@ -156,61 +176,25 @@ function SpringBtn({children,className,onClick,disabled,style}){
 }
 
 function ClubPennant({ name, color = "#C9A84C" }) {
-  // Pennant: rectangle body with triangular notch cut from right side
   const h = 28
   const textPad = 12
-  // Measure text width roughly: ~7px per char at fontSize 9 + padding
   const textW = Math.max(name.length * 6.5 + textPad * 2, 48)
-  const totalW = textW + 10 // extra for the pointed tail
-  const notchDepth = 9 // how deep the V-notch cuts in from right
-
-  // Shape: notch on LEFT — tip points left like an arrow
+  const totalW = textW + 10
+  const notchDepth = 9
   const points = [
-    [notchDepth, 0],
-    [totalW, 0],
-    [totalW, h],
-    [notchDepth, h],
-    [0, h / 2],
+    [notchDepth, 0],[totalW, 0],[totalW, h],[notchDepth, h],[0, h / 2],
   ].map(([x,y]) => `${x},${y}`).join(' ')
-
   return (
-    <svg
-      width={totalW}
-      height={h}
-      viewBox={`0 0 ${totalW} ${h}`}
-      style={{ display:'block', filter:`drop-shadow(0 0 4px ${color}55)` }}
-    >
+    <svg width={totalW} height={h} viewBox={`0 0 ${totalW} ${h}`} style={{ display:'block', filter:`drop-shadow(0 0 4px ${color}55)` }}>
       <defs>
         <linearGradient id={`pennant-${name.replace(/\s/g,'')}`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.18"/>
           <stop offset="100%" stopColor={color} stopOpacity="0.06"/>
         </linearGradient>
       </defs>
-      {/* Fill */}
-      <polygon
-        points={points}
-        fill={`url(#pennant-${name.replace(/\s/g,'')})`}
-        stroke={color}
-        strokeWidth="1"
-        strokeOpacity="0.55"
-      />
-      {/* Right anchor line */}
+      <polygon points={points} fill={`url(#pennant-${name.replace(/\s/g,'')})`} stroke={color} strokeWidth="1" strokeOpacity="0.55"/>
       <line x1={totalW} y1="0" x2={totalW} y2={h} stroke={color} strokeWidth="1.5" strokeOpacity="0.8"/>
-      {/* Text */}
-      <text
-        x={textW / 2}
-        y={h / 2 + 1}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={color}
-        fillOpacity="0.85"
-        fontFamily="'Cinzel', serif"
-        fontSize="8.5"
-        fontWeight="600"
-        letterSpacing="0.08em"
-      >
-        {name.toUpperCase()}
-      </text>
+      <text x={textW / 2} y={h / 2 + 1} textAnchor="middle" dominantBaseline="middle" fill={color} fillOpacity="0.85" fontFamily="'Cinzel', serif" fontSize="8.5" fontWeight="600" letterSpacing="0.08em">{name.toUpperCase()}</text>
     </svg>
   )
 }
@@ -249,69 +233,6 @@ function FrequencyCard(){
   )
 }
 
-function ChipGeometry({ color = "#C9A84C", opacity = 0.18 }) {
-  const W = 320, H = 200
-  const o = opacity
-  const elems = []
-
-  // ── YLÄREUNAN linjat alas päin ──
-  ;[30,55,80,110,140,170,200,230,260,290].forEach((x, i) => {
-    const len = 12 + (i%3)*8
-    elems.push(<line key={`t${i}`} x1={x} y1={0} x2={x} y2={len} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
-    if (i%2===0) elems.push(<circle key={`td${i}`} cx={x} cy={len} r="1.5" fill={color} fillOpacity={o*1.5}/>)
-    if (i%3===0) elems.push(<line key={`th${i}`} x1={x} y1={len} x2={x+(i%2===0?12:-12)} y2={len} stroke={color} strokeWidth="0.5" strokeOpacity={o}/>)
-  })
-
-  // ── ALAREUNAN linjat ylös päin ──
-  ;[25,60,90,120,155,185,215,245,275,300].forEach((x, i) => {
-    const len = 14 + (i%3)*7
-    elems.push(<line key={`b${i}`} x1={x} y1={H} x2={x} y2={H-len} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
-    if (i%2===1) elems.push(<circle key={`bd${i}`} cx={x} cy={H-len} r="1.5" fill={color} fillOpacity={o*1.5}/>)
-    if (i%3===1) elems.push(<line key={`bh${i}`} x1={x} y1={H-len} x2={x+(i%2===0?10:-10)} y2={H-len} stroke={color} strokeWidth="0.5" strokeOpacity={o}/>)
-  })
-
-  // ── VASEN REUNA oikealle päin ──
-  ;[18,40,62,84,106,128,150,172].forEach((y, i) => {
-    const len = 16 + (i%3)*8
-    elems.push(<line key={`l${i}`} x1={0} y1={y} x2={len} y2={y} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
-    if (i%2===0) elems.push(<rect key={`lr${i}`} x={len} y={y-2} width="5" height="4" fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={o*1.8}/>)
-  })
-
-  // ── OIKEA REUNA vasemmalle päin ──
-  ;[25,48,70,92,114,136,158,180].forEach((y, i) => {
-    const len = 18 + (i%3)*7
-    elems.push(<line key={`r${i}`} x1={W} y1={y} x2={W-len} y2={y} stroke={color} strokeWidth="0.6" strokeOpacity={o}/>)
-    if (i%2===1) elems.push(<rect key={`rr${i}`} x={W-len-5} y={y-2} width="5" height="4" fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={o*1.8}/>)
-  })
-
-  // ── KULMAORNAMENTIT ──
-  const cornerSize = 22
-  ;[[0,0,'M'],[W,0,'M'],[0,H,'M'],[W,H,'M']].forEach(([x,y,_],i) => {
-    const sx = i===1||i===3 ? -1 : 1
-    const sy = i===2||i===3 ? -1 : 1
-    elems.push(<path key={`ca${i}`} d={`M${x+sx*cornerSize},${y} L${x},${y} L${x},${y+sy*cornerSize}`}
-      fill="none" stroke={color} strokeWidth="1.2" strokeOpacity={o*3} strokeLinecap="round"/>)
-    elems.push(<path key={`cb${i}`} d={`M${x+sx*cornerSize*1.6},${y+sy*4} L${x+sx*4},${y+sy*4} L${x+sx*4},${y+sy*cornerSize*1.6}`}
-      fill="none" stroke={color} strokeWidth="0.5" strokeOpacity={o*2}/>)
-  })
-
-  // ── PIENI CPU/CHIP OIKEAAN ALAKULMAAN ──
-  const cx = W-52, cy = H-52, cs = 28
-  elems.push(<rect key="cpu" x={cx-cs/2} y={cy-cs/2} width={cs} height={cs} fill="none" stroke={color} strokeWidth="0.8" strokeOpacity={o*2.5}/>)
-  elems.push(<rect key="cpu2" x={cx-cs/2+4} y={cy-cs/2+4} width={cs-8} height={cs-8} fill="none" stroke={color} strokeWidth="0.4" strokeOpacity={o*2}/>)
-  for (let r=0; r<3; r++) for (let c=0; c<3; c++) {
-    elems.push(<circle key={`cpd${r}${c}`} cx={cx-7+c*7} cy={cy-7+r*7} r="1" fill={color} fillOpacity={o*1.8}/>)
-  }
-
-  return (
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
-      style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none' }}
-      preserveAspectRatio="xMidYMid slice">
-      {elems}
-    </svg>
-  )
-}
-
 function ShopSection(){
   const[cardOrdered,setCardOrdered]=useState(()=>{try{return localStorage.getItem('duvaan_card_ordered')==='true'}catch{return false}})
   return(
@@ -322,20 +243,17 @@ function ShopSection(){
           background: tier.boxBg,
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          border: `1.5px solid rgba(${tier.glowRgb},0.9)`,
-          boxShadow: `0 0 30px rgba(${tier.glowRgb},0.2), 0 0 1px rgba(${tier.glowRgb},0.6), inset 0 0 40px rgba(${tier.glowRgb},0.08)`,
           borderRadius:20, padding:'20px 18px 18px', marginBottom:14,
           position:'relative', overflow:'hidden',
+          boxShadow: TIER_METAL[TIER_NAME_MAP[tier.name]]?.shadow,
+          outline: '1.5px solid transparent',
+          backgroundClip: 'padding-box',
         }}>
-          {/* Top shimmer */}
+          <div style={{position:'absolute',inset:0,borderRadius:20,pointerEvents:'none',zIndex:10,background:TIER_METAL[TIER_NAME_MAP[tier.name]]?.border,WebkitMask:'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',WebkitMaskComposite:'xor',maskComposite:'exclude',padding:'1.5px'}}/>
           <div style={{position:'absolute',top:0,left:0,right:0,height:'1.5px',background:`linear-gradient(90deg,transparent,rgba(${tier.glowRgb},1) 50%,transparent)`}}/>
-          {/* Bottom shimmer */}
           <div style={{position:'absolute',bottom:0,left:0,right:0,height:'1px',background:`linear-gradient(90deg,transparent,rgba(${tier.glowRgb},0.5) 50%,transparent)`}}/>
-          {/* Inner top glow */}
           <div style={{position:'absolute',top:0,left:0,right:0,height:80,background:`radial-gradient(ellipse at 50% 0%,rgba(${tier.glowRgb},0.18) 0%,transparent 70%)`,pointerEvents:'none'}}/>
           {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(160deg,rgba(100,60,180,0.2) 0%,rgba(180,60,120,0.15) 30%,rgba(60,140,180,0.12) 70%,rgba(120,60,200,0.15) 100%)',pointerEvents:'none'}}/>}
-
-          {/* Header */}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
               <img src="/ElielGold.png" alt="" style={{width:28,height:28,objectFit:'contain',filter:TIER_ELIEL_FILTER[TIER_NAME_MAP[tier.name]]||TIER_ELIEL_FILTER.member,flexShrink:0}}/>
@@ -349,8 +267,6 @@ function ShopSection(){
               <span style={{color:`rgba(${tier.glowRgb},0.6)`,fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic'}}>/kk</span>
             </div>
           </div>
-
-          {/* Features */}
           <div style={{display:'flex',flexDirection:'column',gap:9,marginBottom:tier.btn?16:0}}>
             {tier.features.map(([title,desc])=>(
               <div key={title} style={{display:'flex',alignItems:'flex-start',gap:8}}>
@@ -362,27 +278,15 @@ function ShopSection(){
               </div>
             ))}
           </div>
-
           {tier.btn&&(
             <button onClick={() => {
               const pts = { 'Aktivoi Member': 0, 'Aktivoi Builder': 1000, 'Aktivoi Creator': 5000 }
               localStorage.setItem('duvaan_frequency', String(pts[tier.btn] ?? 0))
               window.location.reload()
-            }} style={{
-              width:'100%',padding:'12px 0',
-              background: tier.btnGold ? `rgba(${tier.glowRgb},0.2)` : `rgba(${tier.glowRgb},0.12)`,
-              border:`1.5px solid rgba(${tier.glowRgb},0.8)`,
-              borderRadius:13,
-              color:tier.color,
-              fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer',
-              textShadow:`0 0 12px rgba(${tier.glowRgb},0.5)`,
-              boxShadow:`0 0 16px rgba(${tier.glowRgb},0.15)`,
-            }}>{tier.btn}</button>
+            }} style={{width:'100%',padding:'12px 0',background:tier.btnGold?`rgba(${tier.glowRgb},0.2)`:`rgba(${tier.glowRgb},0.12)`,border:`1.5px solid rgba(${tier.glowRgb},0.8)`,borderRadius:13,color:tier.color,fontFamily:"'Cinzel',serif",fontSize:11,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer',textShadow:`0 0 12px rgba(${tier.glowRgb},0.5)`,boxShadow:`0 0 16px rgba(${tier.glowRgb},0.15)`}}>{tier.btn}</button>
           )}
         </div>
       ))}
-
-      {/* Duvaan Card */}
       <div style={{background:'rgba(255,255,255,0.18)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'1px solid rgba(201,168,76,0.4)',boxShadow:'0 0 24px rgba(201,168,76,0.1)',borderRadius:20,padding:'18px 20px',marginBottom:16,position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',top:0,left:0,right:0,height:'1px',background:'linear-gradient(90deg,transparent,rgba(201,168,76,0.8),transparent)'}}/>
         <p style={{color:GOLD,fontFamily:"'Cinzel',serif",fontSize:13,fontWeight:700,letterSpacing:'0.1em',margin:'0 0 14px'}}>Duvaan-kortti</p>
@@ -413,8 +317,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
   const progress=nextTier?Math.min(100,((points-tier.min)/(nextTier.min-tier.min))*100):100
   const[myClubs,setMyClubs]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_my_clubs')||'[]')}catch{return[]}})
   const photoInputRef=useRef(null)
-
-  // Smooth section transition
   const [visibleSection, setVisibleSection] = useState(section)
   const [transitioning, setTransitioning] = useState(false)
 
@@ -445,7 +347,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
 
   const toggleTag = tag => setForm(f => ({ ...f, tags: (f.tags||[]).includes(tag) ? (f.tags||[]).filter(t=>t!==tag) : [...(f.tags||[]),tag] }))
 
-  // ── Tab definitions
   const tabs = [
     { id: 'profile', label: 'Profiili' },
     { id: 'training', label: 'Gym' },
@@ -457,7 +358,6 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
 
   return(
     <div style={{marginBottom:28,animation:'fadeInUp 0.5s ease both'}}>
-      {/* ── SLIDER NAV replaces personal-subnav ── */}
       <CarouselNav
         tabs={tabs}
         active={visibleSection}
@@ -466,168 +366,113 @@ function ProfileSection({section,setSection,onOpenSettings,auraColor}){
         lineColor="#6B1D2E"
         textColor="#6B1D2E"
         rightSlot={
-          <button
-            onClick={onOpenSettings}
-            style={{background:'none',border:'none',cursor:'pointer',color:auraColor,lineHeight:1,opacity:0.7,transition:'opacity 0.2s', padding:0, display:'flex', alignItems:'center'}}
-            title="Asetukset"
-          >
+          <button onClick={onOpenSettings} style={{background:'none',border:'none',cursor:'pointer',color:'#6B1D2E',lineHeight:1,opacity:0.85,transition:'opacity 0.2s',padding:0,display:'flex',alignItems:'center'}} title="Asetukset">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="9" cy="9" r="2.5" stroke={auraColor} strokeWidth="1.2"/>
+              <circle cx="9" cy="9" r="2.5" stroke="#6B1D2E" strokeWidth="1.2"/>
               {[0,45,90,135,180,225,270,315].map((deg,i)=>{
-                const a = deg * Math.PI / 180
-                const x1 = 9 + 4.2*Math.cos(a), y1 = 9 + 4.2*Math.sin(a)
-                const x2 = 9 + 5.8*Math.cos(a), y2 = 9 + 5.8*Math.sin(a)
-                return <line key={i} x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)} stroke={auraColor} strokeWidth="1.4" strokeLinecap="round"/>
+                const a=deg*Math.PI/180
+                const x1=9+4.2*Math.cos(a),y1=9+4.2*Math.sin(a)
+                const x2=9+5.8*Math.cos(a),y2=9+5.8*Math.sin(a)
+                return <line key={i} x1={x1.toFixed(2)} y1={y1.toFixed(2)} x2={x2.toFixed(2)} y2={y2.toFixed(2)} stroke="#6B1D2E" strokeWidth="1.4" strokeLinecap="round"/>
               })}
-              <circle cx="9" cy="9" r="6.5" stroke={auraColor} strokeWidth="1" strokeOpacity="0.4"/>
+              <circle cx="9" cy="9" r="6.5" stroke="#6B1D2E" strokeWidth="1" strokeOpacity="0.5"/>
             </svg>
           </button>
         }
       />
-
       <div style={{height:20}}/>
-
-      <div style={{
-        opacity: transitioning ? 0 : 1,
-        transform: transitioning ? 'translateY(8px)' : 'translateY(0)',
-        transition: 'opacity 0.08s ease, transform 0.08s ease',
-      }}>
-      {visibleSection==='notes'&&<NotesView isClub={false}/>}
-      {visibleSection==='shop'&&<ShopSection/>}
-      {visibleSection==='profile'&&(
-        <div>
-          {!editing&&(
-            <div style={{
-              background: tier.boxBg,
-              border: `1.5px solid ${tier.borderColor}`,
-              boxShadow: `0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,
-              borderRadius:18, padding:'20px 18px', marginBottom:16,
-              position:'relative', overflow:'hidden',
-            }}>
-              {/* Top shimmer line */}
-              <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
-              {/* Creator rainbow overlay */}
-              {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(160deg, rgba(100,60,180,0.35) 0%, rgba(180,60,120,0.3) 20%, rgba(220,120,40,0.25) 40%, rgba(180,160,40,0.2) 60%, rgba(60,140,180,0.2) 80%, rgba(120,60,200,0.25) 100%)',pointerEvents:'none'}}/>}
-
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
-                <div style={{display:'flex',alignItems:'center',gap:14}}>
-                  <div style={{width:54,height:54,borderRadius:'50%',border:`1.5px solid ${tier.color}`,flexShrink:0,overflow:'hidden',background:'linear-gradient(135deg,#6B1D2E,#C9A84C)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    {displayPhoto
-                      ?<img src={displayPhoto} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
-                      :<span style={{fontSize:20,color:'#fff',fontFamily:"'Cinzel',serif",fontWeight:700}}>{displayName?.[0]?.toUpperCase()||'◈'}</span>
-                    }
-                  </div>
-                  <div>
-                    <p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,letterSpacing:'0.06em',margin:'0 0 3px'}}>{displayName||'—'}</p>
-                    <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-                      <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:10,fontWeight:600,letterSpacing:'0.12em'}}>{tier.icon} {tier.name}</span>
-                      {profile?.location&&<span style={{color:'rgba(201,168,76,0.45)',fontFamily:"'Cormorant Garamond',serif",fontSize:12}}>· 📍 {profile.location}</span>}
+      <div style={{opacity:transitioning?0:1,transform:transitioning?'translateY(8px)':'translateY(0)',transition:'opacity 0.08s ease, transform 0.08s ease'}}>
+        {visibleSection==='notes'&&<NotesView isClub={false}/>}
+        {visibleSection==='shop'&&<ShopSection/>}
+        {visibleSection==='profile'&&(
+          <div>
+            {!editing&&(
+              <div style={{background:tier.boxBg,border:`1.5px solid ${tier.borderColor}`,boxShadow:`0 0 24px ${tier.innerGlow}, inset 0 0 32px ${tier.innerGlow}`,borderRadius:18,padding:'20px 18px',marginBottom:16,position:'relative',overflow:'hidden'}}>
+                <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${tier.borderColor},transparent)`}}/>
+                {tier.master&&<div style={{position:'absolute',inset:0,background:'linear-gradient(160deg, rgba(100,60,180,0.35) 0%, rgba(180,60,120,0.3) 20%, rgba(220,120,40,0.25) 40%, rgba(180,160,40,0.2) 60%, rgba(60,140,180,0.2) 80%, rgba(120,60,200,0.25) 100%)',pointerEvents:'none'}}/>}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
+                  <div style={{display:'flex',alignItems:'center',gap:14}}>
+                    <div style={{width:54,height:54,borderRadius:'50%',border:`1.5px solid ${tier.color}`,flexShrink:0,overflow:'hidden',background:'linear-gradient(135deg,#6B1D2E,#C9A84C)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      {displayPhoto?<img src={displayPhoto} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>:<span style={{fontSize:20,color:'#fff',fontFamily:"'Cinzel',serif",fontWeight:700}}>{displayName?.[0]?.toUpperCase()||'◈'}</span>}
+                    </div>
+                    <div>
+                      <p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,letterSpacing:'0.06em',margin:'0 0 3px',textShadow:`0 0 16px rgba(${tier.glowRgb||'201,168,76'},0.7)`}}>{displayName||'—'}</p>
+                      <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+                        <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:10,fontWeight:600,letterSpacing:'0.12em'}}>{tier.icon} {tier.name}</span>
+                        {profile?.location&&<span style={{color:tier.color,fontFamily:"'Cormorant Garamond',serif",fontSize:12,opacity:0.8}}>· 📍 {profile.location}</span>}
+                      </div>
                     </div>
                   </div>
+                  <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'rgba(107,29,46,0.4)',border:`1.5px solid ${tier.color}`,borderRadius:8,padding:'6px 14px',color:tier.color,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.1em',fontWeight:600,cursor:'pointer',flexShrink:0}}>Muokkaa</button>
                 </div>
-                <button onClick={()=>{setForm(profile||{name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:'rgba(107,29,46,0.4)',border:`1.5px solid ${tier.color}`,borderRadius:8,padding:'6px 14px',color:tier.color,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.1em',fontWeight:600,cursor:'pointer',flexShrink:0}}>Muokkaa</button>
-              </div>
-
-              <div style={{marginBottom:14}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}}>
-                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',opacity:0.8}}>Frequency</span>
-                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700,textShadow:`0 0 12px ${tier.color}88`}}>{points.toLocaleString()} <span style={{fontSize:8,opacity:0.6,fontWeight:400}}>p</span></span>
+                <div style={{marginBottom:14}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:6}}>
+                    <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.2em',textTransform:'uppercase',fontWeight:700}}>Frequency</span>
+                    <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:18,fontWeight:700,textShadow:`0 0 12px ${tier.color}88`}}>{points.toLocaleString()} <span style={{fontSize:9,fontWeight:500}}>p</span></span>
+                  </div>
+                  <div style={{background:'rgba(255,255,255,0.12)',borderRadius:4,height:3,overflow:'hidden',marginBottom:5}}>
+                    <div style={{height:'100%',borderRadius:4,width:progress+'%',background:nextTier?`linear-gradient(90deg,${tier.color},${nextTier.color})`:tier.color,boxShadow:`0 0 8px ${tier.color}`,transition:'width 0.8s ease'}}/>
+                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between'}}>
+                    <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,fontWeight:700}}>{tier.icon} {tier.name}</span>
+                    {nextTier?<span style={{color:nextTier.color,fontFamily:"'Cinzel',serif",fontSize:8,fontWeight:700}}>{nextTier.icon} {nextTier.name} — {nextTier.min.toLocaleString()} p</span>:<span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,fontStyle:'italic',fontWeight:600}}>Huipulla ✸</span>}
+                  </div>
                 </div>
-                <div style={{background:'rgba(255,255,255,0.12)',borderRadius:4,height:3,overflow:'hidden',marginBottom:5}}>
-                  <div style={{height:'100%',borderRadius:4,width:progress+'%',background:nextTier?`linear-gradient(90deg,${tier.color},${nextTier.color})`:tier.color,boxShadow:`0 0 8px ${tier.color}`,transition:'width 0.8s ease'}}/>
-                </div>
-                <div style={{display:'flex',justifyContent:'space-between'}}>
-                  <span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,opacity:0.85}}>{tier.icon} {tier.name}</span>
-                  {nextTier
-                    ?<span style={{color:nextTier.color,fontFamily:"'Cinzel',serif",fontSize:8,opacity:0.85}}>{nextTier.icon} {nextTier.name} — {nextTier.min.toLocaleString()} p</span>
-                    :<span style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,fontStyle:'italic',opacity:0.7}}>Huipulla ✸</span>
+                <div style={{borderTop:`0.5px solid ${tier.color}44`,paddingTop:12}}>
+                  <p style={{color:tier.color,fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 10px',fontWeight:700}}>Klubit</p>
+                  {myClubs.length>0
+                    ?<div style={{display:'flex',flexWrap:'wrap',gap:8}}>{myClubs.map(c=><ClubPennant key={c.id} name={c.name} color={tier.color}/>)}</div>
+                    :<p style={{color:'rgba(201,168,76,0.3)',fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic',margin:0}}>Ei klubeja vielä — liity Community-osiossa.</p>
                   }
                 </div>
-              </div>
-
-              <div style={{borderTop:'0.5px solid rgba(201,168,76,0.1)',paddingTop:12}}>
-                <p style={{color:'rgba(201,168,76,0.35)',fontFamily:"'Cinzel',serif",fontSize:8,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 10px'}}>Klubit</p>
-                {myClubs.length>0
-                  ?<div style={{display:'flex',flexWrap:'wrap',gap:8}}>
-                    {myClubs.map(c=>(
-                      <ClubPennant key={c.id} name={c.name} color={tier.color}/>
-                    ))}
+                {!profile&&(
+                  <div style={{borderTop:`0.5px solid ${tier.color}44`,paddingTop:12,marginTop:12,textAlign:'center'}}>
+                    <button onClick={()=>{setForm({name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:BURGUNDY,border:'1px solid rgba(201,168,76,0.4)',borderRadius:10,padding:'9px 20px',color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Luo profiili</button>
                   </div>
-                  :<p style={{color:'rgba(201,168,76,0.3)',fontFamily:"'Cormorant Garamond',serif",fontSize:12,fontStyle:'italic',margin:0}}>Ei klubeja vielä — liity Community-osiossa.</p>
-                }
+                )}
               </div>
-
-              {!profile&&(
-                <div style={{borderTop:'0.5px solid rgba(201,168,76,0.1)',paddingTop:12,marginTop:12,textAlign:'center'}}>
-                  <button onClick={()=>{setForm({name:'',location:'',bio:'',tags:[],photo:null});setEditing(true)}} style={{background:BURGUNDY,border:'1px solid rgba(201,168,76,0.4)',borderRadius:10,padding:'9px 20px',color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Luo profiili</button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {editing&&(
-            <div style={{background:'rgba(255,255,255,0.65)',border:'1px solid rgba(201,168,76,0.4)',borderRadius:14,padding:'18px 16px',marginBottom:16}}>
-              <div style={{display:'flex',flexDirection:'column',gap:14}}>
-                <div style={{display:'flex',alignItems:'center',gap:14}}>
-                  <div
-                    onClick={()=>photoInputRef.current?.click()}
-                    style={{width:60,height:60,borderRadius:'50%',border:'1.5px dashed rgba(201,168,76,0.4)',flexShrink:0,overflow:'hidden',background:'rgba(255,255,255,0.65)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}
-                  >
-                    {form.photo
-                      ?<img src={form.photo} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
-                      :<span style={{fontSize:20,color:'rgba(201,168,76,0.3)'}}>+</span>
-                    }
+            )}
+            {editing&&(
+              <div style={{background:'rgba(255,255,255,0.65)',border:'1px solid rgba(201,168,76,0.4)',borderRadius:14,padding:'18px 16px',marginBottom:16}}>
+                <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                  <div style={{display:'flex',alignItems:'center',gap:14}}>
+                    <div onClick={()=>photoInputRef.current?.click()} style={{width:60,height:60,borderRadius:'50%',border:'1.5px dashed rgba(201,168,76,0.4)',flexShrink:0,overflow:'hidden',background:'rgba(255,255,255,0.65)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}>
+                      {form.photo?<img src={form.photo} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>:<span style={{fontSize:20,color:'rgba(201,168,76,0.3)'}}>+</span>}
+                    </div>
+                    <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhoto} style={{display:'none'}}/>
+                    <div>
+                      <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',margin:'0 0 4px'}}>Profiilikuva</p>
+                      <button onClick={()=>photoInputRef.current?.click()} style={{background:'none',border:'1px solid rgba(201,168,76,0.3)',borderRadius:8,padding:'5px 12px',color:'rgba(201,168,76,0.6)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.1em',cursor:'pointer'}}>{form.photo?'Vaihda kuva':'Lisää kuva'}</button>
+                    </div>
                   </div>
-                  <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhoto} style={{display:'none'}}/>
+                  {[['Nimi','name','Julius Duvaan'],['Paikkakunta','location','Helsinki']].map(([label,field,ph])=>(
+                    <div key={field}>
+                      <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>{label}</p>
+                      <input className="num-input" style={{width:'100%',boxSizing:'border-box',textAlign:'left',padding:'11px 14px'}} value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}/>
+                    </div>
+                  ))}
                   <div>
-                    <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.14em',textTransform:'uppercase',margin:'0 0 4px'}}>Profiilikuva</p>
-                    <button onClick={()=>photoInputRef.current?.click()} style={{background:'none',border:'1px solid rgba(201,168,76,0.3)',borderRadius:8,padding:'5px 12px',color:'rgba(201,168,76,0.6)',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.1em',cursor:'pointer'}}>
-                      {form.photo?'Vaihda kuva':'Lisää kuva'}
-                    </button>
+                    <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>Bio</p>
+                    <textarea className="num-input" style={{width:'100%',boxSizing:'border-box',textAlign:'left',padding:'11px 14px',resize:'none',fontFamily:"'Cormorant Garamond',serif",fontSize:14}} rows={2} value={form.bio||''} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} placeholder="Solisti, säveltäjä..."/>
                   </div>
-                </div>
-
-                {[['Nimi','name','Julius Duvaan'],['Paikkakunta','location','Helsinki']].map(([label,field,ph])=>(
-                  <div key={field}>
-                    <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>{label}</p>
-                    <input className="num-input" style={{width:'100%',boxSizing:'border-box',textAlign:'left',padding:'11px 14px'}} value={form[field]||''} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} placeholder={ph}/>
+                  <div>
+                    <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 10px'}}>Tagit</p>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7}}>
+                      {PERSONAL_TAGS.map(tag=>{
+                        const sel=(form.tags||[]).includes(tag)
+                        return <button key={tag} onClick={()=>toggleTag(tag)} style={{background:sel?'#6B1D2E':'rgba(255,255,255,0.7)',border:'1.5px solid #6B1D2E',borderRadius:10,padding:'8px 6px',cursor:'pointer',color:sel?tier.color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.08em',textAlign:'center',transition:'all 0.15s',fontWeight:700}}>{tag}</button>
+                      })}
+                    </div>
                   </div>
-                ))}
-
-                <div>
-                  <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 6px'}}>Bio</p>
-                  <textarea className="num-input" style={{width:'100%',boxSizing:'border-box',textAlign:'left',padding:'11px 14px',resize:'none',fontFamily:"'Cormorant Garamond',serif",fontSize:14}} rows={2} value={form.bio||''} onChange={e=>setForm(f=>({...f,bio:e.target.value}))} placeholder="Solisti, säveltäjä..."/>
-                </div>
-
-                <div>
-                  <p style={{color:'#6B1D2E',fontFamily:"'Cinzel',serif",fontSize:9,letterSpacing:'0.18em',textTransform:'uppercase',margin:'0 0 10px'}}>Tagit</p>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7}}>
-                    {PERSONAL_TAGS.map(tag=>{
-                      const sel=(form.tags||[]).includes(tag)
-                      return(
-                        <button key={tag} onClick={()=>toggleTag(tag)} style={{
-                          background: sel ? '#6B1D2E' : 'rgba(255,255,255,0.7)',
-                          border: '1.5px solid #6B1D2E',
-                          borderRadius:10, padding:'8px 6px', cursor:'pointer',
-                          color: sel ? tier.color : '#6B1D2E',
-                          fontFamily:"'Cinzel',serif", fontSize:9, letterSpacing:'0.08em',
-                          textAlign:'center', transition:'all 0.15s',
-                          fontWeight: 700,
-                        }}>{tag}</button>
-                      )
-                    })}
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={save} style={{flex:1,padding:12,background:BURGUNDY,border:'1.5px solid #C9A84C',borderRadius:12,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Tallenna</button>
+                    <button onClick={()=>setEditing(false)} style={{padding:'12px 16px',background:'none',border:'1px solid rgba(201,168,76,0.25)',borderRadius:12,color:'rgba(201,168,76,0.5)',fontFamily:"'Cinzel',serif",fontSize:10,cursor:'pointer'}}>Peruuta</button>
                   </div>
-                </div>
-
-                <div style={{display:'flex',gap:8}}>
-                  <button onClick={save} style={{flex:1,padding:12,background:BURGUNDY,border:'1.5px solid #C9A84C',borderRadius:12,color:GOLD,fontFamily:"'Cinzel',serif",fontSize:10,letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Tallenna</button>
-                  <button onClick={()=>setEditing(false)} style={{padding:'12px 16px',background:'none',border:'1px solid rgba(201,168,76,0.25)',borderRadius:12,color:'rgba(201,168,76,0.5)',fontFamily:"'Cinzel',serif",fontSize:10,cursor:'pointer'}}>Peruuta</button>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -644,7 +489,10 @@ export default function PersonalView({ onOpenSettings, settings }){
   const[step,setStep]=useState(0)
   const[answers,setAnswers]=useState(saved||{gender:null,age:'',height:'',weight:'',frequency:null,level:null,equipment:null,goal:null,extra:''})
   const[expanded,setExpanded]=useState(null)
-  const[completed,setCompleted]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_completed')||'{}')}catch{return{}}})
+
+  // completed state — always sync FROM localStorage
+  const[completed,setCompleted]=useState(readCompleted)
+
   const[personalSection,setPersonalSection]=useState('profile')
   const[showToolbox,setShowToolbox]=useState(false)
   const[activeTools,setActiveTools]=useState(()=>{try{return JSON.parse(localStorage.getItem('duvaan_active_tools')||'["gym"]')}catch{return['gym']}})
@@ -656,14 +504,28 @@ export default function PersonalView({ onOpenSettings, settings }){
     localStorage.setItem('duvaan_active_tools',JSON.stringify(updated))
   }
 
+  // Sync completed on focus/visibility
   useEffect(()=>{
-    const sync=()=>{try{setCompleted(JSON.parse(localStorage.getItem('duvaan_completed')||'{}'))}catch{}}
-    window.addEventListener('focus',sync);document.addEventListener('visibilitychange',sync)
+    const sync=()=>setCompleted(readCompleted())
+    window.addEventListener('focus',sync)
+    document.addEventListener('visibilitychange',sync)
     return()=>{window.removeEventListener('focus',sync);document.removeEventListener('visibilitychange',sync)}
   },[])
 
-  const markDone=i=>{const key=`${new Date().toISOString().split('T')[0]}_${i}`;const cur=(()=>{try{return JSON.parse(localStorage.getItem('duvaan_completed')||'{}')}catch{return{}}})();const upd={...cur,[key]:true};setCompleted(upd);localStorage.setItem('duvaan_completed',JSON.stringify(upd));setExpanded(null)}
-  const isDone=i=>completed[`${new Date().toISOString().split('T')[0]}_${i}`]===true
+  // ── FIXED markDone: write localStorage first, then update state, no setExpanded ──
+  const markDone = useCallback((i) => {
+    const key = `${new Date().toISOString().split('T')[0]}_${i}`
+    const cur = readCompleted()
+    const upd = { ...cur, [key]: true }
+    // Write first, update state after
+    localStorage.setItem('duvaan_completed', JSON.stringify(upd))
+    setCompleted(upd)
+    // Don't close the card — let user see the ✓ confirmation
+  }, [])
+
+  const isDone = useCallback((i) => {
+    return completed[`${new Date().toISOString().split('T')[0]}_${i}`] === true
+  }, [completed])
 
   const[editingDay,setEditingDay]=useState(null)
   const[drafts,setDrafts]=useState({})
@@ -694,7 +556,7 @@ export default function PersonalView({ onOpenSettings, settings }){
         <div style={{minHeight:'100vh',padding:'48px 24px 100px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'24px',animation:'fadeInUp 0.6s ease both'}}>
             <div>
-              <h2 style={{color:'#6B1D2E',fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 30px ${auraColor}66, 0 0 60px ${auraColor}33`,}}>Personal</h2>
+              <h2 style={{color:'#6B1D2E',fontSize:'22px',fontWeight:700,letterSpacing:'0.1em',margin:0,fontFamily:"'Cinzel',serif",textShadow:`0 0 30px ${auraColor}66, 0 0 60px ${auraColor}33`}}>Personal</h2>
               <p style={{color:'#6B1D2E',fontSize:'12px',letterSpacing:'0.14em',margin:'4px 0 0',textTransform:'uppercase',fontWeight:600,fontFamily:"'Cinzel',serif"}}>{new Date().toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long'})}</p>
             </div>
           </div>
@@ -707,14 +569,15 @@ export default function PersonalView({ onOpenSettings, settings }){
               </div>
               {program.map((day,i)=>{
                 const isToday=i===todayIdx,isOpen=expanded===i,isEditingThis=editingDay===i
+                const done = isDone(i)
                 return(
-                  <div key={i} className={`day-card ${isToday?'today':''}`} style={isDone(i)?{borderColor:'rgba(110,255,160,0.3)'}:{}}>
+                  <div key={i} className={`day-card ${isToday?'today':''}`} style={done?{borderColor:'rgba(110,255,160,0.4)',boxShadow:'0 0 12px rgba(110,255,160,0.15)'}:{}}>
                     <div className="day-header" onClick={()=>!isEditingThis&&setExpanded(isOpen?null:i)}>
                       <div>
                         <p className={isToday?"today-name":""} style={{color:isToday?'#6B1D2E':'#2a1008',fontSize:'14px',fontWeight:isToday?700:600,letterSpacing:'0.08em',margin:0,marginBottom:'4px',fontFamily:"'Cinzel',serif"}}>
                           {day.name}
                           {isToday&&<span style={{fontSize:'9px',marginLeft:'10px',opacity:0.7,fontWeight:400}}>— tänään</span>}
-                          {isDone(i)&&<span style={{fontSize:'9px',marginLeft:'10px',color:'#6effa0',fontWeight:400}}>✓ tehty</span>}
+                          {done&&<span style={{fontSize:'9px',marginLeft:'10px',color:'#6effa0',fontWeight:400}}>✓ tehty</span>}
                         </p>
                         <p style={{color:'#6B1D2E',fontSize:'12px',fontStyle:'italic',margin:0,fontFamily:"'Cormorant Garamond',serif"}}>{day.focus}</p>
                       </div>
@@ -750,9 +613,43 @@ export default function PersonalView({ onOpenSettings, settings }){
                                 <span style={{color:'#6B1D2E',fontSize:'16px',fontStyle:'italic',fontFamily:"'Cormorant Garamond',serif",fontWeight:500}}>{formatSets(ex)}</span>
                               </div>
                             ))}
-                            <button onClick={e=>{e.stopPropagation();startEditDay(i)}} style={{width:'100%',padding:'10px',background:'none',border:'none',borderTop:'1px solid #C9A84C',color:'#C9A84C',fontFamily:"'Cinzel',serif",fontSize:'9px',letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}>Muokkaa päivää</button>
-                            {!isDone(i)&&<button onClick={e=>{e.stopPropagation();markDone(i)}} style={{width:'100%',padding:'14px',background:'rgba(30,120,60,0.15)',border:'none',borderTop:'2px solid rgba(46,180,90,0.5)',color:'#2a9a50',fontFamily:"'Cinzel',serif",fontSize:'12px',letterSpacing:'0.18em',textTransform:'uppercase',cursor:'pointer',fontWeight:700}}>✓ Done</button>}
-                            {isDone(i)&&<div style={{width:'100%',padding:'14px',textAlign:'center',borderTop:'1px solid rgba(46,180,90,0.2)',color:'#2a9a50',fontFamily:"'Cinzel',serif",fontSize:'11px',letterSpacing:'0.18em',textTransform:'uppercase',fontWeight:600}}>✓ Suoritettu</div>}
+                            <button
+                              onClick={e=>{ e.stopPropagation(); startEditDay(i) }}
+                              style={{width:'100%',padding:'10px',background:'none',border:'none',borderTop:'1px solid #C9A84C',color:'#C9A84C',fontFamily:"'Cinzel',serif",fontSize:'9px',letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer'}}
+                            >Muokkaa päivää</button>
+
+                            {/* ── DONE BUTTON — fixed for mobile ── */}
+                            {!done && (
+                              <button
+                                onPointerDown={e => {
+                                  e.stopPropagation()
+                                  e.preventDefault()
+                                  markDone(i)
+                                }}
+                                style={{
+                                  width:'100%', padding:'16px',
+                                  background:'rgba(30,120,60,0.15)',
+                                  border:'none',
+                                  borderTop:'2px solid rgba(46,180,90,0.5)',
+                                  color:'#2a9a50',
+                                  fontFamily:"'Cinzel',serif",
+                                  fontSize:'13px',
+                                  letterSpacing:'0.18em',
+                                  textTransform:'uppercase',
+                                  cursor:'pointer',
+                                  fontWeight:700,
+                                  WebkitTapHighlightColor: 'transparent',
+                                  touchAction: 'manipulation',
+                                }}
+                              >
+                                ✓ Done
+                              </button>
+                            )}
+                            {done && (
+                              <div style={{width:'100%',padding:'16px',textAlign:'center',borderTop:'1px solid rgba(46,180,90,0.3)',color:'#6effa0',fontFamily:"'Cinzel',serif",fontSize:'12px',letterSpacing:'0.18em',textTransform:'uppercase',fontWeight:600,background:'rgba(30,120,60,0.08)'}}>
+                                ✓ Suoritettu
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
@@ -765,14 +662,8 @@ export default function PersonalView({ onOpenSettings, settings }){
           <div style={{display:'flex',justifyContent:'center',paddingTop:24,paddingBottom:8}}>
             <ChestButton onOpen={()=>setShowToolbox(true)}/>
           </div>
-
           {showToolbox&&(
-            <ToolboxView
-              onClose={()=>setShowToolbox(false)}
-              onAddTool={addTool}
-              activeTools={activeTools}
-              onAddHomeNote={notes=>{ setHomeNotes(notes); localStorage.setItem('duvaan_home_notes',JSON.stringify(notes)); }}
-            />
+            <ToolboxView onClose={()=>setShowToolbox(false)} onAddTool={addTool} activeTools={activeTools} onAddHomeNote={notes=>{ setHomeNotes(notes); localStorage.setItem('duvaan_home_notes',JSON.stringify(notes)); }}/>
           )}
         </div>
       </>

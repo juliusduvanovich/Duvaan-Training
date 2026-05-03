@@ -47,44 +47,36 @@ const css = `
     0%,100% { opacity:0.85; }
     50%     { opacity:1; filter:brightness(1.4); }
   }
-  html, body { overflow-x: hidden; overscroll-behavior: none; }
+
+  html, body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
   :root { --aura-color: #C9A84C; }
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--aura-color); border-radius: 2px; }
-  * { scrollbar-width: thin; scrollbar-color: var(--aura-color) transparent; }
+
+  /* Scrollbar scoped to the app container — stays inside the phone frame */
+  .scrollable-view::-webkit-scrollbar { width: 3px; }
+  .scrollable-view::-webkit-scrollbar-track { background: transparent; }
+  .scrollable-view::-webkit-scrollbar-thumb { background: var(--aura-color); border-radius: 2px; }
+  .scrollable-view { scrollbar-width: thin; scrollbar-color: var(--aura-color) transparent; }
 `
 
 function OrnamentNav({ tab, switchTab, auraColor, auraShadow }) {
   const tabs   = ['personal','eliel','community']
   const labels = ['Personal','Eliel','Community']
   const activeIdx = tabs.indexOf(tab)
-  const hotspotPct = 50
 
-  const isLight = tab !== 'eliel'
+  const lineColor = '#6B1D2E'
   return (
     <div style={{
       position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)',
       width:'100%', maxWidth:'480px',
-      background: tab === 'eliel'
-        ? 'linear-gradient(to bottom, rgba(20,4,10,0.0) 0%, rgba(20,4,10,0.85) 18%, rgba(15,3,8,0.97) 50%)'
-        : 'linear-gradient(to bottom, rgba(245,240,232,0) 0%, rgba(245,240,232,0.92) 18%, rgba(245,240,232,0.98) 50%)',
+      zIndex:100,
+      background: 'rgba(245,240,232,0.97)',
       backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)',
-      zIndex:100, display:'flex', flexDirection:'column',
+      borderTop: `1.5px solid`,
+      borderImage: `linear-gradient(90deg, transparent 0%, ${lineColor} 30%, ${lineColor} 70%, transparent 100%) 1`,
     }}>
-      <svg style={{ display:'block', width:'100%', height:6, overflow:'visible', flexShrink:0 }} viewBox="0 0 100 6" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="dockLineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0"/>
-            <stop offset="20%"  stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0.8"/>
-            <stop offset="50%"  stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="1"/>
-            <stop offset="80%"  stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0.8"/>
-            <stop offset="100%" stopColor={isLight?"#6B1D2E":auraColor} stopOpacity="0"/>
-          </linearGradient>
-        </defs>
-        <path d="M0,5 Q50,1 100,5" fill="none" stroke="url(#dockLineGrad)" strokeWidth="1"/>
-      </svg>
-
       <div style={{ position:'relative', height:60, overflow:'hidden' }}>
         {tabs.map((t, i) => {
           let offset = i - activeIdx
@@ -250,13 +242,13 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem('duvaan_settings') || 'null') || { aura:'gold', bgImage:null, showClock:true, shortcuts:['','',''], pushNotifications:false, dailyCheckin:false, elielMemory:true } }
     catch { return { aura:'gold', bgImage:null, showClock:true, shortcuts:['','',''], pushNotifications:false, dailyCheckin:false, elielMemory:true } }
   })
-  const [transitioning, setTransitioning] = useState(false)
-  const [exitClass] = useState('')
-  const [enterClass] = useState('')
 
   useEffect(() => {
     document.body.style.background = '#0a0208'
     document.documentElement.style.background = '#0a0208'
+    // Prevent body scroll — all scrolling happens inside .scrollable-view
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
     return () => {}
   }, [])
 
@@ -270,7 +262,6 @@ export default function App() {
     localStorage.setItem('duvaan_settings', JSON.stringify(s))
   }
 
-  // Read bgImage from its own key
   const bgImage = (() => { try { return localStorage.getItem('duvaan_bg_image') || settings.bgImage || null } catch { return null } })()
 
   const AURA_COLORS  = { red:"#FF3333", orange:"#FF8C00", gold:"#C9A84C", green:"#44CC77", lightblue:"#55CCFF", indigo:"#4455CC", purple:"#9933CC", white:"#E8E8FF" }
@@ -293,16 +284,36 @@ export default function App() {
 
   return (
     <>
-    <div style={{ background: tab === 'eliel' ? '#1a0810' : '#f5f0e8', minHeight:'100vh', maxWidth:'480px', margin:'0 auto', position:'relative', zIndex:1, overflowX:'hidden', transition:'background 0.3s ease' }}>
+    <div style={{
+      background:'#f5f0e8',
+      height:'100vh',
+      maxWidth:'480px',
+      margin:'0 auto',
+      position:'relative',
+      zIndex:1,
+      overflow:'hidden', // no scroll on the outer wrapper
+      transition:'background 0.3s ease',
+    }}>
       <style>{css}</style>
       {bgImage && (
-        <img src={bgImage} style={{ position:'fixed', top:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:'480px', height:'100%', objectFit:'cover', objectPosition:'center', opacity:0.18, pointerEvents:'none', zIndex:0 }} alt=""/>
+        <img src={bgImage} style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center', opacity:0.18, pointerEvents:'none', zIndex:0 }} alt=""/>
       )}
       <SacredGeometry tab={tab} auraColor={auraColor} />
+
+      {/* Scrollable content — scrollbar appears on the RIGHT edge of this 480px container */}
       <div
         className={tab !== 'eliel' ? 'scrollable-view' : ''}
-        style={{ position:'relative', zIndex:2, minHeight:'calc(100vh - 120px)', paddingBottom:'110px', contain:'layout style',
-          ...(tab === 'eliel' ? { overflow:'hidden', height:'100vh' } : {}),
+        style={{
+          position:'relative',
+          zIndex:2,
+          height:'100vh',
+          paddingBottom:'110px',
+          boxSizing:'border-box',
+          contain:'layout style',
+          ...(tab !== 'eliel'
+            ? { overflowY:'auto', overflowX:'hidden' }
+            : { overflow:'hidden' }
+          ),
         }}
       >
         <style>{`.scrollable-view { --aura-color: ${auraColor}; }`}</style>
@@ -310,6 +321,7 @@ export default function App() {
         {tab === 'personal'  && <PersonalView onNavigate={switchTab} onOpenSettings={() => setShowSettings(true)} settings={settings} />}
         {tab === 'community' && <CommunityView onNavigate={switchTab} settings={settings} />}
       </div>
+
       <OrnamentNav tab={tab} switchTab={switchTab} auraColor={dockColor} auraShadow={dockShadow} />
     </div>
 
